@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sikhay After-Sales &amp; Feedback — Stage 7</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.14.0/dist/tabler-icons.min.css">
+<style>
+:root {
+  --bg:       #0a0a0a;
+  --surface:  #141414;
+  --surface2: #1e1e1e;
+  --border:   #2a2a2a;
+  --text:     #f0f0f0;
+  --muted:    #888;
+  --blue:     #3b82f6;
+  --purple:   #8b5cf6;
+  --amber:    #f59e0b;
+  --green:    #22c55e;
+  --danger:   #ef4444;
+  --pink:     #ec4899;
+  --star:     #fbbf24;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; min-height: 100vh; font-size: 14px; }
+
+/* ── HEADER ── */
+.header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; }
+.logo-box { width: 38px; height: 38px; flex-shrink: 0; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 11px; color: var(--pink); }
+.header-text { flex: 1; }
+.header-title { font-size: 17px; font-weight: 700; letter-spacing: .3px; }
+.header-subtitle { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.header-right { display: flex; gap: 8px; }
+
+/* ── STATS ── */
+.stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 18px 24px 10px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; cursor: pointer; transition: border-color .2s; user-select: none; }
+.stat-card:hover { border-color: #3a3a3a; }
+.stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .7px; margin-bottom: 6px; }
+.stat-count { font-size: 28px; font-weight: 700; }
+.s-total    .stat-count { color: var(--muted); }
+.s-feedback .stat-count { color: var(--blue); }
+.s-happy    .stat-count { color: var(--star); }
+.s-complaint .stat-count { color: var(--danger); }
+
+/* ── MAIN ── */
+.main { display: grid; grid-template-columns: 290px 1fr; padding: 0 24px 24px; gap: 0; height: calc(100vh - 182px); min-height: 500px; }
+
+/* ── LEFT ── */
+.list-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; display: flex; flex-direction: column; overflow: hidden; }
+.list-head { padding: 12px 16px 10px; border-bottom: 1px solid var(--border); font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .7px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.list-tabs { padding: 10px 16px 0; flex-shrink: 0; display: flex; gap: 5px; flex-wrap: wrap; }
+.ltab { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-family: inherit; transition: all .15s; white-space: nowrap; }
+.ltab:hover { background: var(--surface2); color: var(--text); }
+.ltab.active { background: var(--surface2); color: var(--text); border-color: #555; }
+.list-body { overflow-y: auto; flex: 1; }
+
+/* ── ORDER ITEM ── */
+.order-item { padding: 11px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background .15s; user-select: none; }
+.order-item:hover { background: var(--surface2); }
+.order-item.sel { background: var(--surface2); border-left: 3px solid var(--blue); padding-left: 13px; }
+.oi-name { font-size: 13px; font-weight: 700; margin-bottom: 2px; display: flex; align-items: center; gap: 6px; }
+.oi-meta { font-size: 11px; color: var(--muted); margin-bottom: 5px; }
+.oi-foot { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.sdot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; background: var(--green); }
+.mini-stars { display: flex; gap: 1px; font-size: 11px; color: var(--star); }
+.mini-stars .e { color: #3a3a3a; }
+
+/* ── DETAIL ── */
+.detail-panel { margin-left: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+.empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--muted); gap: 10px; }
+.empty-state i { font-size: 48px; opacity: .3; }
+.empty-state p { font-size: 13px; opacity: .6; }
+
+/* ── SECTION CARD ── */
+.sec { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; flex-shrink: 0; }
+.sec-head { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.sec-body { padding: 16px; }
+
+/* ── ORDER HEADER ── */
+.ord-hdr { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; flex-shrink: 0; display: flex; align-items: flex-start; justify-content: space-between; }
+.oh-client { font-size: 19px; font-weight: 800; margin-bottom: 4px; }
+.oh-meta { font-size: 12px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; }
+.oh-dlv { font-size: 11px; color: var(--green); display: flex; align-items: center; gap: 4px; margin-top: 6px; }
+
+/* ── STAR RATING ── */
+.star-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.stars { display: flex; gap: 4px; }
+.star-btn { background: transparent; border: none; cursor: pointer; padding: 3px; border-radius: 4px; color: #444; font-size: 22px; transition: color .12s, transform .1s; line-height: 1; display: flex; align-items: center; }
+.star-btn:hover, .star-btn.lit { color: var(--star); transform: scale(1.1); }
+.star-btn.set { color: var(--star); }
+.rating-label { font-size: 13px; font-weight: 700; color: var(--muted); }
+.rating-label.r1 { color: var(--danger); }
+.rating-label.r2 { color: #f97316; }
+.rating-label.r3 { color: var(--amber); }
+.rating-label.r4 { color: #84cc16; }
+.rating-label.r5 { color: var(--green); }
+
+/* ── CHANNEL SELECTOR ── */
+.channels { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.ch-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; display: flex; align-items: center; gap: 5px; transition: all .15s; }
+.ch-btn:hover { background: var(--surface2); color: var(--text); }
+.ch-btn.active { background: #3b82f618; border-color: var(--blue); color: var(--blue); }
+
+/* ── COMPLAINT STATUS ── */
+.cstatus-row { display: flex; gap: 8px; margin-top: 12px; }
+.cst-btn { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all .15s; }
+.cst-btn:hover { background: var(--surface2); color: var(--text); }
+.cst-btn.s-open       { background: #ef444418; border-color: var(--danger); color: var(--danger); }
+.cst-btn.s-in_progress { background: #f59e0b18; border-color: var(--amber); color: var(--amber); }
+.cst-btn.s-resolved   { background: #22c55e18; border-color: var(--green); color: var(--green); }
+
+/* ── FORM ── */
+.fgrid   { display: grid; gap: 10px; margin-top: 12px; }
+.fgrid-2 { grid-template-columns: 1fr 1fr; }
+.fgroup  { display: flex; flex-direction: column; gap: 5px; }
+.flbl    { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+.finp, .fsel, .farea { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: inherit; font-size: 13px; padding: 8px 12px; outline: none; transition: border-color .2s; width: 100%; }
+.finp:focus, .fsel:focus, .farea:focus { border-color: #555; }
+.fsel option { background: #1a1a1a; }
+.farea { resize: vertical; min-height: 80px; }
+
+/* ── FB POST ── */
+.post-types { display: flex; gap: 8px; margin-bottom: 14px; }
+.pt-btn { flex: 1; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all .15s; }
+.pt-btn:hover { background: var(--surface2); color: var(--text); }
+.pt-btn.active { background: #ec489918; border-color: var(--pink); color: var(--pink); }
+.post-preview { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; font-size: 13px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; color: var(--text); min-height: 140px; }
+.post-preview[contenteditable="true"]:focus { outline: 1px solid #555; border-color: #555; border-radius: 8px; }
+.post-actions { display: flex; gap: 8px; margin-top: 10px; align-items: center; }
+
+/* ── TEMPLATES ── */
+.tpl-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; }
+.tpl-card:last-child { margin-bottom: 0; }
+.tpl-title { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+.tpl-body { font-size: 12px; line-height: 1.65; color: #ccc; white-space: pre-wrap; word-break: break-word; }
+
+/* ── TESTIMONIAL BANK ── */
+.tbank-item { padding: 12px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; }
+.tbank-item:last-child { margin-bottom: 0; }
+.tbank-quote { font-size: 13px; line-height: 1.6; color: #ddd; font-style: italic; margin-bottom: 6px; }
+.tbank-meta { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.tbank-stars { color: var(--star); font-size: 11px; }
+
+/* ── BUTTONS ── */
+.btn { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; transition: all .18s; font-family: inherit; }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn-ghost  { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+.btn-ghost:hover:not(:disabled)  { background: var(--surface2); color: var(--text); }
+.btn-green  { background: #22c55e20; color: var(--green);  border: 1px solid #22c55e40; }
+.btn-green:hover:not(:disabled)  { background: #22c55e30; }
+.btn-blue   { background: #3b82f620; color: var(--blue);   border: 1px solid #3b82f640; }
+.btn-blue:hover:not(:disabled)   { background: #3b82f630; }
+.btn-pink   { background: #ec489918; color: var(--pink);   border: 1px solid #ec489940; }
+.btn-pink:hover:not(:disabled)   { background: #ec489928; }
+.btn-danger { background: transparent; color: var(--danger); border: 1px solid #3a3a3a; }
+.btn-danger:hover:not(:disabled) { background: #ef444418; }
+.btn-amber  { background: #f59e0b20; color: var(--amber);  border: 1px solid #f59e0b40; }
+.btn-amber:hover:not(:disabled)  { background: #f59e0b30; }
+.btn-sm  { padding: 5px 12px; font-size: 12px; }
+.btn-xs  { padding: 3px 8px;  font-size: 11px; }
+.btn-ico { padding: 7px; border-radius: 7px; }
+
+/* ── BADGE ── */
+.badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+.b-open       { background: #ef444418; color: var(--danger); border: 1px solid #ef444430; }
+.b-in_progress { background: #f59e0b18; color: var(--amber); border: 1px solid #f59e0b30; }
+.b-resolved   { background: #22c55e18; color: var(--green);  border: 1px solid #22c55e30; }
+.b-posted     { background: #ec489918; color: var(--pink);   border: 1px solid #ec489930; }
+.b-feedback   { background: #3b82f618; color: var(--blue);   border: 1px solid #3b82f630; }
+
+/* ── TOGGLE ── */
+.toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.toggle-lbl { font-size: 13px; font-weight: 600; color: var(--text); }
+.toggle-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* ── TOAST ── */
+.toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(60px); background: #1e1e1e; border: 1px solid #333; border-radius: 10px; padding: 10px 18px; font-size: 13px; font-weight: 600; z-index: 9999; transition: transform .25s, opacity .25s; opacity: 0; pointer-events: none; }
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+.toast.err  { border-color: var(--danger); color: var(--danger); }
+.toast.ok   { border-color: var(--green);  color: var(--green);  }
+.toast.info { border-color: var(--blue);   color: var(--blue);   }
+
+/* ── SCROLL ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #444; }
+</style>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="SikhayDB.js"></script>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="header">
+  <div class="logo-box">S7</div>
+  <div class="header-text">
+    <div class="header-title">After-Sales &amp; Feedback</div>
+    <div class="header-subtitle">Stage 7 — Sikhay Premium Apparel</div>
+  </div>
+  <div class="header-right">
+    <button class="btn btn-ghost btn-sm" onclick="showTestimonialBank()">
+      <i class="ti ti-quote"></i> Testimonial Bank
+    </button>
+    <button class="btn btn-ghost btn-sm" onclick="refresh()">
+      <i class="ti ti-refresh"></i> Refresh
+    </button>
+  </div>
+</header>
+
+<!-- ── STATS ── -->
+<div class="stats-bar">
+  <div class="stat-card s-total" onclick="setListFilter('all')">
+    <div class="stat-label">Total Delivered</div>
+    <div class="stat-count" id="cnt-total">0</div>
+  </div>
+  <div class="stat-card s-feedback" onclick="setListFilter('has_fb')">
+    <div class="stat-label">Feedback Received</div>
+    <div class="stat-count" id="cnt-feedback">0</div>
+  </div>
+  <div class="stat-card s-happy" onclick="setListFilter('happy')">
+    <div class="stat-label">Happy Clients ★★★★+</div>
+    <div class="stat-count" id="cnt-happy">0</div>
+  </div>
+  <div class="stat-card s-complaint" onclick="setListFilter('complaint')">
+    <div class="stat-label">Open Complaints</div>
+    <div class="stat-count" id="cnt-complaint">0</div>
+  </div>
+</div>
+
+<!-- ── MAIN ── -->
+<div class="main">
+
+  <!-- LEFT -->
+  <div class="list-panel">
+    <div class="list-head">
+      <i class="ti ti-users"></i>
+      <span>Clients</span>
+      <span id="list-count" style="margin-left:auto;"></span>
+    </div>
+    <div class="list-tabs">
+      <button class="ltab active" id="ltab-all"       onclick="setListFilter('all')">All</button>
+      <button class="ltab"        id="ltab-need_fb"   onclick="setListFilter('need_fb')">Need Follow-up</button>
+      <button class="ltab"        id="ltab-has_fb"    onclick="setListFilter('has_fb')">Feedback ✓</button>
+      <button class="ltab"        id="ltab-complaint" onclick="setListFilter('complaint')">Complaint</button>
+    </div>
+    <div style="height:8px;flex-shrink:0;"></div>
+    <div class="list-body" id="order-list"></div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="detail-panel" id="detail-panel">
+    <div class="empty-state">
+      <i class="ti ti-heart-handshake"></i>
+      <p>Select a client to record feedback &amp; manage after-sales</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── TESTIMONIAL BANK MODAL ── -->
+<div id="tbank-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:300;display:none;align-items:center;justify-content:center;padding:24px;" onclick="if(event.target===this)closeTBank()">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:0;max-width:560px;width:100%;max-height:90vh;display:flex;flex-direction:column;">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;">
+      <i class="ti ti-quote" style="color:var(--star);font-size:18px;"></i>
+      <div style="font-size:15px;font-weight:700;">Testimonial Bank</div>
+      <button class="btn btn-ghost btn-xs" style="margin-left:auto;" onclick="closeTBank()"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="tbank-body" style="padding:16px;overflow-y:auto;flex:1;"></div>
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── KEYS ────────────────────────────────────────────────────
+const OT_KEY  = 'sikhay_ot_v1';
+const DLV_KEY = 'sikhay_dlv_v1';
+const AS_KEY  = 'sikhay_as_v1';
+
+let _orders     = [];
+let _dlvs       = [];
+let _afterSales = [];
+let db          = null;
+
+// ─── STATE ───────────────────────────────────────────────────
+let activeId   = null;
+let listFilter = 'all';
+
+// ─── DATA ────────────────────────────────────────────────────
+function getOrders()     { return _orders; }
+function getDlvs()       { return _dlvs; }
+function getAfterSales() { return _afterSales; }
+function getOrder(id)    { return getOrders().find(o => o.id === id) || null; }
+
+function getAS(orderId) {
+  const existing = getAfterSales().find(r => r.orderId === orderId);
+  if (existing) return existing;
+  return {
+    orderId,
+    feedback:  { rating: 0, comment: '', channel: '', receivedAt: null },
+    complaint: { active: false, type: '', description: '', status: 'open', resolution: '', loggedAt: null, resolvedAt: null },
+    fbPost:    { type: 'showcase', posted: false, postedAt: null }
+  };
+}
+
+async function saveAS(rec) {
+  _afterSales = _afterSales.filter(r => r.orderId !== rec.orderId);
+  _afterSales.push(rec);
+  await db.saveAfterSales(rec);
+}
+
+// ─── RENDER ──────────────────────────────────────────────────
+function render() {
+  renderStats();
+  renderList();
+  if (activeId) renderDetail(activeId);
+}
+
+function renderStats() {
+  const orders = getOrders().filter(o => o.status === 'delivered');
+  const recs   = getAfterSales();
+  document.getElementById('cnt-total').textContent     = orders.length;
+  document.getElementById('cnt-feedback').textContent  = recs.filter(r => r.feedback.rating > 0).length;
+  document.getElementById('cnt-happy').textContent     = recs.filter(r => r.feedback.rating >= 4).length;
+  document.getElementById('cnt-complaint').textContent = recs.filter(r => r.complaint.active && r.complaint.status !== 'resolved').length;
+}
+
+function renderList() {
+  const orders = getOrders().filter(o => o.status === 'delivered');
+  const recs   = getAfterSales();
+  const el     = document.getElementById('order-list');
+
+  let list = orders;
+  if      (listFilter === 'need_fb')   list = orders.filter(o => !(recs.find(r => r.orderId === o.id)?.feedback.rating > 0));
+  else if (listFilter === 'has_fb')    list = orders.filter(o => recs.find(r => r.orderId === o.id)?.feedback.rating > 0);
+  else if (listFilter === 'happy')     list = orders.filter(o => (recs.find(r => r.orderId === o.id)?.feedback.rating || 0) >= 4);
+  else if (listFilter === 'complaint') list = orders.filter(o => {
+    const r = recs.find(x => x.orderId === o.id);
+    return r?.complaint.active && r.complaint.status !== 'resolved';
+  });
+
+  // Sort: open complaint first → no feedback yet → feedback given; then by date
+  list = [...list].sort((a, b) => {
+    const subPrio = o => {
+      const r = recs.find(x => x.orderId === o.id) || {};
+      if (r.complaint?.active && r.complaint?.status !== 'resolved') return 0;
+      if (!(r.feedback?.rating > 0)) return 1;
+      return 2;
+    };
+    const pd = subPrio(a) - subPrio(b);
+    if (pd !== 0) return pd;
+    return new Date(b.dateAdded||0) - new Date(a.dateAdded||0);
+  });
+
+  document.getElementById('list-count').textContent = list.length + ' clients';
+
+  if (!list.length) {
+    el.innerHTML = `<div style="padding:40px 16px;text-align:center;color:var(--muted);font-size:12px;"><i class="ti ti-inbox" style="font-size:32px;display:block;margin-bottom:8px;opacity:.3;"></i>No clients here</div>`;
+    return;
+  }
+
+  el.innerHTML = list.map(o => {
+    const rec = recs.find(r => r.orderId === o.id) || {};
+    const rating = rec.feedback?.rating || 0;
+    const hasCmpl = rec.complaint?.active && rec.complaint?.status !== 'resolved';
+    const isPosted = rec.fbPost?.posted;
+
+    const starsHtml = rating > 0
+      ? `<div class="mini-stars">${[1,2,3,4,5].map(i=>`<i class="ti ti-star${i<=rating?'-filled':''} ${i<=rating?'':'e'}"></i>`).join('')}</div>`
+      : `<span style="font-size:10px;color:var(--muted);">No feedback yet</span>`;
+
+    return `<div class="order-item ${activeId===o.id?'sel':''}" onclick="selectOrder('${o.id}')">
+      <div class="oi-name">
+        <span class="sdot"></span>
+        ${esc(o.clientName)}
+        ${hasCmpl ? `<i class="ti ti-alert-circle" style="color:var(--danger);font-size:12px;margin-left:auto;" title="Open complaint"></i>` : ''}
+      </div>
+      <div class="oi-meta">${esc(o.apparel)} · ${o.qty} pcs${o.ref?' · '+esc(o.ref):''}</div>
+      <div class="oi-foot">
+        ${starsHtml}
+        ${isPosted ? `<span class="badge b-posted" style="margin-left:auto;"><i class="ti ti-brand-facebook" style="font-size:9px;"></i> Posted</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setListFilter(f) {
+  listFilter = f;
+  document.querySelectorAll('.ltab').forEach(t => t.classList.remove('active'));
+  document.getElementById('ltab-' + f)?.classList.add('active');
+  renderList();
+}
+
+function selectOrder(id) {
+  activeId = id;
+  renderList();
+  renderDetail(id);
+}
+
+// ─── DETAIL ──────────────────────────────────────────────────
+function renderDetail(id) {
+  const o = getOrder(id);
+  if (!o) { document.getElementById('detail-panel').innerHTML = '<div class="empty-state"><i class="ti ti-alert-circle"></i><p>Order not found</p></div>'; return; }
+  const as = getAS(id);
+  document.getElementById('detail-panel').innerHTML =
+    renderOrdHdr(o) +
+    renderFeedbackSection(o, as) +
+    renderComplaintSection(o, as) +
+    renderFbSection(o, as) +
+    renderTemplatesSection(o, as);
+}
+
+// ── Order Header ──
+function renderOrdHdr(o) {
+  const dl = o.deadline ? new Date(o.deadline).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}) : '—';
+  return `<div class="ord-hdr">
+    <div>
+      <div class="oh-client">${esc(o.clientName)}</div>
+      <div class="oh-meta">
+        <span><i class="ti ti-shirt" style="font-size:11px;"></i> ${esc(o.apparel)}</span>
+        <span><i class="ti ti-stack" style="font-size:11px;"></i> ${o.qty} pcs</span>
+        ${o.ref ? `<span><i class="ti ti-hash" style="font-size:11px;"></i> ${esc(o.ref)}</span>` : ''}
+        <span><i class="ti ti-calendar" style="font-size:11px;"></i> ${dl}</span>
+      </div>
+      <div class="oh-dlv"><i class="ti ti-circle-check" style="font-size:12px;"></i> Delivered</div>
+    </div>
+    <span class="badge" style="background:#22c55e18;color:var(--green);border:1px solid #22c55e30;">Done</span>
+  </div>`;
+}
+
+// ── Feedback Section ──
+function renderFeedbackSection(o, as) {
+  const fb     = as.feedback;
+  const rating = fb.rating || 0;
+  const LABELS = ['','Disappointed 😞','Poor 😕','Okay 😐','Good 😊','Excellent! 🤩'];
+  const LCLS   = ['','r1','r2','r3','r4','r5'];
+
+  const starsHtml = [1,2,3,4,5].map(i =>
+    `<button class="star-btn ${i<=rating?'set':''}"
+      onclick="setRating('${o.id}',${i})"
+      onmouseenter="starLit('${o.id}',${i})"
+      onmouseleave="starReset('${o.id}')">
+      <i class="ti ti-star${i<=rating?'-filled':''}" id="star-${o.id}-${i}"></i>
+    </button>`
+  ).join('');
+
+  const channels = [
+    { id:'messenger', label:'Messenger', icon:'ti-message' },
+    { id:'facebook',  label:'Facebook',  icon:'ti-brand-facebook' },
+    { id:'in_person', label:'In-person', icon:'ti-user-check' },
+    { id:'google',    label:'Google',    icon:'ti-brand-google' }
+  ];
+
+  const chHtml = channels.map(c =>
+    `<button class="ch-btn ${fb.channel===c.id?'active':''}" onclick="setChannel('${o.id}','${c.id}')">
+      <i class="ti ${c.icon}"></i> ${c.label}
+    </button>`
+  ).join('');
+
+  const savedAt = fb.receivedAt
+    ? `<div style="font-size:10px;color:var(--muted);margin-top:8px;">Saved: ${new Date(fb.receivedAt).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})}</div>`
+    : '';
+
+  return `<div class="sec">
+    <div class="sec-head"><i class="ti ti-star"></i> Client Feedback</div>
+    <div class="sec-body">
+      <div class="star-row">
+        <div class="stars" id="stars-${o.id}">${starsHtml}</div>
+        <span class="rating-label ${LCLS[rating]}">${rating > 0 ? LABELS[rating] : 'Tap to rate'}</span>
+      </div>
+      <div style="margin-bottom:10px;">
+        <div class="flbl" style="margin-bottom:6px;">Channel</div>
+        <div class="channels">${chHtml}</div>
+      </div>
+      <div class="fgroup" style="margin-bottom:12px;">
+        <label class="flbl">Feedback / Comment</label>
+        <textarea class="farea" id="fb-comment-${o.id}" placeholder="What did the client say? e.g. 'Ganda ng output! Magreorder na kami.'">${esc(fb.comment)}</textarea>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-blue btn-sm" onclick="saveFeedback('${o.id}')">
+          <i class="ti ti-device-floppy"></i> Save Feedback
+        </button>
+        ${rating >= 4 && fb.comment
+          ? `<button class="btn btn-ghost btn-sm" onclick="addToTBank('${o.id}')">
+              <i class="ti ti-quote"></i> Add to Testimonial Bank
+            </button>`
+          : ''}
+        ${savedAt}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Complaint Section ──
+function renderComplaintSection(o, as) {
+  const c = as.complaint;
+  const TYPES = [
+    'Wrong Design','Size Error','Quality Issue','Late Delivery','Missing Item','Sewing Issue','Other'
+  ];
+
+  const innerHtml = c.active ? `
+    <div class="fgrid fgrid-2">
+      <div class="fgroup">
+        <label class="flbl">Issue Type</label>
+        <select class="fsel" id="ctype-${o.id}" onchange="patchAS('${o.id}','complaint','type',this.value)">
+          <option value="">Select issue…</option>
+          ${TYPES.map(t=>`<option value="${t}" ${c.type===t?'selected':''}>${t}</option>`).join('')}
+        </select>
+      </div>
+      <div class="fgroup">
+        <label class="flbl">Status</label>
+        <div class="cstatus-row" style="margin-top:0;">
+          ${['open','in_progress','resolved'].map(s =>
+            `<button class="cst-btn ${c.status===s?'s-'+s:''}" onclick="setComplaintStatus('${o.id}','${s}')">
+              ${s==='in_progress'?'In Progress':s.charAt(0).toUpperCase()+s.slice(1)}
+            </button>`
+          ).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="fgroup" style="margin-top:10px;">
+      <label class="flbl">Description</label>
+      <textarea class="farea" id="cdesc-${o.id}" placeholder="Describe the complaint…" oninput="patchAS('${o.id}','complaint','description',this.value)">${esc(c.description)}</textarea>
+    </div>
+    <div class="fgroup" style="margin-top:10px;">
+      <label class="flbl">Resolution / Action Taken</label>
+      <textarea class="farea" style="min-height:60px;" id="cres-${o.id}" placeholder="e.g. Free reprint ng 3 pcs — issued on June 5, 2026" oninput="patchAS('${o.id}','complaint','resolution',this.value)">${esc(c.resolution)}</textarea>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px;align-items:center;">
+      <button class="btn btn-green btn-sm" onclick="saveComplaint('${o.id}')">
+        <i class="ti ti-device-floppy"></i> Save
+      </button>
+      <button class="btn btn-danger btn-sm" onclick="removeComplaint('${o.id}')">
+        <i class="ti ti-trash"></i> Remove
+      </button>
+      ${c.loggedAt ? `<span style="font-size:10px;color:var(--muted);">Logged: ${new Date(c.loggedAt).toLocaleDateString('en-PH',{month:'short',day:'numeric'})}</span>` : ''}
+      ${c.status==='resolved'&&c.resolvedAt ? `<span style="font-size:10px;color:var(--green);">Resolved: ${new Date(c.resolvedAt).toLocaleDateString('en-PH',{month:'short',day:'numeric'})}</span>` : ''}
+    </div>` : '';
+
+  return `<div class="sec">
+    <div class="sec-head">
+      <i class="ti ti-alert-triangle"></i> Complaint Log
+      ${c.active ? `<span class="badge b-${c.status}" style="margin-left:auto;">${c.status==='in_progress'?'In Progress':c.status.charAt(0).toUpperCase()+c.status.slice(1)}</span>` : ''}
+    </div>
+    <div class="sec-body">
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-lbl">Had a Complaint?</div>
+          <div class="toggle-sub">Log any issue raised by the client after delivery.</div>
+        </div>
+        <button class="btn ${c.active?'btn-danger':'btn-ghost'} btn-sm" onclick="toggleComplaint('${o.id}')">
+          ${c.active ? '<i class="ti ti-x"></i> Cancel' : '<i class="ti ti-plus"></i> Log Complaint'}
+        </button>
+      </div>
+      ${innerHtml}
+    </div>
+  </div>`;
+}
+
+// ── Facebook Post Generator ──
+function renderFbSection(o, as) {
+  const fp = as.fbPost;
+  const TYPES = [
+    { id:'showcase',    label:'Order Showcase',  icon:'ti-camera' },
+    { id:'testimonial', label:'Testimonial Post', icon:'ti-quote' },
+    { id:'team',        label:'Team Feature',     icon:'ti-users' }
+  ];
+  const typeButtons = TYPES.map(t =>
+    `<button class="pt-btn ${fp.type===t.id?'active':''}" onclick="setPostType('${o.id}','${t.id}')">
+      <i class="ti ${t.icon}"></i> ${t.label}
+    </button>`
+  ).join('');
+
+  const postText = generatePostText(o, as);
+
+  return `<div class="sec">
+    <div class="sec-head">
+      <i class="ti ti-brand-facebook"></i> Facebook Post Generator
+      ${fp.posted ? `<span class="badge b-posted" style="margin-left:auto;"><i class="ti ti-check" style="font-size:10px;"></i> Posted</span>` : ''}
+    </div>
+    <div class="sec-body">
+      <div class="post-types">${typeButtons}</div>
+      <div style="margin-bottom:6px;">
+        <div class="flbl" style="margin-bottom:8px;">Generated Caption — edit before copying</div>
+        <div class="post-preview" id="post-prev-${o.id}" contenteditable="true">${esc(postText)}</div>
+      </div>
+      <div class="post-actions">
+        <button class="btn btn-ghost btn-sm" onclick="regenPost('${o.id}')">
+          <i class="ti ti-refresh"></i> Regenerate
+        </button>
+        <button class="btn btn-pink btn-sm" onclick="copyPost('${o.id}')">
+          <i class="ti ti-copy"></i> Copy Caption
+        </button>
+        <button class="btn ${fp.posted?'btn-ghost':'btn-green'} btn-sm" onclick="markPosted('${o.id}')">
+          ${fp.posted
+            ? '<i class="ti ti-arrow-back"></i> Undo Posted'
+            : '<i class="ti ti-brand-facebook"></i> Mark as Posted'}
+        </button>
+        ${fp.postedAt ? `<span style="font-size:10px;color:var(--muted);">Posted ${new Date(fp.postedAt).toLocaleDateString('en-PH',{month:'short',day:'numeric'})}</span>` : ''}
+      </div>
+      <div style="margin-top:10px;padding:8px 12px;background:var(--surface2);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.5;">
+        💡 Tip: Kunin ang larawan ng order (mock-up o actual photo) tapos i-copy ang caption para sa Facebook post. Mas maganda ang post kapag may naka-attach na photo!
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Messenger Templates ──
+function renderTemplatesSection(o, as) {
+  const c       = o.clientName || 'Client';
+  const ap      = o.apparel    || 'your order';
+  const qty     = o.qty        || 0;
+  const rating  = as.feedback?.rating || 0;
+  const comment = as.feedback?.comment || '';
+
+  const tpls = [
+    {
+      id:    'tpl-fbrequest',
+      title: 'Feedback Request (1st Follow-up)',
+      icon:  'ti-star',
+      body:  `Hi ${c}! 😊\n\nKumusta na ang inyong order? Hope you're loving your ${ap}! 🎽\n\nKung okay na ang lahat, gusto naming marinig ang inyong experience sa Sikhay Creatives. Ito ay makakatulong sa amin para mas mapabuti pa ang aming serbisyo. 🙏\n\nSalamat ulit at hanggang sa muli! ❤️\n— Sikhay Creatives`
+    },
+    {
+      id:    'tpl-fbthank',
+      title: 'Thank You for Feedback',
+      icon:  'ti-heart',
+      body:  `Hi ${c}! 🥹\n\nMaraming salamat sa inyong feedback! Ito ay malaking inspirasyon sa amin. ❤️\n\nNag-iingat kami na palaging mapabuti ang kalidad ng bawat order. Pasasalamat namin sa inyong tiwala!\n\nKung kailangan ninyo ng susunod na order, nandito kami para sa inyo. 😊\n— Sikhay Creatives`
+    },
+    {
+      id:    'tpl-complaint',
+      title: 'Complaint Acknowledgment',
+      icon:  'ti-alert-circle',
+      body:  `Hi ${c}! 😟\n\nNauunawaan po namin ang inyong concern at humihingi kami ng paumanhin sa inconvenience.\n\nTinatauhan na namin ito at gagawin naming resolbahin ito ng mabilis. Makikipag-ugnayan sa inyo ang aming team shortly.\n\nSalamat sa inyong pasensya at pagtitiwala. 🙏\n— Sikhay Creatives`
+    },
+    {
+      id:    'tpl-resolved',
+      title: 'Complaint Resolved',
+      icon:  'ti-circle-check',
+      body:  `Hi ${c}! 😊\n\nMagandang balita! Nareresolba na po ang inyong concern.\n\nNagpapasalamat kami sa inyong pasensya at pag-unawa habang pinoproblema namin ito. Sana ay masaya na kayo sa resulta!\n\nKung may iba pa kayong concern, huwag mag-atubiling makipag-ugnayan. 🙏\n— Sikhay Creatives`
+    }
+  ];
+
+  return `<div class="sec">
+    <div class="sec-head"><i class="ti ti-message-circle"></i> Messenger Templates</div>
+    <div class="sec-body">
+      ${tpls.map(t => `
+        <div class="tpl-card">
+          <div class="tpl-title">
+            <span><i class="ti ${t.icon}" style="margin-right:4px;"></i>${t.title}</span>
+            <button class="btn btn-ghost btn-xs" onclick="copyTpl('${t.id}')"><i class="ti ti-copy"></i> Copy</button>
+          </div>
+          <pre class="tpl-body" id="${t.id}">${esc(t.body)}</pre>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// ─── POST GENERATION ─────────────────────────────────────────
+const HASHTAGS = `#SikhayCreatives #CustomPrint #DasmarinasCavite #TeamUniform #Sublimation`;
+const HASHTAGS2 = `#SikhayCreatives #CustomJersey #ClientLove #DasmarinasCavite`;
+const HASHTAGS3 = `#SikhayCreatives #TeamUniform #CustomApparel #DasmarinasCavite #Philippines`;
+
+function generatePostText(o, as) {
+  const c   = o.clientName || 'isang bagong kliyente';
+  const ap  = o.apparel    || 'custom apparel';
+  const qty = o.qty        || 0;
+  const type = as.fbPost?.type || 'showcase';
+  const comment = as.feedback?.comment || '';
+
+  if (type === 'showcase') {
+    return `✅ Bagong deliver! 🎽\n\nNatapos na namin ang ${qty} ${ap} para kay ${c}!\n\nBawat piraso ay pinu-print ng may pagmamahal at precision — para palaging maayos ang output. 💪\n\nGusto mo rin ng custom ${ap} para sa inyong team o grupo?\n📩 DM us o comment below para sa libre na quotation!\n\n${HASHTAGS}`;
+  }
+  if (type === 'testimonial') {
+    const quote = comment || '(Idagdag ang testimonial ng kliyente dito)';
+    return `💬 Client Feedback!\n\n"${quote}"\n\n— ${c}, ${ap} × ${qty} pcs ✅\n\nNapaka-saya naming natuwa kayo! Malaking pasasalamat sa inyong tiwala. 🙏\n\nIkaw na? DM us para sa inyong custom order!\n\n${HASHTAGS2}`;
+  }
+  if (type === 'team') {
+    return `🏆 Another team rocking Sikhay Creatives!\n\n${qty} custom ${ap} — delivered on time, quality guaranteed! ✅\n\nCustom design, precise cuts, and prints that last. That's the Sikhay way. 💪\n\nOrder na para sa inyong team! DM us para sa free quote.\n\n${HASHTAGS3}`;
+  }
+  return '';
+}
+
+function regenPost(orderId) {
+  const o  = getOrder(orderId);
+  const as = getAS(orderId);
+  const el = document.getElementById('post-prev-' + orderId);
+  if (!el || !o) return;
+  el.textContent = generatePostText(o, as);
+  showToast('Caption regenerated.', 'info');
+}
+
+// ─── ACTIONS ────────────────────────────────────────────────
+function setRating(orderId, r) {
+  const as = getAS(orderId);
+  as.feedback.rating = r;
+  saveAS(as);
+  // Update star UI without full re-render
+  [1,2,3,4,5].forEach(i => {
+    const el = document.getElementById(`star-${orderId}-${i}`);
+    if (!el) return;
+    el.className = `ti ti-star${i<=r?'-filled':''}`;
+    el.parentElement.classList.toggle('set', i<=r);
+  });
+  // Update label
+  const LABELS = ['','Disappointed 😞','Poor 😕','Okay 😐','Good 😊','Excellent! 🤩'];
+  const LCLS   = ['','r1','r2','r3','r4','r5'];
+  const lblEl  = document.querySelector('#stars-' + orderId + '~ .rating-label');
+  if (lblEl) { lblEl.textContent = LABELS[r]; lblEl.className = `rating-label ${LCLS[r]}`; }
+  renderStats();
+  renderList();
+}
+
+function starLit(orderId, n) {
+  [1,2,3,4,5].forEach(i => {
+    const el = document.getElementById(`star-${orderId}-${i}`);
+    if (el) el.className = `ti ti-star${i<=n?'-filled':''}`;
+    if (el?.parentElement) el.parentElement.classList.toggle('lit', i<=n);
+  });
+}
+
+function starReset(orderId) {
+  const as = getAS(orderId);
+  const r  = as.feedback?.rating || 0;
+  [1,2,3,4,5].forEach(i => {
+    const el = document.getElementById(`star-${orderId}-${i}`);
+    if (el) el.className = `ti ti-star${i<=r?'-filled':''}`;
+    if (el?.parentElement) { el.parentElement.classList.remove('lit'); el.parentElement.classList.toggle('set', i<=r); }
+  });
+}
+
+function setChannel(orderId, ch) {
+  const as = getAS(orderId);
+  as.feedback.channel = ch;
+  saveAS(as);
+  document.querySelectorAll('.ch-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.trim().toLowerCase().includes(ch) || b.getAttribute('onclick')?.includes(`'${ch}'`));
+  });
+}
+
+function saveFeedback(orderId) {
+  const as  = getAS(orderId);
+  const commentEl = document.getElementById(`fb-comment-${orderId}`);
+  if (commentEl) as.feedback.comment = commentEl.value.trim();
+  if (!as.feedback.rating) { showToast('Mag-rate muna bago mag-save.', 'err'); return; }
+  as.feedback.receivedAt = as.feedback.receivedAt || new Date().toISOString();
+  saveAS(as);
+  showToast('Feedback saved! 🙏', 'ok');
+  renderDetail(orderId);
+  renderStats();
+  renderList();
+}
+
+function patchAS(orderId, section, field, value) {
+  const as = getAS(orderId);
+  as[section][field] = value;
+  saveAS(as);
+}
+
+function toggleComplaint(orderId) {
+  const as = getAS(orderId);
+  as.complaint.active = !as.complaint.active;
+  if (as.complaint.active && !as.complaint.loggedAt) as.complaint.loggedAt = new Date().toISOString();
+  saveAS(as);
+  renderDetail(orderId);
+}
+
+function setComplaintStatus(orderId, status) {
+  const as = getAS(orderId);
+  as.complaint.status = status;
+  if (status === 'resolved' && !as.complaint.resolvedAt) as.complaint.resolvedAt = new Date().toISOString();
+  if (status !== 'resolved') as.complaint.resolvedAt = null;
+  saveAS(as);
+  renderDetail(orderId);
+  renderStats();
+  renderList();
+}
+
+function saveComplaint(orderId) {
+  const as    = getAS(orderId);
+  const typeEl = document.getElementById(`ctype-${orderId}`);
+  const descEl = document.getElementById(`cdesc-${orderId}`);
+  const resEl  = document.getElementById(`cres-${orderId}`);
+  if (typeEl) as.complaint.type        = typeEl.value;
+  if (descEl) as.complaint.description = descEl.value.trim();
+  if (resEl)  as.complaint.resolution  = resEl.value.trim();
+  saveAS(as);
+  showToast('Complaint saved.', 'ok');
+  renderDetail(orderId);
+  renderStats();
+  renderList();
+}
+
+function removeComplaint(orderId) {
+  if (!confirm('Remove this complaint record?')) return;
+  const as = getAS(orderId);
+  as.complaint = { active: false, type: '', description: '', status: 'open', resolution: '', loggedAt: null, resolvedAt: null };
+  saveAS(as);
+  renderDetail(orderId);
+  renderStats();
+  renderList();
+}
+
+function setPostType(orderId, type) {
+  const as = getAS(orderId);
+  as.fbPost.type = type;
+  saveAS(as);
+  renderDetail(orderId);
+}
+
+function copyPost(orderId) {
+  const el = document.getElementById('post-prev-' + orderId);
+  if (!el) return;
+  const text = el.textContent || el.innerText;
+  navigator.clipboard.writeText(text).then(() => showToast('Caption copied!', 'ok'))
+    .catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('Caption copied!', 'ok');
+    });
+}
+
+function markPosted(orderId) {
+  const as = getAS(orderId);
+  as.fbPost.posted  = !as.fbPost.posted;
+  as.fbPost.postedAt = as.fbPost.posted ? new Date().toISOString() : null;
+  saveAS(as);
+  showToast(as.fbPost.posted ? 'Marked as posted! 🎉' : 'Unmarked.', 'ok');
+  renderDetail(orderId);
+  renderList();
+}
+
+function addToTBank(orderId) {
+  showToast('Added to Testimonial Bank!', 'ok');
+}
+
+function copyTpl(tplId) {
+  const el = document.getElementById(tplId);
+  if (!el) return;
+  const text = el.textContent;
+  navigator.clipboard.writeText(text).then(() => showToast('Template copied!', 'ok'))
+    .catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('Template copied!', 'ok');
+    });
+}
+
+// ─── TESTIMONIAL BANK MODAL ───────────────────────────────────
+function showTestimonialBank() {
+  const orders = getOrders().filter(o => o.status === 'delivered');
+  const recs   = getAfterSales();
+  const happy  = recs
+    .filter(r => r.feedback.rating >= 4 && r.feedback.comment)
+    .map(r => ({ ...r, order: orders.find(o => o.id === r.orderId) }))
+    .filter(r => r.order);
+
+  const modal = document.getElementById('tbank-modal');
+  const body  = document.getElementById('tbank-body');
+
+  if (!happy.length) {
+    body.innerHTML = `<div style="text-align:center;padding:40px 16px;color:var(--muted);font-size:13px;">
+      <i class="ti ti-quote" style="font-size:40px;display:block;margin-bottom:10px;opacity:.2;"></i>
+      Walang testimonials pa. I-save ang client feedback (4–5 stars) para mapuno ito.
+    </div>`;
+  } else {
+    body.innerHTML = happy.map(r => {
+      const stars = Array(r.feedback.rating).fill('★').join('') + Array(5-r.feedback.rating).fill('☆').join('');
+      return `<div class="tbank-item">
+        <div class="tbank-stars">${stars}</div>
+        <div class="tbank-quote">"${esc(r.feedback.comment)}"</div>
+        <div class="tbank-meta">
+          <span>— ${esc(r.order.clientName)}</span>
+          <span>· ${esc(r.order.apparel)} × ${r.order.qty} pcs</span>
+          <button class="btn btn-ghost btn-xs" style="margin-left:auto;" onclick="copyQuote('${r.orderId}')">
+            <i class="ti ti-copy"></i> Copy
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  modal.style.display = 'flex';
+}
+
+function closeTBank() {
+  document.getElementById('tbank-modal').style.display = 'none';
+}
+
+function copyQuote(orderId) {
+  const as = getAS(orderId);
+  const o  = getOrder(orderId);
+  if (!as.feedback.comment || !o) return;
+  const text = `"${as.feedback.comment}" — ${o.clientName}, ${o.apparel} × ${o.qty} pcs`;
+  navigator.clipboard.writeText(text).then(() => showToast('Quote copied!', 'ok'))
+    .catch(() => showToast('Copy failed.', 'err'));
+}
+
+// ─── UTILS ──────────────────────────────────────────────────
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+let _tt;
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + (type==='err'?'err':type==='ok'?'ok':'info');
+  clearTimeout(_tt);
+  _tt = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function refresh() { render(); showToast('Refreshed.', 'info'); }
+
+// ─── BOOT ─────────────────────────────────────────────────────
+(async () => {
+  db          = await SikhayDB.requireAuth();
+  if (!db) return;
+  _orders     = await db.getOrders();
+  _dlvs       = await db.getDeliveries();
+  _afterSales = await db.getAfterSales();
+  render();
+  window.addEventListener('focus', async () => {
+    _orders     = await db.getOrders();
+    _dlvs       = await db.getDeliveries();
+    _afterSales = await db.getAfterSales();
+    render();
+  });
+})();
+</script>
+</body>
+</html>

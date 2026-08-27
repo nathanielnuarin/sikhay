@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sikhay Production Checklist — Stage 5</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.14.0/dist/tabler-icons.min.css">
+<style>
+:root {
+  --bg:#0a0a0a; --surface:#141414; --surface2:#1c1c1c;
+  --border:#252525; --text:#f0f0f0; --muted:#777;
+  --pending:#444; --printing:#3b82f6; --qc:#f59e0b; --done:#22c55e;
+  --danger:#ef4444;
+  --col-purple:#8b5cf6; --col-blue:#3b82f6; --col-green:#22c55e; --col-amber:#f59e0b;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;min-height:100vh;}
+
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;}
+.logo{width:34px;height:34px;flex-shrink:0;}
+.hd-title{font-size:15px;font-weight:700;}
+.hd-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.hd-actions{margin-left:auto;display:flex;gap:6px;}
+
+.layout{display:grid;grid-template-columns:280px 1fr;height:calc(100vh - 57px);}
+
+.sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.sb-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;}
+.sb-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);flex:1;}
+.sb-count{font-size:11px;color:var(--muted);}
+.sb-body{overflow-y:auto;flex:1;padding:10px;}
+
+.order-item{border:1px solid var(--border);border-radius:10px;padding:12px 13px;cursor:pointer;margin-bottom:8px;transition:border-color .15s,background .15s;}
+.order-item:hover{border-color:#333;background:var(--surface2);}
+.order-item.active{border-color:#444;background:var(--surface2);}
+.order-item.st-for_prod{border-left:3px solid var(--col-purple);}
+.order-item.st-in_prod{border-left:3px solid var(--col-blue);}
+.order-item.st-ready{border-left:3px solid var(--col-green);}
+.oi-name{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;}
+.oi-meta{font-size:11px;color:var(--muted);margin-top:2px;}
+.oi-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;margin-top:6px;}
+.b-for_prod{background:#8b5cf618;color:var(--col-purple);}
+.b-in_prod{background:#3b82f618;color:var(--col-blue);}
+.b-ready{background:#22c55e18;color:var(--col-green);}
+.oi-bar{height:3px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden;}
+.oi-fill{height:100%;background:var(--done);border-radius:2px;transition:width .3s;}
+.oi-pct{font-size:10px;color:var(--muted);margin-top:3px;}
+.empty-sb{text-align:center;padding:32px 14px;color:var(--muted);font-size:12px;line-height:1.7;}
+.sb-view-btns{display:flex;gap:4px;}
+.sb-view-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 7px;cursor:pointer;color:var(--muted);font-size:13px;line-height:1;}
+.sb-view-btn.active{background:var(--surface2);border-color:#555;color:var(--text);}
+/* List view compact card */
+.oi-list{display:flex;align-items:center;gap:9px;padding:8px 13px;cursor:pointer;border-bottom:1px solid var(--border);}
+.oi-list:last-child{border-bottom:none;}
+.oi-list:hover{background:var(--surface2);}
+.oi-list.active{background:var(--surface2);border-left:3px solid #555;}
+.oi-list-thumb{width:36px;height:36px;border-radius:5px;object-fit:cover;flex-shrink:0;}
+.oi-list-thumb-empty{width:36px;height:36px;border-radius:5px;background:var(--surface2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--muted);}
+.oi-list-info{flex:1;min-width:0;}
+.oi-list-name{font-weight:700;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;}
+.oi-list-sub{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.oi-list-pct{font-size:10px;color:var(--muted);flex-shrink:0;}
+
+.main{overflow-y:auto;padding:20px 22px 60px;}
+.no-sel{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:480px;color:var(--muted);text-align:center;gap:10px;}
+.no-sel i{font-size:48px;opacity:.2;}
+.no-sel strong{font-size:15px;color:var(--text);}
+
+.order-bar{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:14px;}
+.ob-name{font-size:17px;font-weight:800;text-transform:uppercase;}
+.ob-meta{font-size:12px;color:var(--muted);margin-top:3px;}
+.ob-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.chip{padding:4px 11px;border-radius:20px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px;}
+.chip-purple{background:#8b5cf618;color:var(--col-purple);border:1px solid #8b5cf630;}
+.chip-blue{background:#3b82f618;color:var(--col-blue);border:1px solid #3b82f630;}
+.chip-green{background:#22c55e18;color:var(--col-green);border:1px solid #22c55e30;}
+.chip-amber{background:#f59e0b18;color:var(--col-amber);border:1px solid #f59e0b30;}
+.chip-muted{background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
+.chip-red{background:#ef444418;color:var(--danger);border:1px solid #ef444430;}
+
+.phase-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden;}
+.phase-head{padding:13px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;}
+.phase-num{width:26px;height:26px;border-radius:50%;background:var(--surface2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.phase-num.complete{background:var(--done);border-color:var(--done);color:#000;}
+.phase-lbl{flex:1;font-weight:700;}
+.phase-cnt{font-size:12px;color:var(--muted);}
+.phase-chv{color:var(--muted);font-size:16px;transition:transform .2s;}
+.phase-body{padding:0 16px 16px;border-top:1px solid var(--border);display:none;}
+.phase-body.open{display:block;}
+
+.check-sep{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin:14px 0 6px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.check-item{display:flex;align-items:flex-start;gap:11px;padding:9px 6px;border-radius:7px;cursor:pointer;user-select:none;transition:background .1s;}
+.check-item:hover{background:var(--surface2);}
+.check-box{width:18px;height:18px;border:2px solid var(--border);border-radius:4px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.check-item.checked .check-box{background:var(--done);border-color:var(--done);}
+.check-item.checked .check-lbl{color:var(--muted);text-decoration:line-through;}
+.check-lbl{font-size:13px;flex:1;line-height:1.4;}
+.check-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* PRINT TYPE */
+.pt-sel-wrap{padding:14px 6px 4px;}
+.pt-sel-lbl{font-size:11px;color:var(--muted);margin-bottom:8px;}
+.pt-sel-btns{display:flex;gap:8px;}
+.pt-sel-btn{flex:1;padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px;}
+.pt-sel-btn:hover{border-color:#444;color:var(--text);}
+.pt-sel-btn.sel-sublim{background:#8b5cf618;color:var(--col-purple);border-color:#8b5cf650;}
+.pt-sel-btn.sel-dtf{background:#f59e0b18;color:var(--col-amber);border-color:#f59e0b50;}
+.pt-sel-none{font-size:12px;color:var(--muted);text-align:center;padding:12px 6px 6px;}
+
+/* CUT TYPE */
+.cut-sel-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin:10px 0 6px;}
+.cut-sel-lbl{font-size:11px;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.cut-req{background:#ef444420;color:var(--danger);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;}
+.cut-btns{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+.cut-btn{padding:6px 14px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit;}
+.cut-btn:hover{border-color:#444;color:var(--text);}
+.cut-btn.cut-active{background:#3b82f618;color:var(--col-blue);border-color:#3b82f650;}
+.cut-verify{display:flex;align-items:flex-start;gap:11px;padding:10px 6px 6px;cursor:pointer;user-select:none;border-top:1px solid var(--border);margin-top:4px;}
+.cut-verify:hover{background:rgba(255,255,255,.03);}
+.cut-hint{font-size:11px;color:var(--muted);padding:4px 2px 0;}
+
+/* STEP CARDS */
+.step-card{background:var(--surface2);border:1px solid var(--border);border-radius:9px;margin-bottom:8px;overflow:hidden;}
+.step-head{padding:11px 14px;display:flex;align-items:center;gap:9px;cursor:pointer;user-select:none;}
+.step-num{width:22px;height:22px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;color:var(--muted);}
+.step-num.complete{background:var(--done);color:#000;}
+.step-title{flex:1;font-size:13px;font-weight:700;}
+.step-cnt{font-size:11px;color:var(--muted);}
+.step-chv{color:var(--muted);font-size:14px;transition:transform .2s;}
+.step-body{padding:4px 14px 12px;border-top:1px solid var(--border);display:none;}
+.step-body.open{display:block;}
+.no-print-type{text-align:center;padding:24px 16px;color:var(--muted);font-size:12px;}
+
+/* SIZE COUNTS */
+.size-counts{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin:12px 0 4px;}
+.sc-lbl{font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:600;}
+.sc-grid{display:flex;gap:8px;flex-wrap:wrap;}
+.sc-item{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.sc-size{font-size:10px;color:var(--muted);font-weight:700;}
+.sc-input{width:46px;padding:5px 4px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;font-weight:700;text-align:center;font-family:inherit;}
+.sc-input:focus{outline:none;border-color:#555;}
+
+/* PIECE TRACKER */
+.piece-top{padding:13px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.pt-title{display:flex;align-items:center;gap:10px;}
+.pt-stats{display:flex;gap:12px;font-size:11px;flex-wrap:wrap;}
+.ps-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:3px;vertical-align:middle;}
+.pt-bar-wrap{padding:0 16px 10px;}
+.pt-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.pt-fill{height:100%;background:var(--done);border-radius:3px;transition:width .3s;}
+.pt-actions{padding:0 16px 12px;display:flex;gap:8px;}
+.pt-legend{padding:0 16px 14px;display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--muted);}
+.sec-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;padding:10px 16px 6px;border-top:1px solid var(--border);}
+.sec-label:first-of-type{border-top:none;}
+.piece-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(115px,1fr));gap:8px;padding:0 16px 4px;}
+.piece-card{background:var(--surface2);border:2px solid var(--border);border-radius:9px;padding:10px;cursor:pointer;transition:border-color .15s;user-select:none;position:relative;}
+.piece-card:hover{border-color:#3a3a3a;}
+.piece-card.st-printing{border-color:var(--printing);background:#3b82f608;}
+.piece-card.st-qc{border-color:var(--qc);background:#f59e0b08;}
+.piece-card.st-done{border-color:var(--done);background:#22c55e08;}
+.pc-name{font-weight:700;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pc-detail{font-size:11px;color:var(--muted);margin-top:2px;}
+.pc-status{margin-top:7px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:4px;}
+.pc-dot{width:7px;height:7px;border-radius:50%;}
+.st-pending .pc-dot{background:var(--pending);}
+.st-printing .pc-dot{background:var(--printing);}
+.st-qc .pc-dot{background:var(--qc);}
+.st-done .pc-dot{background:var(--done);}
+.st-pending .pc-status span{color:var(--muted);}
+.st-printing .pc-status span{color:var(--printing);}
+.st-qc .pc-status span{color:var(--qc);}
+.st-done .pc-status span{color:var(--done);}
+.pc-check{position:absolute;top:7px;right:7px;color:var(--done);font-size:13px;display:none;}
+.st-done .pc-check{display:block;}
+
+/* QC RESULT */
+.qc-result-wrap{margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
+.qc-result-lbl{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+.qr-btns{display:flex;gap:8px;flex-wrap:wrap;}
+.qr-btn{padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;transition:all .15s;}
+.qr-btn:hover{border-color:#444;color:var(--text);}
+.qr-btn.qr-passed{background:#22c55e18;color:var(--col-green);border-color:#22c55e50;}
+.qr-btn.qr-reprint{background:#f59e0b18;color:var(--col-amber);border-color:#f59e0b50;}
+.qr-btn.qr-hold{background:#ef444418;color:var(--danger);border-color:#ef444430;}
+.reprint-flags{margin-top:12px;display:flex;flex-direction:column;gap:8px;}
+.rf-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.rf-row label{font-size:12px;color:var(--muted);min-width:130px;}
+.rf-num{width:60px;padding:5px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;font-weight:700;font-family:inherit;}
+.rf-txt{flex:1;min-width:150px;padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px;font-family:inherit;}
+.rf-num:focus,.rf-txt:focus{outline:none;border-color:#555;}
+
+/* MOCKUP PHOTOS */
+.mockup-wrap{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+.mockup-hdr{display:flex;align-items:center;gap:6px;margin-bottom:10px;}
+.mockup-hdr-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;flex:1;}
+.mockup-grid{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;}
+.mkp-item{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;}
+.oi-banner{width:100%;height:70px;object-fit:cover;display:block;border-radius:7px 7px 0 0;margin-bottom:10px;}
+.mkp-item img{height:190px;width:220px;object-fit:cover;border-radius:8px;cursor:zoom-in;border:1px solid var(--border);display:block;transition:border-color .15s;}
+.mkp-item img:hover{border-color:#555;}
+.mkp-lbl-txt{font-size:10px;color:var(--muted);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;}
+.mkp-del{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.75);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;}
+.mkp-del:hover{background:var(--danger);}
+.mkp-add-btn{height:190px;width:220px;border:1px dashed var(--border);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:var(--muted);cursor:pointer;font-size:11px;transition:all .15s;background:transparent;font-family:inherit;}
+.mkp-add-btn:hover{border-color:#3b82f6;color:var(--col-blue);}
+.mkp-form{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:8px;width:160px;}
+.mkp-form-input{padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px;font-family:inherit;width:100%;}
+.mkp-form-input:focus{outline:none;border-color:#555;}
+.mkp-file-btn{padding:7px 10px;border-radius:7px;border:1px solid var(--col-blue);background:transparent;color:var(--col-blue);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;}
+.mkp-cancel{padding:5px 10px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit;width:100%;}
+.mkp-cancel:hover{color:var(--text);}
+
+/* LIGHTBOX */
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;}
+.lb img{max-width:90vw;max-height:80vh;border-radius:8px;pointer-events:none;}
+.lb-lbl{color:rgba(255,255,255,.7);font-size:13px;}
+.lb-nav{display:flex;align-items:center;gap:16px;margin-top:4px;}
+.lb-nav-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:white;padding:7px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;}
+.lb-nav-btn:hover{background:rgba(255,255,255,.2);}
+.lb-nav-count{font-size:12px;color:rgba(255,255,255,.5);}
+.lb-close{position:fixed;top:14px;right:18px;background:transparent;border:none;color:white;font-size:26px;cursor:pointer;z-index:9001;opacity:.8;}
+.lb-close:hover{opacity:1;}
+
+/* RULES */
+.rules-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden;}
+.rules-head{padding:13px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;}
+.rules-body{padding:8px 16px 16px;border-top:1px solid var(--border);display:none;}
+.rules-body.open{display:block;}
+.rule-item{display:flex;gap:10px;padding:7px 4px;border-bottom:1px solid var(--border);}
+.rule-item:last-child{border-bottom:none;}
+.rule-n{font-size:11px;font-weight:700;color:var(--col-blue);min-width:18px;margin-top:1px;}
+.rule-t{font-size:12px;color:var(--muted);line-height:1.5;}
+
+/* ACTION BAR */
+.action-bar{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 16px;margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:all .15s;font-family:inherit;}
+.btn-sm{padding:5px 11px;font-size:12px;}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+.btn-ghost:hover{background:var(--surface2);color:var(--text);}
+.btn-blue{background:transparent;color:var(--col-blue);border:1px solid var(--col-blue);}
+.btn-blue:hover{background:#3b82f610;}
+.btn-green{background:transparent;color:var(--col-green);border:1px solid var(--col-green);}
+.btn-green:hover{background:#22c55e10;}
+
+.toast{position:fixed;bottom:20px;right:20px;background:#22c55e;color:white;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;display:flex;align-items:center;gap:7px;transform:translateY(60px);opacity:0;transition:all .25s;pointer-events:none;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.err{background:var(--danger);}
+.toast.info{background:var(--col-blue);}
+
+@media(max-width:768px){
+  .layout{grid-template-columns:1fr;height:auto;}
+  .sidebar{height:auto;border-right:none;border-bottom:1px solid var(--border);}
+  .sb-body{max-height:200px;}
+  .piece-grid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr));}
+}
+</style>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="SikhayDB.js"></script>
+</head>
+<body>
+
+<header class="header">
+  <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="50" cy="50" r="48" fill="#1a1a1a" stroke="#333" stroke-width="2"/>
+    <text x="50" y="58" text-anchor="middle" fill="white" font-family="Arial Black,Arial,sans-serif" font-size="17" font-weight="900" letter-spacing="1.5">SIKHAY</text>
+  </svg>
+  <div>
+    <div class="hd-title">Production Checklist</div>
+    <div class="hd-sub">Stage 5 — Sikhay Premium Apparel</div>
+  </div>
+  <div class="hd-actions">
+    <button class="btn btn-ghost btn-sm" onclick="showDebug()" title="Debug"><i class="ti ti-bug"></i></button>
+    <button class="btn btn-ghost btn-sm" onclick="refreshAll()" title="Refresh"><i class="ti ti-refresh"></i></button>
+  </div>
+</header>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sb-head">
+      <span class="sb-title">Active Orders</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="sb-count" id="sb-count"></span>
+        <div class="sb-view-btns">
+          <button class="sb-view-btn" id="vbtn-card" onclick="setView('card')" title="Card View"><i class="ti ti-layout-cards"></i></button>
+          <button class="sb-view-btn" id="vbtn-list" onclick="setView('list')" title="List View"><i class="ti ti-list"></i></button>
+        </div>
+      </div>
+    </div>
+    <div class="sb-body" id="sb-body"></div>
+  </div>
+  <div class="main" id="main">
+    <div class="no-sel">
+      <i class="ti ti-clipboard-list"></i>
+      <strong>Select an Order</strong>
+      <div style="font-size:13px;">Pumili ng order sa kaliwa para simulan ang production checklist.</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i class="ti ti-check" id="t-icon"></i><span id="t-msg"></span></div>
+<div class="lb" id="lb" style="display:none;">
+  <button class="lb-close" onclick="closeLB()"><i class="ti ti-x"></i></button>
+  <img id="lb-img" src="" alt="Mock-up photo" />
+  <div class="lb-lbl" id="lb-lbl"></div>
+  <div class="lb-nav" id="lb-nav" style="display:none;">
+    <button class="lb-nav-btn" onclick="lbPrev()"><i class="ti ti-chevron-left"></i> Prev</button>
+    <span class="lb-nav-count" id="lb-nav-count"></span>
+    <button class="lb-nav-btn" onclick="lbNext()">Next <i class="ti ti-chevron-right"></i></button>
+  </div>
+</div>
+
+<script>
+const OT_KEY   = 'sikhay_ot_v1';
+const PC_KEY   = 'sikhay_pc_v1';
+let _orders     = [];
+let _production = {};
+let db          = null;
+const PROD_ST  = ['for_prod','in_prod','ready'];
+const PC_CYCLE = ['pending','printing','qc','done'];
+const PC_LBL   = { pending:'Pending', printing:'Printing', qc:'QC Check', done:'Done' };
+const ST_LBL   = { for_prod:'For Print', in_prod:'In Production', ready:'Ready for Pickup' };
+
+// ── PHASE 1: PRE-PRODUCTION GATE ─────────────────────────────
+const PRE = [
+  { id:'pre_design',  label:'Design approved by client',                    sub:'Confirmed sa Design Tracker' },
+  { id:'pre_file',    label:'Print-ready file confirmed',                    sub:'Correct dimensions, bleed, color mode' },
+  { id:'pre_sizes',   label:'Size breakdown finalized & client-confirmed' },
+  { id:'pre_dp',      label:'Downpayment confirmed (min 50%)',               sub:'DP received before production' },
+  { id:'pre_blanks',  label:'Blank garments / fabric counted & ready',       sub:'Correct qty per size' },
+  { id:'pre_printer', label:'Printer ready',                                 sub:'Ink levels, paper stock OK' },
+  { id:'pre_press',   label:'Heat press calibrated',                         sub:'Temp, pressure, timer set' },
+  { id:'pre_sched',   label:'Production schedule set',                       sub:'Start date → target finish date' },
+];
+const SUBLIM = [
+  { id:'sub_cut_ok',    label:'Jersey cut type verified — template matches', sub:'Handled by cut type selector above' },
+  { id:'sub_photomate', label:'Jersey layout generated via Photomate Multi V18', sub:'CSV + PSD template loaded, output files ready' },
+  { id:'sub_paper',     label:'Sublimation paper loaded (correct side)',     sub:'Printable side facing print head' },
+  { id:'sub_temp',      label:'Heat press: 195–205°C / 50–60 sec',           sub:'Full sublimation settings' },
+  { id:'sub_test',      label:'Test print done & color checked',              sub:'Waste print before main batch' },
+];
+const DTF_SETUP = [
+  { id:'dtf_film',  label:'DTF transfer film ready',                         sub:'Pre-printed transfers confirmed' },
+  { id:'dtf_temp',  label:'Heat press: 150–165°C / 10–15 sec',               sub:'DTF press settings' },
+  { id:'dtf_peel',  label:'Peel test done (hot or cold)',                    sub:'Check film type first' },
+];
+
+// ── PHASE 2: PRODUCTION STEPS — TRACK A (SUBLIMATION) ────────
+const S1 = [
+  { id:'s1_open',    label:'Design file open (Photoshop / Illustrator)',     sub:'Final approved version only' },
+  { id:'s1_dim',     label:'Dimensions correct per panel',                   sub:'Front, back, sleeves, shorts' },
+  { id:'s1_profile', label:'Color profile set (RGB → printer profile)' },
+  { id:'s1_bleed',   label:'Bleed added on all panels (min 0.5 inch)' },
+  { id:'s1_names',   label:'Names & numbers verified vs. client list',       sub:'Spelling, jersey numbers, sizes' },
+  { id:'s1_saved',   label:'File saved as print-ready PDF / TIFF',           sub:'Final export done' },
+];
+const S2 = [
+  { id:'s2_paper',   label:'Sublimation paper loaded (correct side)',        sub:'Printable side facing down' },
+  { id:'s2_settings',label:'Print settings correct',                         sub:'Paper size, quality, color profile' },
+  { id:'s2_test',    label:'Test print done — 1 pc',                         sub:'Check colors before full batch' },
+  { id:'s2_testok',  label:'Test print approved — proceed to full batch' },
+  { id:'s2_batch',   label:'Full batch printed & inspected',                 sub:'No banding, no color errors' },
+  { id:'s2_labels',  label:'Printed sheets labeled per size / panel',        sub:'Masking tape + marker' },
+];
+const S3 = [
+  { id:'s3_layout',  label:'Pattern pieces laid out correctly',              sub:'Correct template for selected cut type' },
+  { id:'s3_cut',     label:'Fabric cut per size breakdown',                  sub:'Verify count matches order' },
+  { id:'s3_labels',  label:'Cut pieces labeled (masking tape + marker)',     sub:'Per size, per panel' },
+];
+const S4 = [
+  { id:'s4_temp',    label:'Heat press temp: 200°C',                         sub:'Sublimation standard' },
+  { id:'s4_pressure',label:'Pressure: medium-firm — even across panel' },
+  { id:'s4_front',   label:'Front panel pressed & inspected' },
+  { id:'s4_back',    label:'Back panel pressed & inspected' },
+  { id:'s4_sleeves', label:'Sleeves pressed & inspected' },
+  { id:'s4_shorts',  label:'Shorts panels pressed & inspected',              sub:'If applicable to order' },
+  { id:'s4_clean',   label:'Color transfer complete — no ghosting, no bleeding' },
+];
+const S5 = [
+  { id:'s5_join',    label:'Front + back joined',                            sub:'Seam alignment checked' },
+  { id:'s5_sleeves', label:'Sleeves attached' },
+  { id:'s5_seams',   label:'Side seams closed' },
+  { id:'s5_collar',  label:'Collar / neck finish applied',                   sub:'Raglan / Amboy / Regular — per add-on' },
+  { id:'s5_shorts',  label:'Shorts assembled',                               sub:'Waistband, side seams, hem' },
+  { id:'s5_threads', label:'All threads trimmed — garment clean' },
+];
+
+// ── PHASE 2: PRODUCTION STEPS — TRACK B (DTF) ────────────────
+const D1 = [
+  { id:'d1_sized',     label:'Design sized correctly per garment area' },
+  { id:'d1_underbase', label:'White underbase included',                     sub:'Auto or manual' },
+  { id:'d1_gang',      label:'Gang sheet layout done',                       sub:'Maximize film usage' },
+  { id:'d1_sent',      label:'File sent to DTF printer / print queue' },
+];
+const D2 = [
+  { id:'d2_film',    label:'Film loaded correctly' },
+  { id:'d2_test',    label:'Print test strip done',                          sub:'Check colors + adhesion' },
+  { id:'d2_batch',   label:'Full batch printed' },
+  { id:'d2_powder',  label:'Hot melt powder applied evenly' },
+  { id:'d2_cured',   label:'Cured in oven / dryer',                          sub:'Correct temp + time' },
+  { id:'d2_inspect', label:'Transfers inspected',                            sub:'No cracks, even powder coating' },
+];
+const D3 = [
+  { id:'d3_pre',     label:'Garment pre-pressed (5 sec)',                    sub:'Remove moisture before transfer' },
+  { id:'d3_pos',     label:'Transfer positioned correctly',                  sub:'Centered, correct placement' },
+  { id:'d3_press',   label:'Pressed: 160–165°C | medium | 15–20 sec' },
+  { id:'d3_peel',    label:'Cold peel done (wait 10–15 sec)',                sub:'Before peeling transfer' },
+  { id:'d3_inspect', label:'Adhesion inspected — no lifting edges' },
+  { id:'d3_repress', label:'Re-press done if needed',                        sub:'With parchment / release paper' },
+];
+
+// ── PHASE 4: QC & INSPECTION ─────────────────────────────────
+const QC_VISUAL = [
+  { id:'qcv_colors',  label:'Colors accurate vs. approved mockup' },
+  { id:'qcv_quality', label:'Print quality — no banding, blurs, or ghosting' },
+  { id:'qcv_names',   label:'Names & numbers — spelling correct' },
+  { id:'qcv_szlbl',   label:'Size labels correct vs. actual cut' },
+  { id:'qcv_align',   label:'Alignment — centered, not crooked' },
+  { id:'qcv_spots',   label:'No white spots or unprinted areas' },
+];
+const QC_GARMENT = [
+  { id:'qcg_seams',   label:'Seams — clean, no loose threads' },
+  { id:'qcg_collar',  label:'Collar / neck finish — tidy' },
+  { id:'qcg_hem',     label:'Hem — even all around' },
+  { id:'qcg_fabric',  label:'No fabric defects (holes, snags, stains)' },
+];
+const QC_SUBLIM_X = [
+  { id:'qcs_bleed',   label:'No bleeding, ghosting, or fading',              sub:'Sublimation artifact check' },
+  { id:'qcs_sat',     label:'Colors fully saturated — no pale/washed-out areas', sub:'Check dye absorption' },
+];
+const QC_DTF_X = [
+  { id:'qcd_bond',    label:'Transfer fully adhered — no peeling or lifting', sub:'Check all edges' },
+  { id:'qcd_crack',   label:'No cracking or flaking on design edges',         sub:'Especially on stretch areas' },
+];
+
+// ── PHASE 5: COMPLETION ───────────────────────────────────────
+const COMP = [
+  { id:'co_count',    label:'All pieces completed & counted',                sub:'Total matches order qty' },
+  { id:'co_qcpass',   label:'All pieces QC-passed',                          sub:'No rejects remaining' },
+  { id:'co_sorted',   label:'Sorted by size (S13→…→XS→S→M→L→XL→2XL→5XL)',   sub:'Per section / package' },
+  { id:'co_packed',   label:'Packaged and sealed properly',                  sub:'Polybag or box per order' },
+  { id:'co_labeled',  label:'Order reference labeled / tagged',              sub:'Client name + ref visible' },
+  { id:'co_notified', label:'Client notified — "Ready" message sent',        sub:'Via Messenger' },
+];
+
+const PROD_RULES = [
+  'Never start production without <strong>approved design + DP confirmed</strong>.',
+  'Always do a <strong>test print</strong> before the full batch — save materials.',
+  '<strong>Label everything</strong> — masking tape + marker per size per panel.',
+  '<strong>QC per order</strong> — bago mag-pack, lahat ng pieces checked.',
+  '<strong>Reprint threshold</strong>: >10% ng order may defect → inform client of delay.',
+  '<strong>Document reprints</strong> — note reason para hindi maulit.',
+  'Kung may <strong>size shortage</strong> (kulang fabric/blank) → message client agad.',
+];
+
+// ── DATA ─────────────────────────────────────────────────────
+function getOrders() { return _orders; }
+function getActiveOrders() { return getOrders().filter(o=>PROD_ST.includes(o.status)); }
+function getChecklist(id) {
+  try {
+    const all=_production, cl=all[id]||{};
+    return {
+      printType:     cl.printType     || null,
+      cutType:       cl.cutType       || null,
+      pre:           cl.pre           || {},
+      prod:          cl.prod          || {},
+      pieces:        cl.pieces        || {},
+      qc:            cl.qc            || {},
+      qcResult:      cl.qcResult      || null,
+      reprintPcs:    cl.reprintPcs    || 0,
+      reprintReason: cl.reprintReason || '',
+      resewPcs:      cl.resewPcs      || 0,
+      resewReason:   cl.resewReason   || '',
+      cutCounts:     cl.cutCounts     || {},
+      qcCounts:      cl.qcCounts      || {},
+      mockups:       cl.mockups       || [],
+      ribbingType:      cl.ribbingType      || null,
+      cutTypeOther:     cl.cutTypeOther     || '',
+      ribbingTypeOther: cl.ribbingTypeOther || '',
+    };
+  } catch(e){ return { printType:null,cutType:null,pre:{},prod:{},pieces:{},qc:{},qcResult:null,reprintPcs:0,reprintReason:'',resewPcs:0,resewReason:'',cutCounts:{},qcCounts:{},mockups:[],ribbingType:null,cutTypeOther:'',ribbingTypeOther:'' }; }
+}
+async function saveChecklist(id, cl) {
+  try {
+    _production[id] = cl;
+    await db.saveProduction(id, cl);
+  } catch(e) { showToast('Storage error!', 'err'); }
+}
+async function patchOrderStatus(id, status) {
+  const o = _orders.find(x => x.id === id);
+  if (o) {
+    o.status = status;
+    await db.updateOrder(id, { status });
+  }
+}
+
+// ── PIECE BUILDER ─────────────────────────────────────────────
+function buildPieces(order) {
+  const pieces=[];
+  if(order.sections&&order.sections.length){
+    order.sections.forEach(sec=>{
+      const st=sec.title||sec.apparel||'';
+      (sec.rows||[]).forEach(row=>{
+        if(!row.name&&!row.size&&!row.num) return;
+        pieces.push({ id:row.id||`${order.id}-${pieces.length}`, name:row.name||'—', num:row.num||'', size:row.size||row.label||'', sec:st, free:!!row.free });
+      });
+    });
+  }
+  if(!pieces.length){
+    const sks=['s13','s14','s15','3xs','2xs','xs','s','m','l','xl','2xl','3xl','4xl','5xl'], sls={s13:'S13',s14:'S14',s15:'S15','3xs':'3XS','2xs':'2XS',xs:'XS',s:'S',m:'M',l:'L',xl:'XL','2xl':'2XL','3xl':'3XL','4xl':'4XL','5xl':'5XL'};
+    let n=1;
+    sks.forEach(k=>{ const c=parseInt(order.sizes?.[k])||0; for(let i=0;i<c;i++) pieces.push({id:`${order.id}-${k}-${i}`,name:`Piece ${n++}`,num:'',size:sls[k],sec:'',free:false}); });
+    if(!pieces.length){ const q=parseInt(order.qty)||1; for(let i=0;i<q;i++) pieces.push({id:`${order.id}-${i}`,name:`Piece ${i+1}`,num:'',size:'',sec:'',free:false}); }
+  }
+  return pieces;
+}
+function groupPieces(pieces) {
+  const map={},ord=[];
+  pieces.forEach(p=>{ const k=p.sec||''; if(!map[k]){map[k]=[];ord.push(k);} map[k].push(p); });
+  return {map,ord};
+}
+function prodSteps(cl) {
+  const pt=cl.printType;
+  if(pt==='sublim'){ const a=[...S1,...S2,...S3,...S4,...S5]; return {total:a.length,done:a.filter(c=>cl.prod[c.id]).length}; }
+  if(pt==='dtf')   { const a=[...D1,...D2,...D3];             return {total:a.length,done:a.filter(c=>cl.prod[c.id]).length}; }
+  return {total:0,done:0};
+}
+
+// ── RENDER SIDEBAR ────────────────────────────────────────────
+let activeId=null;
+let view=localStorage.getItem('sikhay_pc_view')||'card';
+function setView(v){
+  view=v;
+  localStorage.setItem('sikhay_pc_view',v);
+  document.getElementById('vbtn-card')?.classList.toggle('active',v==='card');
+  document.getElementById('vbtn-list')?.classList.toggle('active',v==='list');
+  renderSidebar();
+}
+function renderSidebar(){
+  const _raw=getActiveOrders();
+  const orders=[..._raw].sort((a,b)=>{
+    const p={in_prod:0,for_prod:1,ready:2};
+    const pd=(p[a.status]??9)-(p[b.status]??9);
+    if(pd!==0)return pd;
+    if(!a.deadline)return 1; if(!b.deadline)return -1;
+    return new Date(a.deadline)-new Date(b.deadline);
+  });
+  const body=document.getElementById('sb-body'), cnt=document.getElementById('sb-count');
+  cnt.textContent=orders.length?`${orders.length} order${orders.length>1?'s':''}`:'' ;
+  document.getElementById('vbtn-card')?.classList.toggle('active',view==='card');
+  document.getElementById('vbtn-list')?.classList.toggle('active',view==='list');
+  if(!orders.length){ body.innerHTML=`<div class="empty-sb"><i class="ti ti-package" style="font-size:28px;opacity:.25;display:block;margin-bottom:10px;"></i>Walang active orders.<br><br>Set status sa <strong style="color:var(--text)">Order Tracker</strong><br>to "For Production"<br>at i-refresh dito.</div>`; return; }
+  if(view==='list'){
+    body.innerHTML=orders.map(o=>{
+      const cl=getChecklist(o.id), pieces=buildPieces(o);
+      const done=pieces.filter(p=>(cl.pieces[p.id]||'pending')==='done').length;
+      const pct=pieces.length?Math.round(done/pieces.length*100):0;
+      const hasBanner=cl.mockups&&cl.mockups.length>0;
+      const thumb=hasBanner
+        ?`<img class="oi-list-thumb" src="${cl.mockups[0].data}" alt="" />`
+        :`<div class="oi-list-thumb-empty"><i class="ti ti-shirt"></i></div>`;
+      return `<div class="oi-list st-${o.status}${o.id===activeId?' active':''}" onclick="selectOrder('${o.id}')">
+        ${thumb}
+        <div class="oi-list-info">
+          <div class="oi-list-name">${esc(o.clientName||'Unknown')}</div>
+          <div class="oi-list-sub">${esc(o.apparel||'')}${o.qty?' · '+o.qty+' pcs':''}</div>
+        </div>
+        <div class="oi-list-pct">${pct}%</div>
+      </div>`;
+    }).join('');
+  } else {
+    body.innerHTML=orders.map(o=>{
+      const cl=getChecklist(o.id), pieces=buildPieces(o);
+      const done=pieces.filter(p=>(cl.pieces[p.id]||'pending')==='done').length;
+      const pct=pieces.length?Math.round(done/pieces.length*100):0;
+      const hasBanner=cl.mockups&&cl.mockups.length>0;
+      return `<div class="order-item st-${o.status}${o.id===activeId?' active':''}" onclick="selectOrder('${o.id}')" style="${hasBanner?'padding:0;overflow:hidden;':''}">
+        ${hasBanner?`<img class="oi-banner" src="${cl.mockups[0].data}" alt="mock-up" />`:''}
+        <div style="${hasBanner?'padding:10px 13px 12px;':''}">
+          <div class="oi-name">${esc(o.clientName||'Unknown')}</div>
+          <div class="oi-meta">${esc(o.apparel||'')}${o.qty?' · '+o.qty+' pcs':''}</div>
+          <span class="oi-badge b-${o.status}">${ST_LBL[o.status]||o.status}</span>
+          <div class="oi-bar"><div class="oi-fill" style="width:${pct}%"></div></div>
+          <div class="oi-pct">${done}/${pieces.length} pieces done</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ── RENDER MAIN ───────────────────────────────────────────────
+function renderMain(){
+  const el=document.getElementById('main');
+  if(!activeId){ el.innerHTML=`<div class="no-sel"><i class="ti ti-clipboard-list"></i><strong>Select an Order</strong><div style="font-size:13px;">Pumili ng order sa kaliwa.</div></div>`; return; }
+  const order=getOrders().find(o=>o.id===activeId);
+  if(!order){ el.innerHTML=`<div class="no-sel"><i class="ti ti-alert-circle"></i><strong>Order not found.</strong></div>`; return; }
+
+  const cl=getChecklist(activeId), pieces=buildPieces(order), {map,ord:gOrd}=groupPieces(pieces);
+  const pt=cl.printType||null, ct=cl.cutType||null;
+
+  // Pre-production
+  const setupCks=pt==='sublim'?SUBLIM:pt==='dtf'?DTF_SETUP:[];
+  const ALL_PRE=[...PRE,...setupCks];
+  const preDone=ALL_PRE.filter(c=>cl.pre[c.id]).length;
+
+  // Production steps
+  const ps=prodSteps(cl);
+
+  // Pieces
+  const pDone=pieces.filter(p=>(cl.pieces[p.id]||'pending')==='done').length;
+  const pPrint=pieces.filter(p=>(cl.pieces[p.id]||'pending')==='printing').length;
+  const pQC=pieces.filter(p=>(cl.pieces[p.id]||'pending')==='qc').length;
+  const pPend=pieces.length-pDone-pPrint-pQC;
+  const pPct=pieces.length?Math.round(pDone/pieces.length*100):0;
+
+  // QC
+  const qcX=pt==='sublim'?QC_SUBLIM_X:pt==='dtf'?QC_DTF_X:[];
+  const ALL_QC=[...QC_VISUAL,...QC_GARMENT,...qcX];
+  const qcDone=ALL_QC.filter(c=>cl.qc[c.id]).length;
+
+  // Completion
+  const compDone=COMP.filter(c=>cl.qc[c.id]).length;
+
+  // Chips
+  const stChip=order.status==='in_prod'?'chip-blue':order.status==='ready'?'chip-green':'chip-purple';
+  const dlStr=order.deadline?new Date(order.deadline).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}):null;
+  const qrChip=cl.qcResult==='passed'?'<span class="chip chip-green"><i class="ti ti-circle-check"></i>QC Passed</span>':cl.qcResult==='reprint'?'<span class="chip chip-amber"><i class="ti ti-refresh"></i>Needs Reprint</span>':cl.qcResult==='hold'?'<span class="chip chip-red"><i class="ti ti-pause"></i>On Hold</span>':'';
+
+  el.innerHTML=`
+  <div class="order-bar">
+    <div class="ob-name">${esc(order.clientName||'Unknown')}</div>
+    <div class="ob-meta">${esc(order.apparel||'')}${order.qty?' · '+order.qty+' pcs':''}${order.ref?' · '+esc(order.ref):''}</div>
+    <div class="ob-chips">
+      <span class="chip ${stChip}">${ST_LBL[order.status]||order.status}</span>
+      ${pt==='sublim'?'<span class="chip chip-purple"><i class="ti ti-shirt"></i>Full Sublimation</span>':pt==='dtf'?'<span class="chip chip-amber"><i class="ti ti-transfer-in"></i>DTF Print</span>':'<span class="chip chip-muted" style="opacity:.5;">Print type not set</span>'}
+      ${pt==='sublim'&&ct?`<span class="chip chip-blue"><i class="ti ti-layout"></i>${esc(ct)}</span>`:''}
+      ${pt==='sublim'&&cl.ribbingType?`<span class="chip chip-muted"><i class="ti ti-circle-half-2"></i>${esc(cl.ribbingType==='Other'?(cl.ribbingTypeOther||'Other'):cl.ribbingType)}</span>`:''}
+      ${dlStr?`<span class="chip chip-muted"><i class="ti ti-calendar"></i>${dlStr}</span>`:''}
+      <span class="chip chip-green">${pDone}/${pieces.length} pieces (${pPct}%)</span>
+      ${qrChip}
+    </div>
+    <div class="mockup-wrap">
+      <div class="mockup-hdr">
+        <span class="mockup-hdr-lbl"><i class="ti ti-photo" style="margin-right:4px;font-size:10px;"></i>Order Mock-up Photo</span>
+        <span style="font-size:10px;color:var(--muted);">${cl.mockups.length} photo${cl.mockups.length!==1?'s':''}</span>
+      </div>
+      <div class="mockup-grid">
+        ${cl.mockups.map((m,i)=>`
+          <div class="mkp-item">
+            <img src="${m.data}" onclick="openLB(${i})" />
+            <div class="mkp-lbl-txt">${esc(m.label||'Mock-up '+(i+1))}</div>
+            <button class="mkp-del" onclick="deleteMockup('${m.id}')" title="Remove"><i class="ti ti-x"></i></button>
+          </div>
+        `).join('')}
+        ${showMkpForm
+          ? `<div class="mkp-form">
+               <input id="mkp-lbl-input" class="mkp-form-input" type="text" placeholder="Label (e.g. T-shirt Mock-up)" />
+               <label class="mkp-file-btn">
+                 <i class="ti ti-upload"></i> Choose Photo
+                 <input type="file" accept="image/*" style="display:none" onchange="submitMockup(this.files[0])" />
+               </label>
+               <button class="mkp-cancel" onclick="showMkpForm=false;renderMain()">Cancel</button>
+             </div>`
+          : `<button class="mkp-add-btn" onclick="showMkpForm=true;renderMain()">
+               <i class="ti ti-plus" style="font-size:18px;"></i>
+               <span>Add Mock-up</span>
+             </button>`
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- PRODUCTION RULES REFERENCE -->
+  <div class="rules-card">
+    <div class="rules-head" onclick="toggleEl('rules-body','chv-rules')">
+      <i class="ti ti-shield-check" style="color:var(--muted);font-size:16px;"></i>
+      <div style="flex:1;font-weight:700;font-size:13px;">Production Rules</div>
+      <span style="font-size:11px;color:var(--muted);">Reference</span>
+      <i class="ti ti-chevron-down phase-chv" id="chv-rules"></i>
+    </div>
+    <div class="rules-body" id="rules-body">
+      ${PROD_RULES.map((r,i)=>`<div class="rule-item"><div class="rule-n">${i+1}</div><div class="rule-t">${r}</div></div>`).join('')}
+    </div>
+  </div>
+
+  <!-- PHASE 1: PRE-PRODUCTION GATE -->
+  <div class="phase-card">
+    <div class="phase-head" onclick="toggleEl('ph1','chv-ph1')">
+      <div class="phase-num${preDone===ALL_PRE.length&&pt?' complete':''}">${preDone===ALL_PRE.length&&pt?'✓':'1'}</div>
+      <div class="phase-lbl">Pre-Production Gate</div>
+      <div class="phase-cnt">${preDone}/${ALL_PRE.length}</div>
+      <i class="ti ti-chevron-down phase-chv" id="chv-ph1"></i>
+    </div>
+    <div class="phase-body open" id="ph1">
+      <div class="pt-sel-wrap">
+        <div class="pt-sel-lbl">Print method para sa order na ito:</div>
+        <div class="pt-sel-btns">
+          <button class="pt-sel-btn${pt==='sublim'?' sel-sublim':''}" onclick="setPrintType('sublim')"><i class="ti ti-shirt"></i> Full Sublimation</button>
+          <button class="pt-sel-btn${pt==='dtf'?' sel-dtf':''}" onclick="setPrintType('dtf')"><i class="ti ti-transfer-in"></i> DTF Print</button>
+        </div>
+      </div>
+      <div class="check-sep">Order Verification</div>
+      <div style="display:flex;gap:6px;padding:4px 0 8px;">
+        <button class="btn btn-ghost btn-sm" onclick='markPhaseGroup("pre",${JSON.stringify(PRE.map(c=>c.id))},true)'><i class="ti ti-checks"></i> Mark All Done</button>
+        <button class="btn btn-ghost btn-sm" onclick='markPhaseGroup("pre",${JSON.stringify(PRE.map(c=>c.id))},false)'><i class="ti ti-restore"></i> Reset All</button>
+      </div>
+      ${PRE.map(c=>chkHTML(c,cl.pre[c.id],`chk('pre','${c.id}')`)).join('')}
+      ${pt==='sublim'?`
+        <div class="check-sep">Sublimation Setup</div>
+        <div style="display:flex;gap:6px;padding:4px 0 8px;">
+          <button class="btn btn-ghost btn-sm" onclick='markPhaseGroup("pre",${JSON.stringify(SUBLIM.map(c=>c.id))},true)'><i class="ti ti-checks"></i> Mark All Done</button>
+          <button class="btn btn-ghost btn-sm" onclick='markPhaseGroup("pre",${JSON.stringify(SUBLIM.map(c=>c.id))},false)'><i class="ti ti-restore"></i> Reset All</button>
+        </div>
+        ${cutTypeHTML(cl)}
+        ${ribbingHTML(cl)}
+        ${SUBLIM.filter(c=>c.id!=='sub_cut_ok').map(c=>chkHTML(c,cl.pre[c.id],`chk('pre','${c.id}')`)).join('')}
+      `:pt==='dtf'?`
+        <div class="check-sep">DTF Print Setup</div>
+        <div style="display:flex;gap:6px;padding:4px 0 8px;">
+          <button class="btn btn-ghost btn-sm" onclick='markPhaseGroup("pre",${JSON.stringify(DTF_SETUP.map(c=>c.id))},true)'><i class="ti ti-checks"></i> Mark All Done</button>
+          <button class="btn btn-ghost btn-sm" onclick='markPhaseGroup("pre",${JSON.stringify(DTF_SETUP.map(c=>c.id))},false)'><i class="ti ti-restore"></i> Reset All</button>
+        </div>
+        ${DTF_SETUP.map(c=>chkHTML(c,cl.pre[c.id],`chk('pre','${c.id}')`)).join('')}
+      `:`<div class="pt-sel-none"><i class="ti ti-info-circle" style="margin-right:4px;"></i>Piliin ang print method para makita ang setup checklist.</div>`}
+    </div>
+  </div>
+
+  <!-- PHASE 2: PRODUCTION STEPS -->
+  <div class="phase-card">
+    <div class="phase-head" onclick="toggleEl('ph2','chv-ph2')">
+      <div class="phase-num${ps.done===ps.total&&ps.total?' complete':''}">${ps.done===ps.total&&ps.total?'✓':'2'}</div>
+      <div class="phase-lbl">Production Steps</div>
+      <div class="phase-cnt">${ps.done}/${ps.total}</div>
+      <i class="ti ti-chevron-down phase-chv" id="chv-ph2"></i>
+    </div>
+    <div class="phase-body open" id="ph2">
+      ${pt==='sublim'?`
+        ${stepCard('s1','File Prep',S1,cl,'file-description')}
+        ${stepCard('s2','Printing',S2,cl,'printer')}
+        ${stepCardCuts('s3','Fabric Cutting',S3,cl,'scissors')}
+        ${stepCard('s4','Heat Pressing',S4,cl,'flame')}
+        ${stepCard('s5','Sewing & Assembly',S5,cl,'needle-thread')}
+      `:pt==='dtf'?`
+        ${stepCard('d1','File Prep',D1,cl,'file-description')}
+        ${stepCard('d2','DTF Printing',D2,cl,'printer')}
+        ${stepCard('d3','Pressing onto Garment',D3,cl,'shirt')}
+      `:`<div class="no-print-type"><i class="ti ti-info-circle" style="font-size:22px;opacity:.3;display:block;margin-bottom:8px;"></i>Piliin ang print method sa Phase 1 para makita ang production steps.</div>`}
+    </div>
+  </div>
+
+  <!-- PHASE 3: PIECE TRACKER -->
+  <div class="phase-card">
+    <div class="piece-top">
+      <div class="pt-title">
+        <div class="phase-num${pDone===pieces.length&&pieces.length?' complete':''}">${pDone===pieces.length&&pieces.length?'✓':'3'}</div>
+        <div style="font-weight:700;">Piece Tracker</div>
+      </div>
+      <div class="pt-stats">
+        <span><span class="ps-dot" style="background:var(--pending)"></span>${pPend} pending</span>
+        <span><span class="ps-dot" style="background:var(--printing)"></span>${pPrint} printing</span>
+        <span><span class="ps-dot" style="background:var(--qc)"></span>${pQC} QC</span>
+        <span><span class="ps-dot" style="background:var(--done)"></span>${pDone} done</span>
+      </div>
+    </div>
+    <div class="pt-bar-wrap"><div class="pt-bar"><div class="pt-fill" style="width:${pPct}%"></div></div></div>
+    <div class="pt-actions">
+      <button class="btn btn-ghost btn-sm" onclick="markAll('done')"><i class="ti ti-checks"></i>Mark All Done</button>
+      <button class="btn btn-ghost btn-sm" onclick="markAll('pending')"><i class="ti ti-restore"></i>Reset All</button>
+    </div>
+    <div class="pt-legend">
+      <span>Tap piece to cycle:</span>
+      <span><span class="ps-dot" style="background:var(--pending)"></span>Pending</span>
+      <span><span class="ps-dot" style="background:var(--printing)"></span>Printing</span>
+      <span><span class="ps-dot" style="background:var(--qc)"></span>QC Check</span>
+      <span><span class="ps-dot" style="background:var(--done)"></span>Done</span>
+    </div>
+    ${gOrd.map(k=>`
+      ${k?`<div class="sec-label"><i class="ti ti-section" style="font-size:10px;margin-right:4px;"></i>${esc(k)}</div>`:''}
+      <div class="piece-grid">${map[k].map(p=>pieceCard(p,cl.pieces[p.id]||'pending')).join('')}</div>
+    `).join('')}
+    <div style="padding-bottom:4px;"></div>
+  </div>
+
+  <!-- PHASE 4: QC & INSPECTION -->
+  <div class="phase-card">
+    <div class="phase-head" onclick="toggleEl('ph4','chv-ph4')">
+      <div class="phase-num${qcDone===ALL_QC.length?' complete':''}">${qcDone===ALL_QC.length?'✓':'4'}</div>
+      <div class="phase-lbl">QC & Inspection</div>
+      <div class="phase-cnt">${qcDone}/${ALL_QC.length}</div>
+      <i class="ti ti-chevron-down phase-chv" id="chv-ph4"></i>
+    </div>
+    <div class="phase-body open" id="ph4">
+      <div style="display:flex;gap:6px;padding:8px 0 10px;border-bottom:1px solid var(--border);margin-bottom:4px;">
+        <button class="btn btn-ghost btn-sm" onclick='markPhaseGroup("qc",${JSON.stringify(ALL_QC.map(c=>c.id))},true)'><i class="ti ti-checks"></i> Mark All Done</button>
+        <button class="btn btn-ghost btn-sm" onclick='markPhaseGroup("qc",${JSON.stringify(ALL_QC.map(c=>c.id))},false)'><i class="ti ti-restore"></i> Reset All</button>
+      </div>
+      <div class="check-sep">Visual Check</div>
+      ${QC_VISUAL.map(c=>chkHTML(c,cl.qc[c.id],`chk('qc','${c.id}')`)).join('')}
+      <div class="check-sep">Garment Check</div>
+      ${QC_GARMENT.map(c=>chkHTML(c,cl.qc[c.id],`chk('qc','${c.id}')`)).join('')}
+      ${qcX.length?`<div class="check-sep">${pt==='sublim'?'Sublimation':'DTF'} — Specific QC</div>${qcX.map(c=>chkHTML(c,cl.qc[c.id],`chk('qc','${c.id}')`)).join('')}`:''}
+      <div class="check-sep">Count Check — Pieces Produced per Size</div>
+      ${sizeCountsHTML('qcCounts', cl.qcCounts)}
+      ${qcResultHTML(cl)}
+    </div>
+  </div>
+
+  <!-- PHASE 5: COMPLETION & PACKING -->
+  <div class="phase-card">
+    <div class="phase-head" onclick="toggleEl('ph5','chv-ph5')">
+      <div class="phase-num${compDone===COMP.length?' complete':''}">${compDone===COMP.length?'✓':'5'}</div>
+      <div class="phase-lbl">Completion & Packing</div>
+      <div class="phase-cnt">${compDone}/${COMP.length}</div>
+      <i class="ti ti-chevron-down phase-chv" id="chv-ph5"></i>
+    </div>
+    <div class="phase-body open" id="ph5">
+      <div style="display:flex;gap:6px;padding:8px 0 10px;border-bottom:1px solid var(--border);margin-bottom:4px;">
+        <button class="btn btn-ghost btn-sm" onclick='markPhaseGroup("qc",${JSON.stringify(COMP.map(c=>c.id))},true)'><i class="ti ti-checks"></i> Mark All Done</button>
+        <button class="btn btn-ghost btn-sm" onclick='markPhaseGroup("qc",${JSON.stringify(COMP.map(c=>c.id))},false)'><i class="ti ti-restore"></i> Reset All</button>
+      </div>
+      ${COMP.map(c=>chkHTML(c,cl.qc[c.id],`chk('qc','${c.id}')`)).join('')}
+    </div>
+  </div>
+
+  <!-- ACTION BAR -->
+  <div class="action-bar">
+    ${order.status==='for_prod'
+      ? cl.mockups.length
+        ? `<button class="btn btn-blue" onclick="advance('in_prod')"><i class="ti ti-play"></i> Start Production</button>`
+        : `<button class="btn btn-blue" disabled style="opacity:.4;cursor:not-allowed;" title="Upload mock-up photo first"><i class="ti ti-lock"></i> Start Production</button>
+           <span style="font-size:12px;color:var(--danger);display:flex;align-items:center;gap:5px;"><i class="ti ti-alert-circle"></i>Upload Order Mock-up Photo to proceed</span>`
+      : ''}
+    ${order.status==='in_prod' ?`<button class="btn btn-green" onclick="advance('ready')"><i class="ti ti-package-check"></i> Mark as Ready</button>`:''}
+    ${order.status==='ready'   ?`<span style="color:var(--col-green);font-weight:700;"><i class="ti ti-circle-check" style="margin-right:5px;"></i>Ready for Pickup / Delivery</span>`:''}
+    <div style="flex:1"></div>
+    <span style="font-size:12px;color:var(--muted);">${preDone}/${ALL_PRE.length} pre · ${ps.done}/${ps.total} prod · ${pDone}/${pieces.length} pcs · ${qcDone}/${ALL_QC.length} QC</span>
+  </div>`;
+}
+
+// ── HTML BUILDERS ─────────────────────────────────────────────
+function chkHTML(c, checked, onclick){
+  return `<div class="check-item${checked?' checked':''}" onclick="${onclick}">
+    <div class="check-box">${checked?'<i class="ti ti-check" style="font-size:11px;color:#000"></i>':''}</div>
+    <div><div class="check-lbl">${esc(c.label)}</div>${c.sub?`<div class="check-sub">${esc(c.sub)}</div>`:''}</div>
+  </div>`;
+}
+
+function pieceCard(p, status){
+  const d=[p.num?`#${p.num}`:'',p.size].filter(Boolean).join(' · ');
+  return `<div class="piece-card st-${status}" id="pc-${p.id}" onclick="cyclePiece('${p.id}')">
+    <i class="ti ti-circle-check pc-check"></i>
+    <div class="pc-name">${esc(p.name)}</div>
+    ${d?`<div class="pc-detail">${esc(d)}</div>`:''}
+    <div class="pc-status"><div class="pc-dot"></div><span>${PC_LBL[status]}</span></div>
+  </div>`;
+}
+
+function stepCard(id, title, checks, cl, icon){
+  const done=checks.filter(c=>cl.prod[c.id]).length, comp=done===checks.length;
+  const idsJson=JSON.stringify(checks.map(c=>c.id));
+  return `<div class="step-card">
+    <div class="step-head" onclick="toggleEl('step-${id}','schv-${id}')">
+      <div class="step-num${comp?' complete':''}">${comp?'✓':id.slice(-1)}</div>
+      <div class="step-title">${icon?`<i class="ti ti-${icon}" style="margin-right:5px;opacity:.7;"></i>`:''}${title}</div>
+      <div class="step-cnt">${done}/${checks.length}</div>
+      <i class="ti ti-chevron-down step-chv" id="schv-${id}"></i>
+    </div>
+    <div class="step-body" id="step-${id}">
+      <div style="display:flex;gap:6px;padding:8px 0 10px;border-bottom:1px solid var(--border);margin-bottom:4px;">
+        <button class="btn btn-ghost btn-sm" onclick='markPhaseGroup("prod",${idsJson},true)'><i class="ti ti-checks"></i> Mark All Done</button>
+        <button class="btn btn-ghost btn-sm" onclick='markPhaseGroup("prod",${idsJson},false)'><i class="ti ti-restore"></i> Reset All</button>
+      </div>
+      ${checks.map(c=>chkHTML(c,cl.prod[c.id],`chk('prod','${c.id}')`)).join('')}
+    </div>
+  </div>`;
+}
+
+function stepCardCuts(id, title, checks, cl, icon){
+  const done=checks.filter(c=>cl.prod[c.id]).length, comp=done===checks.length;
+  const idsJson=JSON.stringify(checks.map(c=>c.id));
+  return `<div class="step-card">
+    <div class="step-head" onclick="toggleEl('step-${id}','schv-${id}')">
+      <div class="step-num${comp?' complete':''}">${comp?'✓':id.slice(-1)}</div>
+      <div class="step-title">${icon?`<i class="ti ti-${icon}" style="margin-right:5px;opacity:.7;"></i>`:''}${title}</div>
+      <div class="step-cnt">${done}/${checks.length}</div>
+      <i class="ti ti-chevron-down step-chv" id="schv-${id}"></i>
+    </div>
+    <div class="step-body" id="step-${id}">
+      <div style="display:flex;gap:6px;padding:8px 0 10px;border-bottom:1px solid var(--border);margin-bottom:4px;">
+        <button class="btn btn-ghost btn-sm" onclick='markPhaseGroup("prod",${idsJson},true)'><i class="ti ti-checks"></i> Mark All Done</button>
+        <button class="btn btn-ghost btn-sm" onclick='markPhaseGroup("prod",${idsJson},false)'><i class="ti ti-restore"></i> Reset All</button>
+      </div>
+      ${checks.map(c=>chkHTML(c,cl.prod[c.id],`chk('prod','${c.id}')`)).join('')}
+      ${sizeCountsHTML('cutCounts', cl.cutCounts)}
+    </div>
+  </div>`;
+}
+
+function sizeCountsHTML(field, counts){
+  const sizes=['S13','S14','S15','3XS','2XS','XS','S','M','L','XL','2XL','3XL','4XL','5XL'];
+  return `<div class="size-counts">
+    <div class="sc-lbl">${field==='cutCounts'?'Cut Count per Size':'Pieces Produced per Size'}</div>
+    <div class="sc-grid">
+      ${sizes.map(s=>{
+        const k=s.toLowerCase().replace('+','');
+        return `<div class="sc-item">
+          <div class="sc-size">${s}</div>
+          <input class="sc-input" type="number" min="0" value="${counts[k]||''}" placeholder="0"
+            onchange="saveSizeCount('${field}','${k}',this.value)" />
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+function qcResultHTML(cl){
+  const r=cl.qcResult||null;
+  return `<div class="qc-result-wrap">
+    <div class="qc-result-lbl">QC Result</div>
+    <div class="qr-btns">
+      <button class="qr-btn${r==='passed'?' qr-passed':''}" onclick="setQcResult('passed')"><i class="ti ti-circle-check"></i> PASSED</button>
+      <button class="qr-btn${r==='reprint'?' qr-reprint':''}" onclick="setQcResult('reprint')"><i class="ti ti-refresh"></i> NEEDS REPRINT</button>
+      <button class="qr-btn${r==='hold'?' qr-hold':''}" onclick="setQcResult('hold')"><i class="ti ti-pause"></i> HOLD</button>
+    </div>
+    ${r==='reprint'?`<div class="reprint-flags">
+      <div class="rf-row">
+        <label>Pieces for reprint:</label>
+        <input class="rf-num" type="number" min="0" value="${cl.reprintPcs||0}" onchange="saveField('reprintPcs',this.value)" />
+        <input class="rf-txt" type="text" placeholder="Reason..." value="${esc(cl.reprintReason||'')}" onchange="saveField('reprintReason',this.value)" />
+      </div>
+      <div class="rf-row">
+        <label>Pieces for resew:</label>
+        <input class="rf-num" type="number" min="0" value="${cl.resewPcs||0}" onchange="saveField('resewPcs',this.value)" />
+        <input class="rf-txt" type="text" placeholder="Reason..." value="${esc(cl.resewReason||'')}" onchange="saveField('resewReason',this.value)" />
+      </div>
+    </div>`:''}
+  </div>`;
+}
+
+function cutTypeHTML(cl){
+  const cuts=['Regular Cut','Nike Cut','Amboy Cut','Sando Cut','Other'], cur=cl.cutType||null, v=cl.pre['sub_cut_ok'];
+  const btns=cuts.map(t=>`<button class="cut-btn${cur===t?' cut-active':''}" onclick="setCutType('${t}')">${t}</button>`).join('');
+  const displayCut = cur==='Other' ? (cl.cutTypeOther||'Other (not specified)') : cur;
+  const otherInput = cur==='Other'
+    ?`<input class="rf-txt" type="text" placeholder="Specify cut type..." value="${esc(cl.cutTypeOther||'')}" oninput="saveField('cutTypeOther',this.value)" style="margin-top:6px;width:100%;max-width:300px;" />`
+    :'';
+  const verify=cur
+    ?`<div class="cut-verify check-item${v?' checked':''}" onclick="chk('pre','sub_cut_ok')">
+       <div class="check-box">${v?'<i class="ti ti-check" style="font-size:11px;color:#000"></i>':''}</div>
+       <div><div class="check-lbl">Photomate template matches: <strong style="color:var(--text)">${esc(displayCut)}</strong></div><div class="check-sub">PSD template verified — tama ang cut</div></div>
+     </div>`
+    :`<div class="cut-hint"><i class="ti ti-info-circle" style="margin-right:4px;font-size:11px;"></i>Piliin ang cut type para ma-enable ang verification step.</div>`;
+  return `<div class="cut-sel-wrap">
+    <div class="cut-sel-lbl"><i class="ti ti-layout"></i> Jersey Cut Type <span class="cut-req">REQUIRED</span></div>
+    <div class="cut-btns">${btns}</div>
+    ${otherInput}
+    ${verify}
+  </div>`;
+}
+
+// ── INTERACTIONS ──────────────────────────────────────────────
+function selectOrder(id){ activeId=id; renderSidebar(); renderMain(); }
+
+function toggleEl(bodyId, chvId){
+  const b=document.getElementById(bodyId), c=document.getElementById(chvId);
+  if(!b) return;
+  const open=b.classList.toggle('open');
+  if(c) c.style.transform=open?'rotate(180deg)':'';
+}
+
+function chk(group, id){
+  if(!activeId) return;
+  const cl=getChecklist(activeId);
+  if(!cl[group]) cl[group]={};
+  cl[group][id]=!cl[group][id];
+  saveChecklist(activeId,cl);
+  renderMain(); renderSidebar();
+}
+
+function setPrintType(type){
+  if(!activeId) return;
+  const cl=getChecklist(activeId);
+  cl.printType=cl.printType===type?null:type;
+  saveChecklist(activeId,cl); renderMain();
+}
+
+function ribbingHTML(cl){
+  const choices=['Black','White','Printed','Other'], cur=cl.ribbingType||null;
+  const btns=choices.map(t =>
+    `<button class="cut-btn${cur===t?' cut-active':''}" onclick="setRibbingType('${t}')">${t}</button>`
+  ).join('');
+  const otherInput = cur==='Other'
+    ?`<input class="rf-txt" type="text" placeholder="Specify ribbing type..." value="${esc(cl.ribbingTypeOther||'')}" oninput="saveField('ribbingTypeOther',this.value)" style="margin-top:6px;width:100%;max-width:300px;" />`
+    :'';
+  return `<div class="cut-sel-wrap" style="margin-top:6px;">
+    <div class="cut-sel-lbl"><i class="ti ti-circle-half-2"></i> Ribbing Type <span class="cut-req">REQUIRED</span></div>
+    <div class="cut-btns">${btns}</div>
+    ${otherInput}
+    ${cur==='Printed'?`<div class="cut-hint" style="color:var(--col-amber);"><i class="ti ti-alert-triangle" style="margin-right:4px;font-size:11px;"></i>Printed ribbing — confirm design file includes ribbing layout.</div>`:''}
+  </div>`;
+}
+
+function setCutType(type){
+  if(!activeId) return;
+  const cl=getChecklist(activeId);
+  const n=cl.cutType===type?null:type;
+  if(n!==cl.cutType) cl.pre['sub_cut_ok']=false;
+  cl.cutType=n;
+  saveChecklist(activeId,cl); renderMain();
+}
+
+function setRibbingType(type){
+  if(!activeId) return;
+  const cl=getChecklist(activeId);
+  cl.ribbingType=cl.ribbingType===type?null:type;
+  saveChecklist(activeId,cl); renderMain();
+}
+
+function cyclePiece(pid){
+  if(!activeId) return;
+  const cl=getChecklist(activeId), cur=cl.pieces[pid]||'pending';
+  cl.pieces[pid]=PC_CYCLE[(PC_CYCLE.indexOf(cur)+1)%PC_CYCLE.length];
+  saveChecklist(activeId,cl); renderMain(); renderSidebar();
+}
+
+function markAll(status){
+  if(!activeId) return;
+  const order=getOrders().find(o=>o.id===activeId); if(!order) return;
+  const cl=getChecklist(activeId);
+  buildPieces(order).forEach(p=>{ cl.pieces[p.id]=status; });
+  saveChecklist(activeId,cl); renderMain(); renderSidebar();
+  showToast(status==='done'?'All pieces marked done!':'All pieces reset.');
+}
+
+function markPhaseGroup(group, ids, done){
+  if(!activeId) return;
+  const cl=getChecklist(activeId);
+  if(!cl[group]) cl[group]={};
+  ids.forEach(id=>{ cl[group][id]=done; });
+  saveChecklist(activeId,cl); renderMain(); renderSidebar();
+  showToast(done?'All marked done!':'All reset.');
+}
+
+function advance(status){
+  if(!activeId) return;
+  if(status==='in_prod'){
+    const cl=getChecklist(activeId);
+    if(!cl.mockups||cl.mockups.length===0){
+      showToast('Upload mock-up photo muna bago mag-produce!','err');
+      return;
+    }
+  }
+  patchOrderStatus(activeId,status);
+  showToast(`Order → ${ST_LBL[status]||status}`);
+  renderSidebar(); renderMain();
+}
+
+function setQcResult(result){
+  if(!activeId) return;
+  const cl=getChecklist(activeId);
+  cl.qcResult=cl.qcResult===result?null:result;
+  saveChecklist(activeId,cl); renderMain();
+}
+
+function saveSizeCount(field, size, value){
+  if(!activeId) return;
+  const cl=getChecklist(activeId);
+  if(!cl[field]) cl[field]={};
+  cl[field][size]=parseInt(value)||0;
+  saveChecklist(activeId,cl);
+}
+
+function saveField(field, value){
+  if(!activeId) return;
+  const cl=getChecklist(activeId);
+  cl[field]=value; saveChecklist(activeId,cl);
+}
+
+let showMkpForm = false;
+let lbList = [], lbIdx = 0;
+
+function submitMockup(file){
+  if(!file||!activeId) return;
+  const label=(document.getElementById('mkp-lbl-input')?.value?.trim())||file.name.replace(/\.[^.]+$/,'');
+  compressImg(file,1400,0.8).then(b64=>{
+    const cl=getChecklist(activeId);
+    cl.mockups.push({ id:Date.now().toString(36)+Math.random().toString(36).slice(2,5), label, data:b64 });
+    saveChecklist(activeId,cl);
+    showMkpForm=false;
+    renderMain();
+    showToast(`Mock-up added: ${label}`);
+  });
+}
+
+function deleteMockup(mkpId){
+  if(!activeId) return;
+  const cl=getChecklist(activeId);
+  cl.mockups=cl.mockups.filter(m=>m.id!==mkpId);
+  saveChecklist(activeId,cl);
+  renderMain();
+  showToast('Mock-up removed.');
+}
+
+function openLB(idx){
+  if(!activeId) return;
+  const cl=getChecklist(activeId);
+  lbList=cl.mockups||[];
+  if(!lbList.length) return;
+  lbIdx=idx||0;
+  _updateLB();
+  document.getElementById('lb').style.display='flex';
+}
+function _updateLB(){
+  document.getElementById('lb-img').src=lbList[lbIdx].data;
+  document.getElementById('lb-lbl').textContent=lbList[lbIdx].label||('Mock-up '+(lbIdx+1));
+  const nav=document.getElementById('lb-nav');
+  nav.style.display=lbList.length>1?'flex':'none';
+  document.getElementById('lb-nav-count').textContent=`${lbIdx+1} / ${lbList.length}`;
+}
+function lbPrev(){ if(!lbList.length) return; lbIdx=(lbIdx-1+lbList.length)%lbList.length; _updateLB(); }
+function lbNext(){ if(!lbList.length) return; lbIdx=(lbIdx+1)%lbList.length; _updateLB(); }
+function closeLB(){
+  document.getElementById('lb').style.display='none';
+  document.getElementById('lb-img').src='';
+  lbList=[]; lbIdx=0;
+}
+
+function compressImg(file,maxW,quality){
+  return new Promise(resolve=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        const scale=Math.min(1,maxW/Math.max(img.width,img.height));
+        const w=Math.round(img.width*scale),h=Math.round(img.height*scale);
+        const c=document.createElement('canvas');
+        c.width=w; c.height=h;
+        c.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(c.toDataURL('image/jpeg',quality));
+      };
+      img.src=e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function showDebug(){
+  const all=getOrders(), active=getActiveOrders();
+  if(!all.length){ alert('sikhay_ot_v1 is EMPTY.\n\nNo orders in localStorage.\n\nMake sure both files are opened in the same browser (same tab or same browser window).'); return; }
+  alert(`sikhay_ot_v1 — ${all.length} order(s)\n\n${all.map((o,i)=>`${i+1}. "${o.clientName||'?'}" | status: "${o.status||'NONE'}" | qty: ${o.qty||'?'}`).join('\n')}\n\n──────\nShowing in checklist: ${active.length}\n(filter: for_prod / in_prod / ready)`);
+}
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+let _tt;
+function showToast(msg,type=''){
+  const t=document.getElementById('toast'), icon=document.getElementById('t-icon');
+  document.getElementById('t-msg').textContent=msg;
+  icon.className=type==='err'?'ti ti-alert-circle':type==='info'?'ti ti-info-circle':'ti ti-check';
+  t.className=`toast show${type?' '+type:''}`;
+  clearTimeout(_tt); _tt=setTimeout(()=>t.className='toast',2800);
+}
+
+function refreshAll(){ renderSidebar(); if(activeId) renderMain(); showToast('Refreshed!','info'); }
+
+// ─── BOOT ─────────────────────────────────────────────────────
+(async () => {
+  db          = await SikhayDB.requireAuth();
+  if (!db) return;
+  _orders     = await db.getOrders();
+  _production = await db.getProduction();
+  renderSidebar();
+  window.addEventListener('focus', async () => {
+    _orders     = await db.getOrders();
+    _production = await db.getProduction();
+    renderSidebar();
+    if (activeId) renderMain();
+  });
+})();
+
+window.addEventListener('keydown', e=>{
+  if(e.key==='Escape') closeLB();
+  if(document.getElementById('lb').style.display!=='none'){
+    if(e.key==='ArrowLeft') lbPrev();
+    if(e.key==='ArrowRight') lbNext();
+  }
+});
+</script>
+</body>
+</html>

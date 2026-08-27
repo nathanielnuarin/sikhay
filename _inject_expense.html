@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Adding Expense…</title>
+<script src="config.js"></script>
+<script src="SikhayDB.js"></script>
+<style>
+body{background:#0a0a0a;color:#f0f0f0;font-family:'Segoe UI',sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;flex-direction:column}
+.card{background:#141414;border:1px solid #2a2a2a;border-radius:12px;padding:28px 36px;max-width:420px;width:90%;text-align:center}
+.title{font-size:18px;font-weight:800;margin-bottom:6px}
+.sub{color:#6b7280;font-size:12px;margin-bottom:18px}
+.detail{background:#1e1e1e;border-radius:8px;padding:12px 16px;text-align:left;font-size:12px;line-height:1.9;margin-bottom:18px}
+.detail b{color:#f59e0b}
+.status{font-weight:700;font-size:14px;min-height:22px}
+.ok{color:#22c55e}.err{color:#ef4444}.muted{color:#6b7280}
+a{color:#3b82f6;font-size:12px;text-decoration:none;margin-top:14px;display:inline-block}
+a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="title">💾 Adding Expense Entry</div>
+  <div class="sub">Authenticating and saving to Firebase…</div>
+  <div class="detail">
+    <b>Category:</b> Gasoline Expense<br>
+    <b>Description:</b> Seaoil Gas-up<br>
+    <b>Amount:</b> ₱1,000.00<br>
+    <b>Method:</b> GCash<br>
+    <b>Date:</b> August 21, 2026
+  </div>
+  <div class="status muted" id="status">Connecting…</div>
+  <a id="link" href="Sikhay_Finance.html" style="display:none">Go to Finance →</a>
+</div>
+<script>
+const KEY = 'sikhay_fin_v1';
+
+(async () => {
+  const st = document.getElementById('status');
+  const lk = document.getElementById('link');
+
+  try {
+    st.textContent = 'Authenticating…';
+    const db = await SikhayDB.requireAuth();
+    if (!db) return; // requireAuth redirects to login if not authed
+
+    st.textContent = 'Fetching current finance data…';
+    await db.getFinance(); // syncs cloud → localStorage
+
+    // Read, modify, write back
+    let fin;
+    try { fin = JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e) { fin = {}; }
+    if (!fin.expenses)          fin.expenses = [];
+    if (!fin.customExpenseCats) fin.customExpenseCats = [];
+
+    // Add custom category if missing
+    if (!fin.customExpenseCats.includes('Gasoline Expense')) {
+      fin.customExpenseCats.push('Gasoline Expense');
+    }
+
+    // Guard: don't add duplicate (check by date + description + amount)
+    const exists = fin.expenses.some(e =>
+      e.date === '2026-08-21' && e.description === 'Seaoil Gas-up' && e.amount === 1000
+    );
+    if (exists) {
+      st.textContent = '✅ Entry already exists in Finance.';
+      st.className = 'status ok';
+      lk.style.display = 'inline-block';
+      return;
+    }
+
+    fin.expenses.push({
+      id:          'exp_' + Date.now(),
+      date:        '2026-08-21',
+      category:    'Gasoline Expense',
+      description: 'Seaoil Gas-up',
+      amount:      1000,
+      method:      'GCash'
+    });
+
+    st.textContent = 'Saving to Firebase…';
+    await db.saveFinance(fin); // writes localStorage + Firebase
+
+    st.textContent = '✅ Expense saved! Redirecting to Finance…';
+    st.className = 'status ok';
+    lk.style.display = 'inline-block';
+    setTimeout(() => { window.location.href = 'Sikhay_Finance.html'; }, 2000);
+
+  } catch(e) {
+    st.textContent = '❌ Error: ' + e.message;
+    st.className = 'status err';
+    lk.style.display = 'inline-block';
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,2309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sikhay Order Form — Intake</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.14.0/dist/tabler-icons.min.css">
+<script src="config.js"></script>
+<script src="SikhayDB.js"></script>
+<style>
+:root {
+  --bg:#0a0a0a; --surface:#141414; --surface2:#1e1e1e; --border:#2a2a2a;
+  --text:#f0f0f0; --muted:#6b7280; --amber:#f59e0b; --green:#22c55e;
+  --danger:#ef4444; --blue:#3b82f6;
+  --brand-red:#e63329; --brand-gold:#c9a84c; --brand-navy:#1a3a5c;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* ── HEADER ── */
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 18px;height:52px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.hd-logo{width:34px;height:34px;background:linear-gradient(135deg,#111,#222);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:10px;color:var(--brand-gold);flex-shrink:0;letter-spacing:.5px;}
+.hd-title{font-size:14px;font-weight:800;letter-spacing:.3px;}
+.hd-sub{font-size:10px;color:var(--muted);}
+.hd-sep{flex:1;}
+.btn{padding:6px 12px;border-radius:7px;border:none;cursor:pointer;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:5px;transition:all .15s;font-family:inherit;}
+.btn-primary{background:#f5f4f0;color:#0a0a0a;}
+.btn-primary:hover{background:#ddd;}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+.btn-ghost:hover{background:var(--surface2);color:var(--text);}
+.btn-sm{padding:4px 9px;font-size:10px;}
+.btn-danger{background:transparent;color:var(--danger);border:1px solid var(--border);}
+.btn-danger:hover{border-color:var(--danger);background:#ef444410;}
+.btn-amber{background:transparent;color:var(--amber);border:1px solid var(--amber);}
+.btn-amber:hover{background:#f59e0b15;}
+.btn-green{background:transparent;color:var(--green);border:1px solid var(--green);}
+.btn-green:hover{background:#22c55e15;}
+#save-status{font-size:10px;color:var(--green);transition:opacity .4s;}
+
+/* ── DRAFTS BAR ── */
+.drafts-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:6px 18px;display:flex;align-items:center;gap:8px;flex-shrink:0;min-height:40px;overflow-x:auto;}
+.draft-chip{padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);font-size:10px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;color:var(--muted);transition:all .15s;}
+.draft-chip:hover{border-color:#555;color:var(--text);}
+.draft-chip.active{border-color:var(--brand-gold);color:var(--brand-gold);background:#1a1500;}
+.draft-chip .del-btn{color:var(--muted);font-size:10px;margin-left:2px;cursor:pointer;padding:0 2px;}
+.draft-chip .del-btn:hover{color:var(--danger);}
+.drafts-label{font-size:10px;color:var(--muted);white-space:nowrap;flex-shrink:0;}
+
+/* ── MAIN LAYOUT ── */
+.main-layout{flex:1;display:grid;grid-template-columns:370px 1fr;overflow:hidden;}
+
+/* ── LEFT PANE ── */
+.pane-left{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;}
+.panel{background:var(--surface);border-bottom:1px solid var(--border);padding:0;}
+.panel-head{padding:10px 16px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border);}
+.panel-body{padding:12px 16px;}
+
+/* meta form */
+.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 16px;}
+.meta-field label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:3px;}
+.meta-field input,.meta-field select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-size:12px;font-family:inherit;}
+.meta-field input:focus,.meta-field select:focus{outline:none;border-color:#555;}
+.meta-field.span2{grid-column:span 2;}
+input[type="date"]{color-scheme:dark;}
+/* apparel multi-type */
+.apparel-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;min-height:0;}
+.apparel-chip{display:inline-flex;align-items:center;gap:5px;background:#f59e0b18;border:1px solid #f59e0b44;border-radius:5px;padding:3px 9px;font-size:11px;font-weight:600;color:var(--amber);}
+.apparel-chip-rm{background:none;border:none;color:#f59e0b88;cursor:pointer;font-size:14px;line-height:1;padding:0;transition:color .1s;}
+.apparel-chip-rm:hover{color:var(--danger);}
+.apparel-add-row{display:flex;gap:6px;}
+.apparel-add-row input{flex:1;}
+
+/* brand / kind selector */
+.selector-row{display:flex;gap:6px;padding:10px 16px;flex-wrap:wrap;}
+.seg-btn{padding:4px 10px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:10px;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit;}
+.seg-btn.active{border-color:var(--brand-gold);color:var(--brand-gold);background:#1a1500;}
+.seg-label{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:flex;align-items:center;margin-right:4px;}
+.auto-tag{font-size:9px;color:var(--green);border:1px solid #16a34a40;border-radius:3px;padding:1px 5px;margin-left:auto;}
+
+/* paste box */
+.paste-wrap{display:flex;flex-direction:column;}
+.paste-box{width:100%;height:200px;background:var(--surface2);border:none;border-top:1px solid var(--border);padding:12px 16px;color:var(--text);font-size:12px;font-family:'Cascadia Code','Consolas',monospace;resize:vertical;line-height:1.6;}
+.paste-box:focus{outline:none;background:#161616;}
+.parse-row{padding:8px 16px;display:flex;align-items:center;gap:8px;border-top:1px solid var(--border);flex-shrink:0;background:var(--surface);}
+.parse-count{font-size:10px;color:var(--muted);}
+
+/* import button (in panel-head) */
+.btn-import{background:transparent;color:var(--amber);border:1px solid var(--amber);cursor:pointer;}
+.btn-import:hover{background:#f59e0b15;}
+
+/* ── RIGHT PANE ── */
+.pane-right{display:flex;flex-direction:column;overflow:hidden;}
+
+.empty-preview{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);gap:12px;cursor:default;transition:background .2s;}
+.empty-preview i.drop-icon{font-size:52px;opacity:.15;transition:opacity .2s;}
+.empty-preview p{font-size:13px;}
+.empty-preview.drag-active{background:#1a1500;border:2px dashed var(--amber);}
+.empty-preview.drag-active .drop-icon{opacity:.6;color:var(--amber);}
+.drop-hint{display:flex;align-items:center;gap:8px;padding:10px 20px;border:1px dashed var(--border);border-radius:10px;font-size:12px;margin-top:4px;transition:all .2s;}
+.drop-hint i{font-size:16px;color:var(--amber);}
+.empty-preview.drag-active .drop-hint{border-color:var(--amber);background:#2a1f00;color:var(--amber);}
+
+.preview-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+
+/* section bar */
+.section-bar{display:flex;align-items:center;gap:8px;padding:8px 18px;background:var(--brand-navy);border-bottom:1px solid #2a3d5c;flex-shrink:0;}
+.section-name{font-size:11px;font-weight:700;letter-spacing:.8px;color:#a8c4e0;text-transform:uppercase;}
+.section-name input{background:transparent;border:none;color:#a8c4e0;font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;font-family:inherit;width:160px;}
+.section-name input:focus{outline:none;}
+.member-count{font-size:10px;color:#6a8aaa;}
+.sec-active-dot{font-size:9px;font-weight:800;color:var(--amber);padding:1px 6px;border-radius:8px;background:#f59e0b18;border:1px solid #f59e0b30;white-space:nowrap;}
+/* extra sections */
+.extra-section{flex-shrink:0;border-top:2px solid #1a2f45;}
+.extra-section .section-bar{background:#0b1929;border-bottom:1px solid #1a2f45;}
+.extra-section.sec-active .section-bar{border-left:3px solid var(--amber);}
+.btn-active-sec{color:var(--amber)!important;border-color:var(--amber)!important;}
+/* undo button */
+.btn-undo:disabled{opacity:.35;cursor:not-allowed;}
+
+/* roster table */
+.table-wrap{flex:1;overflow:auto;}
+.roster-table{width:100%;border-collapse:collapse;font-size:12px;}
+.roster-table th{background:var(--surface2);border-bottom:2px solid var(--border);padding:6px 8px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);white-space:nowrap;position:sticky;top:0;z-index:1;}
+.roster-table td{border-bottom:1px solid var(--border);padding:4px 6px;vertical-align:middle;}
+.roster-table tr:hover td{background:#ffffff08;}
+.roster-table td input{background:transparent;border:none;width:100%;color:var(--text);font-size:12px;font-family:inherit;padding:1px 2px;}
+.roster-table td input:focus{outline:1px solid #555;border-radius:3px;background:var(--surface2);}
+.roster-table td.num-cell{font-variant-numeric:tabular-nums;text-align:right;color:var(--muted);font-size:10px;padding-right:10px;width:28px;}
+.idx-num{font-size:10px;color:var(--muted);}
+.jnum-input{font-weight:700;color:var(--amber);}
+.size-cell input{font-weight:700;text-align:center;}
+.size-nonstd input{color:#f97316!important;}
+.size-nonstd{background:#1a0e0030!important;}
+.row-staff td{background:#0a1a0a50;}
+.row-staff .name-input{color:var(--green);}
+.row-noname .name-input{font-style:italic;color:#a78bfa;}
+.td-upper{background:#0a1a1050;}
+.td-lower{background:#0a101a50;}
+.td-upper input,.td-lower input{font-weight:700;text-align:center;}
+.td-upper input{color:#6ee7b7;}
+.td-lower input{color:#93c5fd;}
+.del-row{background:transparent;border:none;color:var(--muted);cursor:pointer;padding:2px 4px;border-radius:3px;font-size:12px;}
+.del-row:hover{color:var(--danger);background:#ef444415;}
+.add-row-btn{background:transparent;border:1px dashed var(--border);color:var(--muted);cursor:pointer;padding:5px 12px;font-size:11px;border-radius:6px;font-family:inherit;transition:all .15s;margin:6px 10px;}
+.add-row-btn:hover{border-color:#555;color:var(--text);}
+.confirmed-badge{font-size:9px;color:var(--green);}
+
+/* size summary strip */
+.size-summary{background:var(--surface);border-top:2px solid var(--border);padding:12px 18px;display:flex;align-items:flex-start;gap:0;flex-shrink:0;}
+.sz-group{display:flex;flex-direction:column;gap:6px;}
+.sz-group-label{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.9px;}
+.sz-group-label.upper{color:#34d399;}
+.sz-group-label.lower{color:#60a5fa;}
+.sz-group-label.general{color:var(--muted);}
+.sz-cards{display:flex;flex-wrap:wrap;gap:5px;}
+.sz-card{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:40px;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;gap:2px;border-top-width:2px;border-top-style:solid;}
+.sz-card.upper{border-top-color:#34d399;}
+.sz-card.lower{border-top-color:#60a5fa;}
+.sz-card.general{border-top-color:var(--brand-gold);}
+.sz-card.nonstd .sz-cnt{color:#f97316;}
+.sz-sz{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;}
+.sz-cnt{font-size:17px;font-weight:900;color:var(--text);line-height:1;font-variant-numeric:tabular-nums;}
+.sz-sep{width:1px;background:var(--border);margin:4px 16px;align-self:stretch;}
+.sz-total{display:flex;flex-direction:column;align-items:center;justify-content:center;margin-left:auto;padding-left:18px;border-left:1px solid var(--border);}
+.sz-total-lbl{font-size:8px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;}
+.sz-total-cnt{font-size:24px;font-weight:900;color:var(--brand-gold);line-height:1;font-variant-numeric:tabular-nums;}
+
+/* flags panel */
+.flags-panel{background:#100a00;border-top:2px solid var(--amber);flex-shrink:0;max-height:180px;overflow-y:auto;}
+.flags-head{padding:7px 18px;display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;color:var(--amber);border-bottom:1px solid #2a1f00;position:sticky;top:0;background:#100a00;}
+.flag-item{display:flex;align-items:flex-start;gap:8px;padding:5px 18px;border-bottom:1px solid #1a1200;}
+.flag-icon{flex-shrink:0;font-size:12px;margin-top:1px;}
+.flag-icon.warn{color:var(--amber);}
+.flag-icon.info{color:var(--blue);}
+.flag-icon.danger{color:var(--danger);}
+.flag-icon.ok{color:var(--green);}
+.flag-msg{font-size:11px;line-height:1.4;}
+.flag-msg b{font-weight:700;}
+
+/* export row */
+.export-row{display:flex;align-items:center;gap:8px;padding:10px 18px;border-top:1px solid var(--border);background:var(--surface);flex-shrink:0;flex-wrap:wrap;}
+.export-label{font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-right:4px;}
+.btn-csv{background:transparent;color:var(--green);border:1px solid var(--green);}
+.btn-csv:hover{background:#22c55e15;}
+
+/* toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e1e1e;border:1px solid var(--border);border-radius:8px;padding:8px 18px;font-size:12px;z-index:9999;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;}
+
+/* import */
+.paste-box.drag-over{border:2px dashed var(--amber)!important;background:#1a1200!important;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* scrollbar */
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:#333;border-radius:3px;}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<div class="header">
+  <div class="hd-logo">SPA</div>
+  <div>
+    <div class="hd-title">Order Form <span id="draft-badge" style="font-size:10px;color:var(--muted);font-weight:400;"></span></div>
+    <div class="hd-sub">Paste · Parse · Export</div>
+  </div>
+  <div class="hd-sep"></div>
+  <span id="edit-mode-badge" style="display:none;font-size:10px;font-weight:800;padding:2px 9px;border-radius:10px;background:#7c3aed22;border:1px solid #7c3aed55;color:#c4b5fd;">✏ EDIT MODE</span>
+  <button class="btn btn-ghost btn-sm" onclick="newOrder()"><i class="ti ti-plus"></i> New</button>
+  <button class="btn btn-amber btn-sm" onclick="saveDraft()" id="btn-save"><i class="ti ti-device-floppy"></i> Save Draft</button>
+  <button class="btn btn-green btn-sm" onclick="submitToTracker()" id="btn-submit"><i class="ti ti-circle-check"></i> Submit to Tracker</button>
+  <span id="save-status"></span>
+</div>
+
+<!-- ── DRAFTS BAR ── -->
+<div class="drafts-bar">
+  <span class="drafts-label"><i class="ti ti-folder" style="margin-right:3px"></i> Drafts</span>
+  <div id="drafts-list" style="display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;"></div>
+</div>
+
+<!-- ── MAIN LAYOUT ── -->
+<div class="main-layout">
+
+  <!-- LEFT PANE -->
+  <div class="pane-left">
+
+    <!-- META FORM -->
+    <div class="panel">
+      <div class="panel-head"><i class="ti ti-info-circle"></i> Order Details</div>
+      <div class="meta-grid">
+        <div class="meta-field span2">
+          <label>Client / Team Name <span style="color:var(--danger)">*</span></label>
+          <input type="text" id="m-client" placeholder="e.g. Loco Juego Volleyball" required list="dl-client" autocomplete="off">
+          <datalist id="dl-client"></datalist>
+        </div>
+        <div class="meta-field">
+          <label>Focal Person <span style="color:var(--danger)">*</span></label>
+          <input type="text" id="m-focal" placeholder="Contact name" required list="dl-focal" autocomplete="off">
+          <datalist id="dl-focal"></datalist>
+        </div>
+        <div class="meta-field">
+          <label>Ref No. <span style="color:var(--danger)">*</span></label>
+          <input type="text" id="m-refno" placeholder="e.g. REF-001" required list="dl-refno" autocomplete="off">
+          <datalist id="dl-refno"></datalist>
+        </div>
+        <div class="meta-field">
+          <label>Order Date <span style="color:var(--danger)">*</span></label>
+          <input type="date" id="m-orderdate" required>
+        </div>
+        <div class="meta-field">
+          <label>Deadline <span style="color:var(--danger)">*</span></label>
+          <input type="date" id="m-duedate" required style="border-color:#f59e0b40;color:var(--amber);">
+        </div>
+        <div class="meta-field span2">
+          <label>Apparel Type <span style="color:var(--danger)">*</span></label>
+          <div id="apparel-chips" class="apparel-chips"></div>
+          <div class="apparel-add-row">
+            <input type="text" id="m-apptype-input" placeholder="e.g. Jersey Sando" list="dl-apptype" autocomplete="off"
+                   onkeydown="if(event.key==='Enter'){event.preventDefault();addApparelType();}">
+            <datalist id="dl-apptype"></datalist>
+            <button class="btn btn-ghost btn-sm" onclick="addApparelType()" type="button"><i class="ti ti-plus"></i> Add</button>
+          </div>
+        </div>
+        <div class="meta-field">
+          <label>Design Name <span style="color:var(--danger)">*</span></label>
+          <input type="text" id="m-design" placeholder="e.g. Kizuna v2" required list="dl-design" autocomplete="off">
+          <datalist id="dl-design"></datalist>
+        </div>
+        <div class="meta-field">
+          <label>Print Type <span style="color:var(--danger)">*</span></label>
+          <input type="text" id="m-printtype" value="Full Sublimation" required list="dl-printtype" autocomplete="off">
+          <datalist id="dl-printtype"></datalist>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIST TYPE -->
+    <div class="panel">
+      <div class="panel-head"><i class="ti ti-list"></i> List Type <span class="auto-tag" id="auto-tag" style="display:none"><i class="ti ti-sparkles"></i> Auto-detected</span></div>
+      <div class="selector-row" id="kind-tabs">
+        <button class="seg-btn active" data-kind="individual-number" onclick="setKind('individual-number',this)">Individual</button>
+        <button class="seg-btn" data-kind="split-set" onclick="setKind('split-set',this)">Split Set</button>
+        <button class="seg-btn" data-kind="general-bulk" onclick="setKind('general-bulk',this)">Bulk</button>
+        <button class="seg-btn" data-kind="combined" onclick="setKind('combined',this)">Combined</button>
+      </div>
+    </div>
+
+    <!-- PASTE BOX -->
+    <div class="panel paste-wrap">
+      <div class="panel-head">
+        <i class="ti ti-clipboard-text"></i> Paste Roster
+        <label class="btn btn-import btn-sm" style="margin-left:auto" title="Import .xlsx or .pdf order form from Claude Chat">
+          <i class="ti ti-file-import"></i> Import File
+          <input type="file" id="import-file-input" accept=".xlsx,.xls,.pdf"
+                 style="display:none" onchange="importFile(this.files[0]);this.value=''">
+        </label>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('paste-box').value='';updateParseCount()">Clear</button>
+      </div>
+      <textarea class="paste-box" id="paste-box" placeholder="Paste client roster here, then click Parse ↓
+
+1. DOMINGO - size LARGE
+2. Tesalona - Small
+3. ANDOY - L
+
+—or for split-set—
+SORIANO - #6 XXL/L
+LOPEZ - #15 L/M
+
+—or for bulk—
+M - 5 / L - 6 / XL - 4
+
+(or drag &amp; drop an .xlsx / .pdf onto the right panel →)" oninput="updateParseCount()"></textarea>
+      <div class="parse-row">
+        <button class="btn btn-primary" onclick="parseNow()"><i class="ti ti-wand"></i> Parse Text</button>
+        <button class="btn btn-ghost btn-sm btn-undo" id="btn-undo" onclick="undoParse()" disabled title="Undo last parse"><i class="ti ti-arrow-back-up"></i> Undo</button>
+        <span class="parse-count" id="parse-count"></span>
+      </div>
+      <div id="import-status" style="display:none;padding:6px 16px;font-size:11px;color:var(--amber);border-top:1px solid var(--border);background:#0d0900;align-items:center;gap:6px;">
+        <i class="ti ti-loader" style="animation:spin 1s linear infinite;flex-shrink:0"></i>
+        <span id="import-status-text">Reading file…</span>
+      </div>
+    </div>
+
+  </div><!-- /pane-left -->
+
+  <!-- RIGHT PANE -->
+  <div class="pane-right" id="pane-right">
+
+    <!-- EMPTY STATE / DROP ZONE -->
+    <div class="empty-preview" id="empty-preview"
+         ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+      <i class="ti ti-clipboard-text drop-icon"></i>
+      <p>Paste a roster on the left, then click <b>Parse Text</b></p>
+      <div class="drop-hint">
+        <i class="ti ti-file-import"></i>
+        <span>Or drop an <b>.xlsx</b> / <b>.pdf</b> order form here to import instantly</span>
+      </div>
+      <label class="btn btn-ghost btn-sm" style="cursor:pointer;margin-top:4px;">
+        <i class="ti ti-folder-open"></i> Browse File
+        <input type="file" accept=".xlsx,.xls,.pdf" style="display:none"
+               onchange="importFile(this.files[0]);this.value=''">
+      </label>
+      <p style="font-size:10px;color:var(--muted);margin-top:2px;">or load a saved draft from the bar above</p>
+    </div>
+
+    <!-- PREVIEW AREA (hidden until parse) -->
+    <div class="preview-area" id="preview-area" style="display:none;">
+
+      <!-- primary section bar -->
+      <div class="section-bar" id="primary-section-bar">
+        <div class="section-name"><input id="section-name-input" value="MAIN ROSTER" onchange="updateSectionName()"></div>
+        <span id="primary-active-dot" class="sec-active-dot" style="display:none">● Active</span>
+        <div class="member-count" id="member-count"></div>
+        <button id="btn-set-primary-active" class="btn btn-ghost btn-sm" onclick="setActiveSection(-1)" style="display:none;font-size:10px;" title="Make primary section the paste target"><i class="ti ti-target"></i> Set Active</button>
+        <button class="btn btn-ghost btn-sm" onclick="addRow()" style="font-size:10px;"><i class="ti ti-plus"></i> Add Row</button>
+        <button class="btn btn-ghost btn-sm" onclick="addSection()" style="font-size:10px;" title="Add another roster section"><i class="ti ti-layout-columns"></i> + Section</button>
+      </div>
+
+      <!-- primary table -->
+      <div class="table-wrap">
+        <table class="roster-table">
+          <thead id="roster-thead"></thead>
+          <tbody id="roster-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- extra sections inserted here -->
+      <div id="extra-sections-wrap"></div>
+
+      <!-- size summary -->
+      <div class="size-summary" id="size-summary"></div>
+
+      <!-- flags -->
+      <div class="flags-panel" id="flags-panel" style="display:none;">
+        <div class="flags-head">
+          <i class="ti ti-alert-triangle"></i>
+          <span id="flags-title">Flags (0)</span>
+          <button class="btn btn-ghost btn-sm" onclick="toggleFlags()" style="margin-left:auto;font-size:9px;">Hide</button>
+        </div>
+        <div id="flags-list"></div>
+      </div>
+
+      <!-- export row -->
+      <div class="export-row">
+        <span class="export-label">Export</span>
+        <div id="csv-btns"></div>
+        <button class="btn btn-ghost btn-sm" onclick="exportExcelStub()" title="Excel export — Phase 2"><i class="ti ti-file-spreadsheet"></i> Excel</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportPDFStub()" title="PDF export — Phase 2"><i class="ti ti-file-type-pdf"></i> PDF</button>
+      </div>
+
+    </div><!-- /preview-area -->
+  </div><!-- /pane-right -->
+</div><!-- /main-layout -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+
+// ─────────────────────────────────────────────
+// CONSTANTS
+// ─────────────────────────────────────────────
+const SIZE_ORDER = ['2xs','xs','s','m','l','xl','2xl','3xl','4xl','5xl'];
+const NON_STD    = new Set(['2xs','xs','2xl','3xl','4xl','5xl']);
+const LS_KEY     = 'sikhay_drafts_v1';
+
+const SIZE_NORM_MAP = {
+  'EXTRASMALL':'XS','XSMALL':'XS','XTRASMALL':'XS','EXTRA-SMALL':'XS','X-SMALL':'XS',
+  'SMALL':'S',
+  'MEDIUM':'M','MED':'M',
+  'LARGE':'L',
+  'XLARGE':'XL','EXTRALARGE':'XL','XTRALARGE':'XL','X-LARGE':'XL','EXTRA-LARGE':'XL',
+  'XXL':'2XL','XXLARGE':'2XL','DOUBLELARGE':'2XL','2XLARGE':'2XL',
+  'XXXL':'3XL','XXXLARGE':'3XL','3XLARGE':'3XL',
+  'XXXXL':'4XL','4XLARGE':'4XL',
+  'XXXXXL':'5XL','5XLARGE':'5XL',
+  'XXS':'2XS','XXSMALL':'2XS','DOUBLEEXTRASMALL':'2XS',
+};
+const VALID_SIZES = new Set(['2XS','XS','S','M','L','XL','2XL','3XL','4XL','5XL']);
+
+// Single-size pattern (catches word forms + abbrevs)
+const SZ_PAT = '(?:2XS|XXS|XS|X-?(?:TRA\\s*)?(?:SMALL|S)|SMALL|S|MED(?:IUM)?|M|X{1,5}L|LARGE|L(?:ARGE)?|2XL|3XL|4XL|5XL|XL)';
+const SZ_RE  = new RegExp('(?<![A-Z0-9])(' + SZ_PAT + ')(?![A-Z0-9])', 'gi');
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let _db      = null;
+let _drafts  = [];
+let _currentId   = null;
+let _parsedRows    = [];
+let _flags         = [];
+let _editOrderId   = null;
+let _apparelTypes  = [];
+let _kind    = 'individual-number';
+let _brand   = 'apparel';
+let _sectionName = 'MAIN ROSTER';
+let _flagsVisible = true;
+let _autoKind = false;
+let _extraSections = [];   // [{id, name, rows}]
+let _activeSecIdx  = -1;   // -1 = primary, 0+ = extra section index
+let _undoStack     = [];   // [{rows, kind, sectionName, extraSections, pasteText}]
+
+// ─────────────────────────────────────────────
+// QUOTE CALCULATOR TRANSFER
+// ─────────────────────────────────────────────
+function applyQCTransfer() {
+  try {
+    const raw = localStorage.getItem('sikhay_qc_transfer');
+    if (!raw) return;
+    const t = JSON.parse(raw);
+    if (!t?.timestamp || Date.now() - t.timestamp > 5 * 60 * 1000) {
+      localStorage.removeItem('sikhay_qc_transfer');
+      return;
+    }
+    if (t.client) document.getElementById('m-client').value = t.client;
+    if (t.deadline) document.getElementById('m-duedate').value = t.deadline;
+    localStorage.removeItem('sikhay_qc_transfer');
+    showToast('Quote data transferred from Quote Calculator.');
+  } catch(e) {}
+}
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+(async function init() {
+  try {
+    _db = await SikhayDB.requireAuth();
+  } catch(e) { _db = null; }
+  loadDraftsFromLS();
+  renderDraftsList();
+  loadRecents();
+  document.getElementById('m-orderdate').value = new Date().toISOString().slice(0,10);
+  applyQCTransfer();
+  checkEditMode();
+})();
+
+function checkEditMode() {
+  const raw = localStorage.getItem('sikhay_of_edit');
+  if (!raw) return;
+  let hint;
+  try { hint = JSON.parse(raw); } catch(e) { return; }
+  localStorage.removeItem('sikhay_of_edit');
+
+  let orders = [];
+  try { orders = JSON.parse(localStorage.getItem('sikhay_ot_v1') || '[]'); } catch(e) {}
+  const o = orders.find(x => x.id === hint.id);
+  if (!o) { showToast('Order not found.'); return; }
+
+  _editOrderId = o.id;
+
+  // Pre-fill meta fields
+  const setF = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.value = val; };
+  setF('m-client',  o.clientName);
+  setF('m-duedate', o.deadline);
+  setF('m-refno',   o.ref);
+  // Reconstruct multi-apparel chips
+  _apparelTypes = o.apparel ? o.apparel.split(/\s*[&,]\s*/).map(v => v.trim()).filter(Boolean) : [];
+  renderApparelChips();
+
+  // Parse notes back: "Design: X · Print: Y · Focal: Z"
+  const notes = o.notes || '';
+  const dm = notes.match(/Design:\s*([^·]+)/);
+  const pm = notes.match(/Print:\s*([^·]+)/);
+  const fm = notes.match(/Focal:\s*([^·]+)/);
+  if (dm) setF('m-design',    dm[1].trim());
+  if (pm) setF('m-printtype', pm[1].trim());
+  if (fm) setF('m-focal',     fm[1].trim());
+
+  // Reconstruct roster from saved sections
+  if (o.sections && o.sections.length > 0) {
+    const first = o.sections[0];
+    _sectionName = first.title || 'MAIN ROSTER';
+    document.getElementById('section-name-input').value = _sectionName;
+    const toRow = r => ({ name: r.name === '—' ? '' : (r.name || ''), number: r.num || '', size: r.size || r.label || '' });
+    _parsedRows = (first.rows || []).map(toRow);
+    _extraSections = o.sections.slice(1).map(s => ({ name: s.title || 'Section', rows: (s.rows || []).map(toRow) }));
+    renderTable();
+    if (typeof renderExtraSections === 'function') renderExtraSections();
+    updateParseCount();
+  }
+
+  // Show edit mode UI
+  document.getElementById('edit-mode-badge').style.display = '';
+  document.getElementById('btn-submit').innerHTML = '<i class="ti ti-pencil-check"></i> Update Order';
+  document.getElementById('btn-submit').style.cssText += ';background:#7c3aed;color:#fff;';
+  document.getElementById('btn-save').style.display = 'none';
+  showToast(`Editing ${o.ref} — ${o.clientName}`);
+}
+
+// ─────────────────────────────────────────────
+// DRAFT CRUD (localStorage + Firebase via SikhayDB)
+// ─────────────────────────────────────────────
+function loadDraftsFromLS() {
+  try { _drafts = JSON.parse(localStorage.getItem(LS_KEY) || '[]'); }
+  catch(e) { _drafts = []; }
+}
+
+function saveDraftsToLS() {
+  localStorage.setItem(LS_KEY, JSON.stringify(_drafts));
+}
+
+function nextDraftId() {
+  const nums = _drafts.map(d => parseInt((d.id||'').replace('ORD-DRAFT-',''))||0);
+  const max  = nums.length ? Math.max(...nums) : 0;
+  return 'ORD-DRAFT-' + String(max + 1).padStart(3,'0');
+}
+
+async function saveDraft() {
+  const order = buildOrder();
+  if (!order.meta.client && _parsedRows.length === 0) {
+    showToast('Nothing to save yet — fill in details or parse a roster.'); return;
+  }
+  if (!_currentId) _currentId = nextDraftId();
+  order.id = _currentId;
+  order.savedAt = new Date().toISOString();
+
+  const idx = _drafts.findIndex(d => d.id === _currentId);
+  if (idx >= 0) _drafts[idx] = order; else _drafts.unshift(order);
+  saveDraftsToLS();
+  saveRecent('printtype', order.meta.printType);
+  saveRecent('client',    order.meta.client);
+  saveRecent('focal',     order.meta.focalPerson);
+  saveRecent('design',    order.meta.designName);
+  _apparelTypes.forEach(v => saveRecent('apptype', v));
+
+  // Firebase sync via SikhayDB
+  if (_db && _db.saveDraftOrder) {
+    try { await _db.saveDraftOrder(order); } catch(e) {}
+  }
+
+  document.getElementById('draft-badge').textContent = _currentId;
+  renderDraftsList();
+  flashSaveStatus();
+  onOrderSaved(order);
+}
+
+function loadDraft(id) {
+  const d = _drafts.find(x => x.id === id);
+  if (!d) return;
+  _currentId = id;
+
+  // Meta
+  const set = (id, val) => { const el=document.getElementById(id); if(el) el.value=val||''; };
+  set('m-client',    d.meta.client);
+  set('m-focal',     d.meta.focalPerson);
+  set('m-orderdate', d.meta.orderDate);
+  set('m-duedate',   d.meta.dueDate);
+  set('m-refno',     d.meta.refNo);
+  set('m-apptype',   d.meta.apparelType);
+  set('m-design',    d.meta.designName);
+  set('m-printtype', d.meta.printType || 'Full Sublimation');
+  document.getElementById('draft-badge').textContent = id;
+
+  // Brand + kind
+  setBrand(d.brand || 'apparel');
+  _kind = (d.sections && d.sections[0] && d.sections[0].kind) || 'individual-number';
+  _sectionName = (d.sections && d.sections[0] && d.sections[0].name) || 'MAIN ROSTER';
+  document.querySelectorAll('#kind-tabs .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.kind === _kind));
+  document.getElementById('section-name-input').value = _sectionName;
+
+  // Rows — primary section
+  _parsedRows = d.sections && d.sections[0] ? [...(d.sections[0].members || [])] : [];
+  _autoKind   = false;
+
+  // Extra sections (sections[1..])
+  _extraSections = (d.sections && d.sections.length > 1)
+    ? d.sections.slice(1).map((s, i) => ({
+        id:   uid(),
+        name: s.name || `SECTION ${i + 2}`,
+        rows: [...(s.members || [])],
+      }))
+    : [];
+  _activeSecIdx = -1;
+  _undoStack    = [];
+  updateUndoBtn();
+
+  // Paste box: reconstruct raw text
+  document.getElementById('paste-box').value = _parsedRows.map(r => {
+    if (_kind === 'general-bulk') return `${r.size} - ${r.qty}`;
+    const parts = [r.name];
+    if (r.number) parts.push('#' + r.number);
+    if (_kind === 'split-set') parts.push(`${r.upper}/${r.lower}`);
+    else parts.push(r.size);
+    if (r.remarks) parts.push('(' + r.remarks + ')');
+    return parts.filter(Boolean).join(' ');
+  }).join('\n');
+  updateParseCount();
+
+  renderAll();
+  renderDraftsList();
+}
+
+async function deleteDraft(id, ev) {
+  ev.stopPropagation();
+  if (!confirm('Delete this draft?')) return;
+  _drafts = _drafts.filter(d => d.id !== id);
+  saveDraftsToLS();
+  if (_db && _db.deleteDraftOrder) { try { await _db.deleteDraftOrder(id); } catch(e) {} }
+  if (_currentId === id) newOrder();
+  else renderDraftsList();
+}
+
+function renderDraftsList() {
+  const el = document.getElementById('drafts-list');
+  if (!_drafts.length) { el.innerHTML = '<span style="font-size:10px;color:var(--muted)">No saved drafts</span>'; return; }
+  el.innerHTML = _drafts.map(d => {
+    const active = d.id === _currentId ? ' active' : '';
+    const lbl = (d.meta.client || 'Untitled') + ' — ' + (d.id || '');
+    const date = d.savedAt ? new Date(d.savedAt).toLocaleDateString('en-PH',{month:'short',day:'numeric'}) : '';
+    return `<div class="draft-chip${active}" onclick="loadDraft('${d.id}')">
+      <i class="ti ti-file-text"></i> ${esc(lbl)} ${date?`<span style="color:var(--muted)">${date}</span>`:''}
+      <span class="del-btn" onclick="deleteDraft('${d.id}',event)" title="Delete">×</span>
+    </div>`;
+  }).join('');
+}
+
+function newOrder() {
+  _currentId     = null;
+  _parsedRows    = [];
+  _flags         = [];
+  _kind          = 'individual-number';
+  _brand         = 'apparel';
+  _sectionName   = 'MAIN ROSTER';
+  _autoKind      = false;
+  _extraSections = [];
+  _activeSecIdx  = -1;
+  _undoStack     = [];
+  _editOrderId   = null;
+  _apparelTypes  = [];
+  renderApparelChips();
+  document.getElementById('m-apptype-input').value = '';
+  document.getElementById('edit-mode-badge').style.display = 'none';
+  document.getElementById('btn-submit').innerHTML = '<i class="ti ti-circle-check"></i> Submit to Tracker';
+  document.getElementById('btn-submit').style.background = '';
+  document.getElementById('btn-save').style.display = '';
+  document.getElementById('draft-badge').textContent = '';
+  document.getElementById('paste-box').value = '';
+  updateParseCount();
+  ['m-client','m-focal','m-refno','m-design','m-apptype-input'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('m-printtype').value = 'Full Sublimation';
+  document.getElementById('m-orderdate').value = new Date().toISOString().slice(0,10);
+  document.getElementById('m-duedate').value   = '';
+  document.getElementById('section-name-input').value = 'MAIN ROSTER';
+  const esWrap = document.getElementById('extra-sections-wrap');
+  if (esWrap) esWrap.innerHTML = '';
+  updateUndoBtn();
+  setBrand('apparel');
+  setKind('individual-number');
+  document.getElementById('auto-tag').style.display = 'none';
+  document.getElementById('empty-preview').style.display  = 'flex';
+  document.getElementById('preview-area').style.display   = 'none';
+  renderDraftsList();
+}
+
+// P4 hook — called after a live order is written to the tracker
+function onOrderSaved(order) { /* future pipeline integration goes here */ }
+
+// ─────────────────────────────────────────────
+// SUBMIT TO ORDER TRACKER
+// ─────────────────────────────────────────────
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+// ── FIELD RECENTS ─────────────────────────────────────────────────────────
+const RECENTS_KEY = 'sikhay_of_recents_v1';
+const RECENTS_MAP = {
+  refno: 'dl-refno', apptype: 'dl-apptype', printtype: 'dl-printtype',
+  client: 'dl-client', focal: 'dl-focal', design: 'dl-design'
+};
+
+function loadRecents() {
+  let data = {};
+  try { data = JSON.parse(localStorage.getItem(RECENTS_KEY) || '{}'); } catch(e) {}
+  Object.entries(RECENTS_MAP).forEach(([field, dlId]) => {
+    const dl = document.getElementById(dlId);
+    if (!dl) return;
+    const vals = data[field] || [];
+    dl.innerHTML = vals.map(v => `<option value="${esc(v)}">`).join('');
+  });
+}
+
+function saveRecent(field, value) {
+  if (!value || !value.trim()) return;
+  value = value.trim();
+  let data = {};
+  try { data = JSON.parse(localStorage.getItem(RECENTS_KEY) || '{}'); } catch(e) {}
+  if (!data[field]) data[field] = [];
+  data[field] = [value, ...data[field].filter(v => v.toLowerCase() !== value.toLowerCase())].slice(0, 15);
+  localStorage.setItem(RECENTS_KEY, JSON.stringify(data));
+  // Refresh datalist live
+  const dl = document.getElementById(RECENTS_MAP[field]);
+  if (dl) dl.innerHTML = data[field].map(v => `<option value="${esc(v)}">`).join('');
+}
+
+// ── APPAREL MULTI-TYPE ────────────────────────────────────────────────────
+function addApparelType() {
+  const inp = document.getElementById('m-apptype-input');
+  const val = (inp.value || '').trim();
+  if (!val) return;
+  if (_apparelTypes.map(v => v.toLowerCase()).includes(val.toLowerCase())) {
+    inp.value = ''; return;
+  }
+  _apparelTypes.push(val);
+  saveRecent('apptype', val);
+  inp.value = '';
+  renderApparelChips();
+}
+
+function removeApparelType(i) {
+  _apparelTypes.splice(i, 1);
+  renderApparelChips();
+}
+
+function renderApparelChips() {
+  const wrap = document.getElementById('apparel-chips');
+  if (!wrap) return;
+  wrap.innerHTML = _apparelTypes.map((v, i) =>
+    `<span class="apparel-chip">${esc(v)}<button class="apparel-chip-rm" onclick="removeApparelType(${i})" type="button">×</button></span>`
+  ).join('');
+}
+
+function getApparelType() {
+  return _apparelTypes.join(' & ');
+}
+
+// ── UNDO ──────────────────────────────────────────────────────────────────
+function saveUndo() {
+  _undoStack.push({
+    rows:          JSON.parse(JSON.stringify(_parsedRows)),
+    kind:          _kind,
+    sectionName:   _sectionName,
+    extraSections: JSON.parse(JSON.stringify(_extraSections)),
+    pasteText:     document.getElementById('paste-box').value,
+  });
+  if (_undoStack.length > 10) _undoStack.shift();
+  updateUndoBtn();
+}
+
+function undoParse() {
+  if (!_undoStack.length) return;
+  const snap = _undoStack.pop();
+  _parsedRows    = snap.rows;
+  _kind          = snap.kind;
+  _sectionName   = snap.sectionName;
+  _extraSections = snap.extraSections;
+  _autoKind = false;
+  document.getElementById('paste-box').value = snap.pasteText;
+  document.getElementById('section-name-input').value = _sectionName;
+  document.querySelectorAll('#kind-tabs .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.kind === _kind));
+  updateParseCount();
+  _flags = buildFlags(_parsedRows, _kind);
+  renderAll();
+  updateUndoBtn();
+}
+
+function updateUndoBtn() {
+  const btn = document.getElementById('btn-undo');
+  if (btn) btn.disabled = _undoStack.length === 0;
+}
+
+// ── MULTI-SECTION ─────────────────────────────────────────────────────────
+function _rowsOf(secIdx) {
+  return secIdx < 0 ? _parsedRows : _extraSections[secIdx].rows;
+}
+
+function addSection() {
+  const n = _extraSections.length + 2;
+  _extraSections.push({ id: uid(), name: `SECTION ${n}`, rows: [] });
+  _activeSecIdx = _extraSections.length - 1;
+  renderAll();
+  showToast(`Section ${n} added — paste a roster and click Parse Text`);
+}
+
+function deleteSection(secIdx) {
+  const rowCnt = _extraSections[secIdx].rows.filter(r => !r._bulk).length;
+  if (rowCnt > 0 && !confirm(`Delete section with ${rowCnt} member(s)?`)) return;
+  _extraSections.splice(secIdx, 1);
+  if (_activeSecIdx >= _extraSections.length) {
+    _activeSecIdx = _extraSections.length > 0 ? _extraSections.length - 1 : -1;
+  }
+  renderAll();
+}
+
+function setActiveSection(secIdx) {
+  _activeSecIdx = secIdx;
+  renderAll();
+}
+
+function addRowToSec(secIdx) {
+  const newRow = _kind === 'general-bulk'
+    ? { _bulk:true, size:'M', qty:1 }
+    : { name:'', number:'', upper:'', lower:'', size:'', remarks:'', noName:false, staff:false, confirmed:false };
+  _extraSections[secIdx].rows.push(newRow);
+  renderAll();
+  setTimeout(() => {
+    const tb = document.getElementById(`es-tbody-${secIdx}`);
+    if (tb) { const inputs = tb.querySelectorAll('.name-input'); if (inputs.length) inputs[inputs.length-1].focus(); }
+  }, 50);
+}
+
+function deleteExtraRow(secIdx, memberIdx, bulkIdx, isBulk) {
+  const rows = _extraSections[secIdx].rows;
+  if (isBulk) {
+    const bulks  = rows.filter(r => r._bulk);
+    const target = bulks[bulkIdx];
+    if (target) _extraSections[secIdx].rows = rows.filter(r => r !== target);
+  } else {
+    const members = rows.filter(r => !r._bulk);
+    const target  = members[memberIdx];
+    if (target) _extraSections[secIdx].rows = rows.filter(r => r !== target);
+  }
+  renderAll();
+}
+
+function rerenderSec(secIdx) {
+  renderTable(secIdx);
+  renderSizeSummary();
+  updateMemberCount();
+}
+
+function renderExtraSections() {
+  const wrap = document.getElementById('extra-sections-wrap');
+  if (!wrap) return;
+  if (!_extraSections.length) { wrap.innerHTML = ''; return; }
+
+  wrap.innerHTML = _extraSections.map((sec, i) => {
+    const isActive  = _activeSecIdx === i;
+    const memberCnt = sec.rows.filter(r => !r._bulk).length;
+    return `
+      <div class="extra-section${isActive ? ' sec-active' : ''}" id="extra-sec-${i}">
+        <div class="section-bar">
+          <div class="section-name">
+            <input value="${esc(sec.name)}"
+                   onchange="_extraSections[${i}].name=this.value.toUpperCase().trim()||'SECTION';this.value=_extraSections[${i}].name;">
+          </div>
+          ${isActive ? '<span class="sec-active-dot">● Active</span>' : ''}
+          <span style="font-size:10px;color:#6a8aaa;">${memberCnt} member(s)</span>
+          ${!isActive ? `<button class="btn btn-ghost btn-sm" onclick="setActiveSection(${i})" style="font-size:10px;" title="Paste goes here"><i class="ti ti-target"></i> Set Active</button>` : ''}
+          <button class="btn btn-ghost btn-sm" onclick="addRowToSec(${i})" style="font-size:10px;"><i class="ti ti-plus"></i> Row</button>
+          <button class="btn btn-ghost btn-sm" onclick="deleteSection(${i})" style="font-size:10px;color:var(--danger);" title="Delete section"><i class="ti ti-trash"></i></button>
+        </div>
+        <div class="table-wrap" style="max-height:260px;">
+          <table class="roster-table">
+            <thead id="es-thead-${i}"></thead>
+            <tbody id="es-tbody-${i}"></tbody>
+          </table>
+        </div>
+      </div>`;
+  }).join('');
+
+  _extraSections.forEach((_, i) => renderTable(i));
+}
+
+// Converts _parsedRows → sections format expected by Production Checklist
+function buildOrderSections(parsedRows, kind, sectionName, orderId) {
+  if (kind === 'split-set') {
+    // Two sections so pieces are grouped by garment type in production
+    const members = parsedRows.filter(r => !r._bulk);
+    const upperRows = members.filter(r => r.upper).map((r, i) => ({
+      id:`${orderId}-${i}-u`, name:r.name||'—', num:r.number||'', size:r.upper, label:r.upper,
+    }));
+    const lowerRows = members.filter(r => r.lower).map((r, i) => ({
+      id:`${orderId}-${i}-l`, name:r.name||'—', num:r.number||'', size:r.lower, label:r.lower,
+    }));
+    const secs = [];
+    if (upperRows.length) secs.push({ title:'Upper', rows:upperRows });
+    if (lowerRows.length) secs.push({ title:'Lower', rows:lowerRows });
+    return secs.length ? secs : [{ title:sectionName, rows:[] }];
+  }
+  const rows = [];
+  if (kind === 'general-bulk') {
+    let n = 1;
+    parsedRows.filter(r => r._bulk).forEach(r => {
+      for (let i = 0; i < (r.qty || 0); i++) {
+        rows.push({ id:`${orderId}-b${n}`, name:`Piece ${n}`, num:'', size:r.size||'', label:r.size||'' });
+        n++;
+      }
+    });
+  } else {
+    parsedRows.filter(r => !r._bulk).forEach((r, i) => {
+      rows.push({ id:`${orderId}-${i}`, name:r.name||'—', num:r.number||'', size:r.size||'', label:r.size||'' });
+    });
+  }
+  return [{ title:sectionName, rows }];
+}
+
+function nextLiveRef(liveOrders) {
+  const nums = liveOrders
+    .map(o => { const m = String(o.ref||'').match(/ORD-(\d+)$/i); return m ? parseInt(m[1]) : 0; })
+    .filter(n => n > 0);
+  return 'ORD-' + String((nums.length ? Math.max(...nums) : 0) + 1).padStart(3,'0');
+}
+
+function buildSizeBreakdown(rows, kind) {
+  const sizes = {};
+  const add = sz => { const k = String(sz||'').toLowerCase(); if (k) sizes[k] = (sizes[k]||0) + 1; };
+  if (kind === 'general-bulk') {
+    rows.filter(r => r._bulk).forEach(r => {
+      const k = String(r.size||'').toLowerCase();
+      if (k) sizes[k] = (sizes[k]||0) + (r.qty||0);
+    });
+  } else if (kind === 'split-set') {
+    rows.filter(r => !r._bulk).forEach(r => { add(r.upper); add(r.lower); });
+  } else {
+    rows.filter(r => !r._bulk).forEach(r => add(r.size));
+  }
+  return sizes;
+}
+
+function computeTotalQty(rows, kind) {
+  if (kind === 'general-bulk') return rows.filter(r => r._bulk).reduce((s,r) => s+(r.qty||0), 0);
+  return rows.filter(r => !r._bulk).length;
+}
+
+async function submitToTracker() {
+  const order = buildOrder();
+  const m = order.meta;
+
+  if (!m.client)      { showToast('Client name is required before submitting.'); return; }
+  if (!m.focalPerson) { showToast('Focal person is required before submitting.'); return; }
+  if (!m.refNo)       { showToast('Ref No. is required before submitting.'); return; }
+  if (!m.apparelType) { showToast('Add at least one Apparel Type before submitting.'); return; }
+  if (!m.designName)  { showToast('Design name is required before submitting.'); return; }
+  if (!m.dueDate)     { showToast('Deadline is required before submitting.'); return; }
+
+  // ── EDIT MODE: update existing order ──────────────────────────
+  if (_editOrderId) {
+    let liveOrders = [];
+    try { liveOrders = JSON.parse(localStorage.getItem('sikhay_ot_v1') || '[]'); } catch(e) {}
+    const idx = liveOrders.findIndex(o => o.id === _editOrderId);
+    if (idx < 0) { showToast('Order not found — cannot update.'); return; }
+    const existing = liveOrders[idx];
+    const sizes = buildSizeBreakdown(_parsedRows, _kind);
+    const qty   = computeTotalQty(_parsedRows, _kind);
+    const notesParts = [
+      m.designName  ? `Design: ${m.designName}` : '',
+      m.printType   ? `Print: ${m.printType}`   : '',
+      m.focalPerson ? `Focal: ${m.focalPerson}` : '',
+    ].filter(Boolean);
+    const updatedOrder = {
+      ...existing,
+      clientName: m.client,
+      ref:        m.refNo || existing.ref,
+      apparel:    m.apparelType,
+      qty,
+      deadline:   m.dueDate,
+      sizes,
+      sections: [
+        ...buildOrderSections(_parsedRows, _kind, _sectionName || m.apparelType || 'Roster', existing.id),
+        ..._extraSections.flatMap((s, i) =>
+          buildOrderSections(s.rows, _kind, s.name, `${existing.id}-es${i}`)
+        ),
+      ],
+      notes:     notesParts.join(' · '),
+      updatedAt: new Date().toISOString(),
+    };
+    liveOrders[idx] = updatedOrder;
+    try {
+      localStorage.setItem('sikhay_ot_v1', JSON.stringify(liveOrders));
+      if (_db && _db.saveOrder) await _db.saveOrder(updatedOrder);
+    } catch(e) { showToast('Error updating order.'); return; }
+    if (updatedOrder.deadline) { const u = _toGCalURL(updatedOrder); if (u) window.open(u, '_blank'); }
+    showToast(`✓ ${updatedOrder.ref} updated successfully!`);
+    _editOrderId = null;
+    newOrder();
+    return;
+  }
+
+  // Read existing live orders to compute next ref
+  let liveOrders = [];
+  try { liveOrders = JSON.parse(localStorage.getItem('sikhay_ot_v1') || '[]'); } catch(e) {}
+
+  const ref       = m.refNo || nextLiveRef(liveOrders);
+  const sizes     = buildSizeBreakdown(_parsedRows, _kind);
+  const qty       = computeTotalQty(_parsedRows, _kind);
+  const invoiceId = uid();   // generated early so order and invoice share the link
+
+  const notesParts = [
+    m.designName  ? `Design: ${m.designName}` : '',
+    m.printType   ? `Print: ${m.printType}`   : '',
+    m.focalPerson ? `Focal: ${m.focalPerson}` : '',
+  ].filter(Boolean);
+
+  const orderId   = uid();
+  const liveOrder = {
+    id:               orderId,
+    clientName:       m.client,
+    ref,
+    apparel:          m.apparelType,
+    qty,
+    deadline:         m.dueDate,
+    delivery:         'pickup',
+    total:            0,
+    dp:               0,
+    fullyPaid:        false,
+    sizes,
+    sections:         [
+      ...buildOrderSections(_parsedRows, _kind, _sectionName || m.apparelType || 'Roster', orderId),
+      ..._extraSections.flatMap((s, i) =>
+        buildOrderSections(s.rows, _kind, s.name, `${orderId}-es${i}`)
+      ),
+    ],
+    notes:            notesParts.join(' · '),
+    status:           'for_layout',
+    dateAdded:        new Date().toISOString(),
+    linkedInvoiceId:  invoiceId,
+  };
+
+  // Persist field recents
+  saveRecent('refno',     m.refNo);
+  saveRecent('printtype', m.printType);
+  saveRecent('client',    m.client);
+  saveRecent('focal',     m.focalPerson);
+  saveRecent('design',    m.designName);
+  _apparelTypes.forEach(v => saveRecent('apptype', v));
+
+  // Save to Order Tracker localStorage + Firebase
+  try {
+    liveOrders.unshift(liveOrder);
+    localStorage.setItem('sikhay_ot_v1', JSON.stringify(liveOrders));
+    if (_db && _db.saveOrder) await _db.saveOrder(liveOrder);
+  } catch(e) {
+    showToast('Error saving to Order Tracker.'); return;
+  }
+
+  // Auto-create a draft Finance invoice linked to this order
+  try {
+    const finRaw  = localStorage.getItem('sikhay_fin_v1');
+    const finData = finRaw ? JSON.parse(finRaw) : {};
+    if (!finData.expenses)         finData.expenses         = [];
+    if (!finData.orderCosts)       finData.orderCosts       = [];
+    if (!finData.income)           finData.income           = [];
+    if (!finData.customIncomeCats) finData.customIncomeCats = [];
+    if (!finData.invoices)         finData.invoices         = [];
+
+    const invNums  = finData.invoices.map(i => i.invoiceNo || 0);
+    const nextInvNo = invNums.length ? Math.max(...invNums) + 1 : 1;
+
+    const invoice = {
+      id:           invoiceId,
+      invoiceNo:    nextInvNo,
+      poNo:         ref,
+      customer:     m.client,
+      focalPerson:  m.focalPerson || '',
+      focalPhone:   '',
+      date:         new Date().toISOString().split('T')[0],
+      dueDate:      m.dueDate,
+      items: [{
+        id:          uid(),
+        description: m.apparelType,
+        subDesc:     m.designName || '',
+        qty,
+        price:       0,
+        free:        false,
+      }],
+      rushFee:      { type: 'none', amount: 0 },
+      discount:     0,
+      shipping:     0,
+      taxRate:      0,
+      downpayment:  0,
+      paymentTerms: '',
+      note:         notesParts.join(' · '),
+      status:       'draft',
+      payments:     [],
+      orderId:      liveOrder.id,
+    };
+
+    finData.invoices.unshift(invoice);
+    localStorage.setItem('sikhay_fin_v1', JSON.stringify(finData));
+    if (_db && _db.saveFinance) await _db.saveFinance(finData);
+  } catch(e) {
+    // Invoice creation is non-fatal — order is already saved
+  }
+
+  // Remove the draft now that it is live
+  if (_currentId) {
+    _drafts = _drafts.filter(d => d.id !== _currentId);
+    saveDraftsToLS();
+    if (_db && _db.deleteDraftOrder) { try { await _db.deleteDraftOrder(_currentId); } catch(e) {} }
+  }
+
+  if (liveOrder.deadline) { const u = _toGCalURL(liveOrder); if (u) window.open(u, '_blank'); }
+  onOrderSaved(liveOrder);
+  showToast(`✓ ${ref} submitted — order + invoice created!`);
+  newOrder();
+}
+
+// ─── GOOGLE CALENDAR DEEP LINK ────────────────────────────────
+function _nextDay(ds) {
+  const d = new Date(ds + 'T00:00:00'); d.setDate(d.getDate()+1);
+  return d.toISOString().split('T')[0];
+}
+function _toGCalURL(o) {
+  if (!o || !o.deadline) return null;
+  const s = o.deadline.replace(/-/g,''), e = _nextDay(o.deadline).replace(/-/g,'');
+  const t = encodeURIComponent((o.clientName||'Order')+' — '+(o.apparel||'Order')+' Deadline');
+  const d = encodeURIComponent(['Order: '+(o.ref||o.id),'Qty: '+(o.qty||'?')+' pcs',o.notes?'Notes: '+o.notes:''].filter(Boolean).join('\n'));
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${t}&dates=${s}/${e}&details=${d}`;
+}
+
+function flashSaveStatus() {
+  const el = document.getElementById('save-status');
+  el.textContent = '✓ Saved';
+  el.style.opacity = '1';
+  setTimeout(() => { el.style.opacity = '0'; el.textContent = ''; }, 2500);
+}
+
+// ─────────────────────────────────────────────
+// SIZE UTILITIES
+// ─────────────────────────────────────────────
+function normSize(raw) {
+  if (!raw) return '';
+  const key = raw.trim().toUpperCase().replace(/[\s\-]+/g,'');
+  if (SIZE_NORM_MAP[key]) return SIZE_NORM_MAP[key];
+  const up = raw.trim().toUpperCase();
+  if (VALID_SIZES.has(up)) return up;
+  return up; // pass through unrecognised (CUSTOM, measurements, etc.)
+}
+
+function sizeRank(sz) {
+  const r = SIZE_ORDER.indexOf((sz||'').toLowerCase());
+  return r < 0 ? 99 : r;
+}
+
+function isNonStd(sz) {
+  return NON_STD.has((sz||'').toLowerCase());
+}
+
+// ─────────────────────────────────────────────
+// PARSER
+// ─────────────────────────────────────────────
+function parseLine(raw) {
+  let line = raw.trim();
+  if (!line || /^[-–—=]{3,}/.test(line) || /^\/\//.test(line)) return null;
+
+  // Confirmed flag
+  const confirmed = /[✓✅]/.test(line);
+  line = line.replace(/[✓✅]/g,'').trim();
+
+  // Staff keywords
+  const staff = /\b(coach|trainer|staff|registrar|admin|manager|captain)\b/i.test(line);
+
+  // No-name
+  const noName = /\(no[\s\-]?name\)/i.test(line);
+  line = line.replace(/\(no[\s\-]?name\)/i,'').trim();
+
+  // Strip leading list index: "1.", "2)", "11 -", "11."
+  line = line.replace(/^\d{1,3}[\.\)\-]\s*/,'').trim();
+
+  // ── Bulk check: "SIZE - QTY" or "SIZE: QTY" (whole line, no name)
+  const bulkM = line.match(/^(2XS|XS|S(?:MALL)?|M(?:EDIUM)?|L(?:ARGE)?|XL|X-?L(?:ARGE)?|2XL|XXL|3XL|4XL|5XL)\s*[-:]\s*(\d+)$/i);
+  if (bulkM) {
+    return { _bulk:true, size:normSize(bulkM[1]), qty:parseInt(bulkM[2]) };
+  }
+
+  // ── Custom measurements → extract to remarks BEFORE size parsing
+  // e.g. "chest-24/length-17", "hips 24/length 14"
+  let remarks = [];
+  line = line.replace(/\b(?:chest|hips?|length|waist|shoulder|sleeve)\s*[-–]?\s*\d+["']?(?:\s*\/\s*(?:(?:chest|hips?|length|waist|shoulder|sleeve)\s*[-–]?\s*)?\d+["']?)*/gi,
+    m => { remarks.push(m.trim()); return ' '; }).trim();
+
+  // Parenthetical remarks (not already handled)
+  line = line.replace(/\(([^)]+)\)/g, (_, inner) => {
+    const s = inner.trim();
+    // back-text names like "(GAOT - #4)" — if contains name-like content keep as name
+    if (!/^(no[\s-]?name)$/i.test(s)) remarks.push(s);
+    return ' ';
+  }).trim();
+
+  // Star/asterisk notes
+  line = line.replace(/\*[^\s*]+/g, m => { remarks.push(m); return ' '; }).trim();
+
+  // Additional size note like "33\" long" or "S - 33\" long" suffix
+  line = line.replace(/\d+["']\s*long/gi, m => { remarks.push(m.trim()); return ' '; }).trim();
+
+  // ── Jersey number
+  let number = '';
+  const numM = line.match(/#(\d{1,3}(?:\/\d+)?)/);
+  if (numM) {
+    number = numM[1];
+    // Flag malformed jersey numbers like "1/3"
+    if (/\//.test(number)) remarks.push(`jersey #${number} — malformed?`);
+    line = line.replace(numM[0],' ').trim();
+  }
+
+  // ── Split size: SIZE/SIZE where both tokens are real sizes
+  const splitPat = '(2XS|XS|X-?(?:TRA\\s*)?(?:SMALL|S)|SMALL|S(?!\\w)|MED(?:IUM)?|M(?!\\w)|L(?:ARGE)?|X-?L(?:ARGE)?|XL|2XL|XXL|3XL|4XL|5XL)';
+  const splitRE  = new RegExp(splitPat + '\\s*\\/\\s*' + splitPat, 'i');
+  const splitM   = line.match(splitRE);
+  let upper='', lower='', size='';
+
+  if (splitM) {
+    upper = normSize(splitM[1]);
+    lower = normSize(splitM[2]);
+    line  = line.replace(splitM[0], ' ').trim();
+  } else {
+    // ── Single size (last occurrence wins, handles "size LARGE" prefix)
+    const allSizes = [...line.matchAll(SZ_RE)];
+    if (allSizes.length) {
+      const last = allSizes[allSizes.length - 1];
+      size = normSize(last[1]);
+      line = line.slice(0, last.index) + line.slice(last.index + last[0].length);
+      line = line.trim();
+    } else if (remarks.some(r => /\d/.test(r))) {
+      size = 'CUSTOM';
+    }
+  }
+
+  // ── Clean name: strip size keyword prefix, separators
+  let name = line
+    .replace(/\bsize\b/gi, '')
+    .replace(/[-–—]+$/, '')
+    .replace(/^[-–—\s]+/, '')
+    .replace(/\s+/g,' ')
+    .trim();
+
+  return {
+    name, number,
+    upper, lower, size,
+    remarks: remarks.join('; '),
+    noName, staff, confirmed
+  };
+}
+
+function parseRoster(text) {
+  return text.split(/\n|\r\n/)
+    .map(l => parseLine(l))
+    .filter(Boolean);
+}
+
+function detectKind(rows) {
+  const hasSplit  = rows.some(r => r.upper || r.lower);
+  const bulkRatio = rows.filter(r => r._bulk).length / (rows.length || 1);
+  if (hasSplit)        return 'split-set';
+  if (bulkRatio > 0.5) return 'general-bulk';
+  return 'individual-number';
+}
+
+// ─────────────────────────────────────────────
+// FLAG GENERATOR
+// ─────────────────────────────────────────────
+function buildFlags(rows, kind) {
+  const flags = [];
+  if (!rows.length) return flags;
+
+  // 1. Non-standard sizes
+  const nstd = rows.filter(r => {
+    if (r._bulk) return isNonStd(r.size);
+    const sizes = kind === 'split-set' ? [r.upper, r.lower] : [r.size];
+    return sizes.some(s => isNonStd(s));
+  });
+  if (nstd.length) {
+    const names = nstd.map(r => r._bulk ? r.size : (r.name||'?')).join(', ');
+    flags.push({ level:'warn', msg:`Non-standard size(s) used — <b>${esc(names)}</b>`, note:'Confirm blank availability with supplier.' });
+  }
+
+  if (kind !== 'general-bulk') {
+    const members = rows.filter(r => !r._bulk);
+
+    // 2. Duplicate jersey numbers (within section)
+    const numCounts = {};
+    members.filter(r => r.number).forEach(r => { numCounts[r.number] = (numCounts[r.number]||0)+1; });
+    Object.entries(numCounts).filter(([,c])=>c>1).forEach(([n,c]) => {
+      flags.push({ level:'danger', msg:`Duplicate jersey number — <b>#${esc(n)}</b> appears ${c}× in this section` });
+    });
+
+    // 3. Same name appears twice
+    const nameCounts = {};
+    members.filter(r => r.name).forEach(r => {
+      const key = r.name.toUpperCase().trim();
+      nameCounts[key] = (nameCounts[key]||0)+1;
+    });
+    Object.entries(nameCounts).filter(([,c])=>c>1).forEach(([n,c]) => {
+      flags.push({ level:'warn', msg:`Same name appears ${c}× — <b>${esc(n)}</b>`, note:'Same player (2 pcs) or two different people?' });
+    });
+
+    // 4. No-name print rows
+    const noNames = members.filter(r => r.noName);
+    if (noNames.length) {
+      const names = noNames.map(r => r.name||'?').join(', ');
+      flags.push({ level:'info', msg:`No-name print — <b>${noNames.length} row(s):</b> ${esc(names)}` });
+    }
+
+    // 5. Custom measurements
+    const custom = members.filter(r => r.size==='CUSTOM' || (r.remarks && /chest|hips|length|waist/i.test(r.remarks)));
+    if (custom.length) {
+      const names = custom.map(r => r.name||'?').join(', ');
+      flags.push({ level:'warn', msg:`Custom measurements — needs confirmation: <b>${esc(names)}</b>` });
+    }
+
+    // 6. Split sizes need confirmation
+    if (kind === 'split-set') {
+      const mismatches = members.filter(r => r.upper && r.lower && r.upper !== r.lower);
+      if (mismatches.length) {
+        flags.push({ level:'info', msg:`Split-set size mismatch on <b>${mismatches.length}</b> row(s) — confirm upper/lower per player.` });
+      }
+    }
+
+    // 7. Staff rows (informational)
+    const staffRows = members.filter(r => r.staff);
+    if (staffRows.length) {
+      const names = staffRows.map(r => r.name||'Staff').join(', ');
+      flags.push({ level:'ok', msg:`Staff / coach rows (excluded from jersey-number checks): <b>${esc(names)}</b>` });
+    }
+
+    // 8. Malformed jersey numbers
+    const malformed = members.filter(r => r.number && /\//.test(r.number));
+    if (malformed.length) {
+      flags.push({ level:'danger', msg:`Malformed jersey number(s): <b>${malformed.map(r=>'#'+r.number).join(', ')}</b>` });
+    }
+  }
+
+  return flags;
+}
+
+// ─────────────────────────────────────────────
+// BUILD ORDER OBJECT
+// ─────────────────────────────────────────────
+function buildOrder() {
+  const rows    = _parsedRows.filter(r => !r._bulk);
+  const bulks   = _parsedRows.filter(r => r._bulk);
+  const members = (_kind === 'general-bulk') ? bulks : rows.map((r,i) => ({ ...r, idx:i+1 }));
+  const extraSecs = _extraSections.map(s => ({
+    name:     s.name,
+    kind:     _kind,
+    colorBar: 'navy',
+    members:  s.rows.filter(r => !r._bulk).map((r, j) => ({ ...r, idx: j+1 })),
+  }));
+  return {
+    id:   _currentId || null,
+    brand: _brand,
+    meta: {
+      client:      document.getElementById('m-client').value.trim(),
+      focalPerson: document.getElementById('m-focal').value.trim(),
+      orderDate:   document.getElementById('m-orderdate').value,
+      dueDate:     document.getElementById('m-duedate').value,
+      refNo:       document.getElementById('m-refno').value.trim(),
+      apparelType: getApparelType(),
+      designName:  document.getElementById('m-design').value.trim(),
+      printType:   document.getElementById('m-printtype').value.trim(),
+      listType:    _kind,
+    },
+    sections: [
+      { name: _sectionName, kind: _kind, colorBar: 'navy', members },
+      ...extraSecs,
+    ],
+    flags: _flags,
+  };
+}
+
+// ─────────────────────────────────────────────
+// PARSE ACTION
+// ─────────────────────────────────────────────
+function parseNow() {
+  const text = document.getElementById('paste-box').value.trim();
+  if (!text) { showToast('Paste some text first.'); return; }
+
+  const rows = parseRoster(text);
+  if (!rows.length) { showToast('Nothing parseable found.'); return; }
+
+  let idx = 1;
+  rows.forEach(r => { if (!r._bulk) r.idx = idx++; });
+
+  saveUndo();
+
+  if (_activeSecIdx >= 0 && _activeSecIdx < _extraSections.length) {
+    // Route parse into the active extra section
+    _extraSections[_activeSecIdx].rows = rows;
+    showToast(`Parsed ${rows.filter(r=>!r._bulk).length} member(s) → ${_extraSections[_activeSecIdx].name}`);
+  } else {
+    _parsedRows = rows;
+    const detected = detectKind(rows);
+    if (!_autoKind || detected !== _kind) {
+      _kind     = detected;
+      _autoKind = true;
+      document.querySelectorAll('#kind-tabs .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.kind === _kind));
+      document.getElementById('auto-tag').style.display = '';
+    }
+    _flags = buildFlags(rows, _kind);
+  }
+
+  renderAll();
+  updateUndoBtn();
+}
+
+// ─────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────
+function renderAll() {
+  const hasAny = _parsedRows.length > 0 || _extraSections.some(s => s.rows.length > 0);
+  if (!hasAny) {
+    document.getElementById('empty-preview').style.display  = 'flex';
+    document.getElementById('preview-area').style.display   = 'none';
+    const esWrap = document.getElementById('extra-sections-wrap');
+    if (esWrap) esWrap.innerHTML = '';
+    return;
+  }
+  document.getElementById('empty-preview').style.display  = 'none';
+  document.getElementById('preview-area').style.display   = 'flex';
+
+  // Primary section active indicator
+  const isPrimary    = _activeSecIdx < 0;
+  const primaryDot   = document.getElementById('primary-active-dot');
+  const setBtnPrim   = document.getElementById('btn-set-primary-active');
+  if (primaryDot)  primaryDot.style.display  = isPrimary ? '' : 'none';
+  if (setBtnPrim)  setBtnPrim.style.display  = isPrimary ? 'none' : '';
+
+  renderTable(-1);
+  renderExtraSections();
+  renderSizeSummary();
+  renderFlags();
+  renderCSVButtons();
+  updateMemberCount();
+}
+
+function renderTable(secIdx = -1) {
+  const theadId = secIdx < 0 ? 'roster-thead' : `es-thead-${secIdx}`;
+  const tbodyId = secIdx < 0 ? 'roster-tbody' : `es-tbody-${secIdx}`;
+  const thead   = document.getElementById(theadId);
+  const tbody   = document.getElementById(tbodyId);
+  if (!thead || !tbody) return;
+
+  const rows    = _rowsOf(secIdx);
+  const rowRef  = secIdx < 0 ? '_parsedRows' : `_extraSections[${secIdx}].rows`;
+  const reRcall = secIdx < 0 ? 'rerender()' : `rerenderSec(${secIdx})`;
+
+  if (_kind === 'general-bulk') {
+    thead.innerHTML = `<tr><th style="width:80px">SIZE</th><th style="width:80px">QTY</th><th></th></tr>`;
+    const bulks = rows.filter(r => r._bulk);
+    const delFn = secIdx < 0 ? (i => `deleteRow(-1,${i},true)`) : (i => `deleteExtraRow(${secIdx},-1,${i},true)`);
+    tbody.innerHTML = bulks.map((r,i) => {
+      const nstd = isNonStd(r.size) ? ' size-nonstd' : '';
+      return `<tr>
+        <td class="${nstd}"><input value="${esc(r.size)}" onchange="${rowRef}.filter(x=>x._bulk)[${i}].size=normSize(this.value);${reRcall}"></td>
+        <td><input type="number" min="1" value="${r.qty||1}" onchange="${rowRef}.filter(x=>x._bulk)[${i}].qty=parseInt(this.value)||1;${reRcall}"></td>
+        <td><button class="del-row" onclick="${delFn(i)}"><i class="ti ti-trash"></i></button></td>
+      </tr>`;
+    }).join('');
+    return;
+  }
+
+  const members = rows.filter(r => !r._bulk);
+  const delMFn  = secIdx < 0 ? (i => `deleteRow(${i})`) : (i => `deleteExtraRow(${secIdx},${i},-1,false)`);
+
+  if (_kind === 'split-set') {
+    thead.innerHTML = `<tr>
+      <th style="width:28px">#</th>
+      <th>NAME</th>
+      <th style="width:60px">JERSEY</th>
+      <th class="td-upper" style="width:70px">UPPER</th>
+      <th class="td-lower" style="width:70px">LOWER</th>
+      <th>REMARKS</th>
+      <th style="width:28px"></th>
+    </tr>`;
+    tbody.innerHTML = members.map((r,i) => {
+      const staffCls = r.staff  ? ' row-staff'  : '';
+      const nnameCls = r.noName ? ' row-noname' : '';
+      const upNstd   = isNonStd(r.upper) ? ' size-nonstd' : '';
+      const loNstd   = isNonStd(r.lower) ? ' size-nonstd' : '';
+      return `<tr class="${staffCls}${nnameCls}">
+        <td class="num-cell idx-num">${i+1}</td>
+        <td><input class="name-input" value="${esc(r.name||'')}" placeholder="Name" onchange="${rowRef}.filter(x=>!x._bulk)[${i}].name=this.value;${reRcall}">${r.confirmed?'<span class="confirmed-badge">✓</span>':''}</td>
+        <td><input class="jnum-input" value="${esc(r.number||'')}" placeholder="#" onchange="${rowRef}.filter(x=>!x._bulk)[${i}].number=this.value;${reRcall}"></td>
+        <td class="td-upper${upNstd}"><input value="${esc(r.upper||'')}" style="color:#6ee7b7;font-weight:700;text-align:center" onchange="${rowRef}.filter(x=>!x._bulk)[${i}].upper=normSize(this.value);${reRcall}"></td>
+        <td class="td-lower${loNstd}"><input value="${esc(r.lower||'')}" style="color:#93c5fd;font-weight:700;text-align:center" onchange="${rowRef}.filter(x=>!x._bulk)[${i}].lower=normSize(this.value);${reRcall}"></td>
+        <td><input value="${esc(r.remarks||'')}" placeholder="remarks" style="color:var(--muted);font-size:11px" onchange="${rowRef}.filter(x=>!x._bulk)[${i}].remarks=this.value"></td>
+        <td><button class="del-row" onclick="${delMFn(i)}"><i class="ti ti-trash"></i></button></td>
+      </tr>`;
+    }).join('');
+    return;
+  }
+
+  // individual-number (default)
+  thead.innerHTML = `<tr>
+    <th style="width:28px">#</th>
+    <th>NAME</th>
+    <th style="width:70px">JERSEY NO.</th>
+    <th style="width:70px">SIZE</th>
+    <th>REMARKS</th>
+    <th style="width:28px"></th>
+  </tr>`;
+  tbody.innerHTML = members.map((r,i) => {
+    const staffCls = r.staff   ? ' row-staff'  : '';
+    const nnameCls = r.noName  ? ' row-noname' : '';
+    const szNstd   = isNonStd(r.size) ? ' size-nonstd' : '';
+    return `<tr class="${staffCls}${nnameCls}">
+      <td class="num-cell idx-num">${i+1}</td>
+      <td><input class="name-input" value="${esc(r.name||'')}" placeholder="Name" onchange="${rowRef}.filter(x=>!x._bulk)[${i}].name=this.value;${reRcall}">
+        ${r.noName?'<span style="font-size:9px;color:#a78bfa;margin-left:4px">(No Name)</span>':''}
+        ${r.confirmed?'<span class="confirmed-badge">✓</span>':''}
+      </td>
+      <td><input class="jnum-input" value="${esc(r.number||'')}" placeholder="#" onchange="${rowRef}.filter(x=>!x._bulk)[${i}].number=this.value;${reRcall}"></td>
+      <td class="${szNstd} size-cell"><input value="${esc(r.size||'')}" style="text-align:center" onchange="${rowRef}.filter(x=>!x._bulk)[${i}].size=normSize(this.value);${reRcall}"></td>
+      <td><input value="${esc(r.remarks||'')}" placeholder="remarks" style="color:var(--muted);font-size:11px" onchange="${rowRef}.filter(x=>!x._bulk)[${i}].remarks=this.value"></td>
+      <td><button class="del-row" onclick="${delMFn(i)}"><i class="ti ti-trash"></i></button></td>
+    </tr>`;
+  }).join('');
+}
+
+function rerender() {
+  _flags = buildFlags(_parsedRows, _kind);
+  renderSizeSummary();
+  renderFlags();
+  renderCSVButtons();
+  updateMemberCount();
+}
+
+function renderSizeSummary() {
+  const el = document.getElementById('size-summary');
+  const tallies = {};
+
+  function tallyRows(sectionRows) {
+    if (_kind === 'general-bulk') {
+      sectionRows.filter(r=>r._bulk).forEach(r => { tallies[r.size] = (tallies[r.size]||0) + (r.qty||1); });
+    } else if (_kind === 'split-set') {
+      sectionRows.filter(r=>!r._bulk).forEach(r => {
+        if (r.upper) tallies['U:' + r.upper] = (tallies['U:'+r.upper]||0)+1;
+        if (r.lower) tallies['L:' + r.lower] = (tallies['L:'+r.lower]||0)+1;
+      });
+    } else {
+      sectionRows.filter(r=>!r._bulk).forEach(r => { if (r.size) tallies[r.size] = (tallies[r.size]||0)+1; });
+    }
+  }
+
+  tallyRows(_parsedRows);
+  _extraSections.forEach(s => tallyRows(s.rows));
+
+  const sorted = Object.entries(tallies).sort(([a],[b]) => {
+    const ka = a.replace(/^[UL]:/,''); const kb = b.replace(/^[UL]:/,'');
+    return sizeRank(ka) - sizeRank(kb);
+  });
+
+  const total = Object.values(tallies).reduce((s,n)=>s+n,0);
+  if (!sorted.length) { el.innerHTML = ''; return; }
+
+  const card = (sz, cnt, variant) => {
+    const nstd = isNonStd(sz) ? ' nonstd' : '';
+    return `<div class="sz-card ${variant}${nstd}"><span class="sz-sz">${esc(sz)}</span><span class="sz-cnt">${cnt}</span></div>`;
+  };
+
+  let html = '';
+  if (_kind === 'split-set') {
+    const upper = sorted.filter(([sz]) => sz.startsWith('U:'));
+    const lower = sorted.filter(([sz]) => sz.startsWith('L:'));
+    if (upper.length) {
+      html += `<div class="sz-group"><div class="sz-group-label upper">Upper</div><div class="sz-cards">`;
+      html += upper.map(([sz,cnt]) => card(sz.replace(/^U:/,''), cnt, 'upper')).join('');
+      html += `</div></div>`;
+    }
+    if (upper.length && lower.length) html += `<div class="sz-sep"></div>`;
+    if (lower.length) {
+      html += `<div class="sz-group"><div class="sz-group-label lower">Lower / Shorts</div><div class="sz-cards">`;
+      html += lower.map(([sz,cnt]) => card(sz.replace(/^L:/,''), cnt, 'lower')).join('');
+      html += `</div></div>`;
+    }
+  } else {
+    html += `<div class="sz-group"><div class="sz-group-label general">Sizes</div><div class="sz-cards">`;
+    html += sorted.map(([sz,cnt]) => card(sz, cnt, 'general')).join('');
+    html += `</div></div>`;
+  }
+
+  html += `<div class="sz-total"><span class="sz-total-lbl">Total</span><span class="sz-total-cnt">${total}</span></div>`;
+  el.innerHTML = html;
+}
+
+function renderFlags() {
+  const panel  = document.getElementById('flags-panel');
+  const list   = document.getElementById('flags-list');
+  const title  = document.getElementById('flags-title');
+
+  if (!_flags.length) { panel.style.display='none'; return; }
+  panel.style.display = _flagsVisible ? '' : 'none';
+  title.textContent = `Flags (${_flags.length})`;
+
+  const ICONS = { warn:'ti-alert-triangle warn', info:'ti-info-circle info', danger:'ti-alert-circle danger', ok:'ti-circle-check ok' };
+  list.innerHTML = _flags.map(f => `<div class="flag-item">
+    <i class="ti ${ICONS[f.level]||'ti-info-circle info'} flag-icon"></i>
+    <div class="flag-msg">${f.msg}${f.note?`<br><span style="color:var(--muted);font-size:10px">${esc(f.note)}</span>`:''}</div>
+  </div>`).join('');
+}
+
+function renderCSVButtons() {
+  const el = document.getElementById('csv-btns');
+  if (_kind === 'split-set') {
+    el.innerHTML = `
+      <button class="btn btn-csv btn-sm" onclick="exportCSV('upper')"><i class="ti ti-file-download"></i> CSV — Upper</button>
+      <button class="btn btn-csv btn-sm" onclick="exportCSV('lower')"><i class="ti ti-file-download"></i> CSV — Lower/Shorts</button>`;
+  } else if (_kind === 'general-bulk') {
+    el.innerHTML = `<span style="font-size:10px;color:var(--muted)">No CSV for bulk orders</span>`;
+  } else {
+    el.innerHTML = `<button class="btn btn-csv btn-sm" onclick="exportCSV()"><i class="ti ti-file-download"></i> CSV</button>`;
+  }
+}
+
+function updateMemberCount() {
+  const el      = document.getElementById('member-count');
+  const allRows = [_parsedRows, ..._extraSections.map(s => s.rows)].flat();
+  if (_kind === 'general-bulk') {
+    const allBulks = allRows.filter(r => r._bulk);
+    const total    = allBulks.reduce((s,r)=>s+(r.qty||0),0);
+    el.textContent = `${allBulks.length} size(s) · ${total} total pcs`;
+  } else {
+    const allMembers = allRows.filter(r => !r._bulk);
+    const staff      = allMembers.filter(r=>r.staff).length;
+    const secLabel   = _extraSections.length ? ` (${_extraSections.length+1} sections)` : '';
+    el.textContent   = `${allMembers.length} member(s)${secLabel}${staff?` · ${staff} staff`:''}`;
+  }
+}
+
+function updateSectionName() {
+  _sectionName = document.getElementById('section-name-input').value.toUpperCase().trim() || 'MAIN ROSTER';
+  document.getElementById('section-name-input').value = _sectionName;
+}
+
+function toggleFlags() {
+  _flagsVisible = !_flagsVisible;
+  renderFlags();
+}
+
+// ─────────────────────────────────────────────
+// ROW MANAGEMENT
+// ─────────────────────────────────────────────
+function deleteRow(memberIdx, bulkIdx, isBulk) {
+  if (isBulk) {
+    const bulks = _parsedRows.filter(r=>r._bulk);
+    const target = bulks[bulkIdx];
+    if (target) _parsedRows = _parsedRows.filter(r => r !== target);
+  } else {
+    const members = _parsedRows.filter(r=>!r._bulk);
+    const target  = members[memberIdx];
+    if (target) _parsedRows = _parsedRows.filter(r => r !== target);
+  }
+  _flags = buildFlags(_parsedRows, _kind);
+  renderAll();
+}
+
+function addRow() {
+  const newRow = _kind === 'general-bulk'
+    ? { _bulk:true, size:'M', qty:1 }
+    : { name:'', number:'', upper:'', lower:'', size:'', remarks:'', noName:false, staff:false, confirmed:false };
+  _parsedRows.push(newRow);
+  renderAll();
+  // Focus last name input
+  setTimeout(() => {
+    const inputs = document.querySelectorAll('#roster-tbody .name-input');
+    if (inputs.length) inputs[inputs.length-1].focus();
+  }, 50);
+}
+
+// ─────────────────────────────────────────────
+// CSV EXPORT
+// ─────────────────────────────────────────────
+function exportCSV(part) {
+  const meta    = buildOrder().meta;
+  const client  = (meta.client || 'Order').replace(/[/\\?%*:|"<>]/g,'');
+  const members = _parsedRows.filter(r => !r._bulk);
+
+  let rows, filename, headers;
+
+  if (_kind === 'split-set') {
+    // Sort by upper or lower size
+    const sorted = [...members].sort((a,b) => {
+      const szA = part==='lower' ? a.lower : a.upper;
+      const szB = part==='lower' ? b.lower : b.upper;
+      return sizeRank(szA) - sizeRank(szB);
+    });
+
+    if (part === 'lower') {
+      headers  = ['number','label'];
+      rows     = sorted.filter(r=>r.lower).map(r => [r.number||'', (r.lower||'').toLowerCase()]);
+      filename = `${client}_Shorts.csv`;
+    } else {
+      headers  = ['name','number','label'];
+      rows     = sorted.map(r => [r.name||'', r.number||'', (r.upper||'').toLowerCase()]);
+      filename = `${client}_Upper.csv`;
+    }
+  } else {
+    // individual-number (default)
+    const hasNumbers = members.some(r => r.number);
+    const sorted = [...members].sort((a,b) => sizeRank(a.size) - sizeRank(b.size));
+    if (hasNumbers) {
+      headers  = ['name','number','label'];
+      rows     = sorted.map(r => [r.name||'', r.number||'', (r.size||'').toLowerCase()]);
+    } else {
+      headers  = ['name','label'];
+      rows     = sorted.map(r => [r.name||'', (r.size||'').toLowerCase()]);
+    }
+    filename = `${client}.csv`;
+  }
+
+  // Build CSV with UTF-8 BOM (for ñ support)
+  const BOM   = '﻿';
+  const lines = [headers.join(','), ...rows.map(r => r.map(csvCell).join(','))];
+  const blob  = new Blob([BOM + lines.join('\r\n')], { type:'text/csv;charset=utf-8;' });
+  downloadBlob(blob, filename);
+  showToast(`Downloaded: ${filename}`);
+}
+
+function csvCell(val) {
+  const s = String(val ?? '');
+  return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+}
+
+// ─────────────────────────────────────────────
+// EXCEL / PDF STUBS (Phase 2)
+// ─────────────────────────────────────────────
+function exportExcelStub() {
+  showToast('Excel export coming in Phase 2 — use CSV for now.');
+}
+
+function exportPDFStub() {
+  showToast('PDF export coming in Phase 2 — use Print or CSV for now.');
+}
+
+// ─────────────────────────────────────────────
+// UI HELPERS
+// ─────────────────────────────────────────────
+function setBrand(val, el) {
+  _brand = val;
+  document.querySelectorAll('[data-brand]').forEach(b => b.classList.toggle('active', b.dataset.brand === val));
+}
+
+function setKind(val, el) {
+  _kind     = val;
+  _autoKind = false;
+  document.getElementById('auto-tag').style.display = 'none';
+  document.querySelectorAll('#kind-tabs .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.kind === val));
+  if (_parsedRows.length) {
+    _flags = buildFlags(_parsedRows, _kind);
+    renderAll();
+  }
+}
+
+function updateParseCount() {
+  const text  = document.getElementById('paste-box').value.trim();
+  const lines = text ? text.split('\n').filter(l => l.trim()).length : 0;
+  document.getElementById('parse-count').textContent = lines ? `${lines} line(s)` : '';
+}
+
+function downloadBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a   = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─────────────────────────────────────────────
+// DRAG-DROP — empty-preview zone (right pane)
+// ─────────────────────────────────────────────
+function handleDragOver(e) {
+  e.preventDefault();
+  document.getElementById('empty-preview').classList.add('drag-active');
+}
+function handleDragLeave(e) {
+  // Only remove if leaving the element entirely (not entering a child)
+  if (!e.currentTarget.contains(e.relatedTarget)) {
+    document.getElementById('empty-preview').classList.remove('drag-active');
+  }
+}
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('empty-preview').classList.remove('drag-active');
+  const file = e.dataTransfer.files[0];
+  if (file) importFile(file);
+}
+
+// ─────────────────────────────────────────────
+// IMPORT ENTRY POINT
+// ─────────────────────────────────────────────
+async function importFile(file) {
+  if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  setImportStatus('Reading ' + file.name + '…');
+  try {
+    if (ext === 'xlsx' || ext === 'xls') {
+      await importXlsx(file);
+    } else if (ext === 'pdf') {
+      await importPDF(file);
+    } else {
+      showToast('Unsupported file type. Use .xlsx or .pdf');
+    }
+  } catch(e) {
+    setImportStatus('');
+    showToast('Import failed: ' + e.message);
+    console.error('Import error:', e);
+  }
+}
+
+function setImportStatus(msg) {
+  const el = document.getElementById('import-status');
+  const tx = document.getElementById('import-status-text');
+  if (msg) { tx.textContent = msg; el.style.display = 'flex'; }
+  else      { el.style.display = 'none'; }
+}
+
+// ─────────────────────────────────────────────
+// XLSX IMPORT — native zip parser (no CDN)
+// ─────────────────────────────────────────────
+async function importXlsx(file) {
+  const ab   = await file.arrayBuffer();
+  const rows = await readXlsxBrowser(ab);
+  const data = parseSikhayXlsxRows(rows);
+  applyImportedData(data, file.name);
+}
+
+async function inflateRaw(data) {
+  const ds = new DecompressionStream('deflate-raw');
+  const w  = ds.writable.getWriter();
+  w.write(data); w.close();
+  const chunks = [];
+  const r = ds.readable.getReader();
+  for (;;) { const { done, value } = await r.read(); if (done) break; chunks.push(value); }
+  const total = chunks.reduce((s, c) => s + c.length, 0);
+  const out = new Uint8Array(total);
+  let off = 0;
+  for (const c of chunks) { out.set(c, off); off += c.length; }
+  return out;
+}
+
+function decodeXml(s) {
+  return String(s || '')
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&apos;/g, "'").replace(/&quot;/g, '"')
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(parseInt(n)));
+}
+
+async function readXlsxBrowser(ab) {
+  const u8 = new Uint8Array(ab);
+  const dv = new DataView(ab);
+
+  // Locate End of Central Directory record
+  let eocd = -1;
+  for (let i = u8.length - 22; i >= 0; i--) {
+    if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error('Not a valid XLSX file (bad ZIP header)');
+
+  const cdOffset = dv.getUint32(eocd + 16, true);
+  const cdCount  = dv.getUint16(eocd + 8,  true);
+
+  // Parse central directory
+  const entries = {};
+  let pos = cdOffset;
+  for (let i = 0; i < cdCount; i++) {
+    if (dv.getUint32(pos, true) !== 0x02014b50) break;
+    const comp    = dv.getUint16(pos + 10, true);
+    const csz     = dv.getUint32(pos + 20, true);
+    const nameLen = dv.getUint16(pos + 28, true);
+    const xLen    = dv.getUint16(pos + 30, true);
+    const cmtLen  = dv.getUint16(pos + 32, true);
+    const lhOff   = dv.getUint32(pos + 42, true);
+    const name    = new TextDecoder().decode(u8.subarray(pos + 46, pos + 46 + nameLen));
+    entries[name] = { comp, csz, lhOff };
+    pos += 46 + nameLen + xLen + cmtLen;
+  }
+
+  async function unzip(name) {
+    const e = entries[name];
+    if (!e) return null;
+    const lhNL   = dv.getUint16(e.lhOff + 26, true);
+    const lhXL   = dv.getUint16(e.lhOff + 28, true);
+    const dStart = e.lhOff + 30 + lhNL + lhXL;
+    const raw    = u8.subarray(dStart, dStart + e.csz);
+    if (e.comp === 0) return new TextDecoder().decode(raw);
+    return new TextDecoder().decode(await inflateRaw(raw));
+  }
+
+  // Shared strings (most cell text lives here)
+  const ss = [];
+  const ssXml = await unzip('xl/sharedStrings.xml');
+  if (ssXml) {
+    for (const m of ssXml.matchAll(/<si>([\s\S]*?)<\/si>/g)) {
+      let t = '';
+      for (const tm of m[1].matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)) t += tm[1];
+      ss.push(decodeXml(t));
+    }
+  }
+
+  // Resolve first sheet path via workbook.xml.rels
+  let sheetPath = 'xl/worksheets/sheet1.xml';
+  const wbXml   = await unzip('xl/workbook.xml');
+  const relsXml = await unzip('xl/_rels/workbook.xml.rels');
+  if (wbXml && relsXml) {
+    const shM  = wbXml.match(/sheet[^>]+r:id="([^"]+)"/);
+    if (shM) {
+      const relM = relsXml.match(new RegExp('Id="' + shM[1] + '"[^>]+Target="([^"]+)"'));
+      if (relM) sheetPath = 'xl/' + relM[1].replace(/^\.\.\//, '');
+    }
+  }
+
+  const shXml = await unzip(sheetPath);
+  if (!shXml) throw new Error('Sheet XML not found in file');
+
+  // Column letter → 0-based index
+  function colIdx(ref) {
+    const m = ref.match(/^([A-Z]+)/); if (!m) return 0;
+    let c = 0;
+    for (let i = 0; i < m[1].length; i++) c = c * 26 + m[1].charCodeAt(i) - 64;
+    return c - 1;
+  }
+
+  // Parse rows
+  const rows = [];
+  for (const rowM of shXml.matchAll(/<row[^>]+r="(\d+)"[^>]*>([\s\S]*?)<\/row>/g)) {
+    const rIdx = parseInt(rowM[1]) - 1;
+    while (rows.length <= rIdx) rows.push([]);
+    const row = rows[rIdx];
+    for (const cellM of rowM[2].matchAll(/<c\s([^>]*)>([\s\S]*?)<\/c>/g)) {
+      const attrs = cellM[1], inner = cellM[2];
+      const refM = attrs.match(/r="([A-Z]+\d+)"/);
+      const tM   = attrs.match(/t="([^"]+)"/);
+      if (!refM) continue;
+      const ci = colIdx(refM[1]);
+      while (row.length <= ci) row.push('');
+      const t  = tM ? tM[1] : '';
+      const vM = inner.match(/<v>([\s\S]*?)<\/v>/);
+      let val  = '';
+      if (t === 's') {
+        val = ss[parseInt(vM ? vM[1] : 0)] || '';
+      } else if (t === 'inlineStr') {
+        for (const tm of inner.matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)) val += tm[1];
+        val = decodeXml(val);
+      } else if (vM) {
+        val = isNaN(vM[1]) ? decodeXml(vM[1]) : Number(vM[1]);
+      }
+      row[ci] = val;
+    }
+  }
+  return rows;
+}
+
+// ─────────────────────────────────────────────
+// PARSE SIKHAY ORDER FORM STRUCTURE (xlsx rows)
+// ─────────────────────────────────────────────
+function parseSikhayXlsxRows(rows) {
+  const result = {
+    meta: { client:'', focalPerson:'', orderDate:'', dueDate:'',
+            apparelType:'', designName:'', printType:'Full Sublimation', refNo:'' },
+    sections: [],
+    brand: 'apparel',
+  };
+
+  const cell   = (row, col) => String(row && row[col] != null ? row[col] : '').trim();
+  // em-dash, en-dash, hyphen-only → treat as empty
+  const isDash = s => /^[—–‒\-]+$/.test(String(s||'').trim());
+  const normSz = s => { const v = String(s||'').trim(); return (isDash(v)||!v) ? '' : normSize(v); };
+
+// ── Meta extraction ─────────────────────────────────────────
+  // Scan first 20 rows; for each cell check if it looks like a label,
+  // then take the next non-empty cell as the value.
+  const META_RULES = [
+    { pat: /CLIENT|TEAM\s*NAME/,                              prop: 'client' },
+    { pat: /FOCAL\s*(?:PERSON|CONTACT)|CONTACT\s*PERSON/,    prop: 'focalPerson' },
+    { pat: /ORDER\s*DATE/,                                    prop: 'orderDate',   isDate: true },
+    { pat: /DUE\s*DATE|DEADLINE/,                             prop: 'dueDate',     isDate: true },
+    { pat: /DESIGN\s*(?:NAME|FILE|REF(?:ERENCE)?)?/,         prop: 'designName' },
+    { pat: /PRINT\s*(?:TYPE|METHOD|TECHNIQUE)/,               prop: 'printType' },
+    { pat: /APPAREL\s*(?:TYPE)?$/,                            prop: 'apparelType' },
+    { pat: /REF(?:ERENCE)?\s*(?:NO|NUM(?:BER)?)?\.?$/,       prop: 'refNo' },
+  ];
+
+  for (let i = 0; i < Math.min(20, rows.length); i++) {
+    const r = rows[i] || [];
+    for (let col = 0; col < r.length; col++) {
+      const label = String(r[col]||'').toUpperCase().replace(/[\/\(\)]/g,' ').trim();
+      if (label.length < 3) continue;
+      for (const rule of META_RULES) {
+        if (result.meta[rule.prop]) continue;   // already found
+        if (rule.pat.test(label)) {
+          const val = String(r[col+1] || r[col+2] || '').trim();
+          if (val && !isDash(val)) {
+            result.meta[rule.prop] = rule.isDate ? (parseImportDate(val) || '') : val;
+          }
+          break;
+        }
+      }
+    }
+  }
+
+  // ── Find column header row ───────────────────────────────────
+  let headerRow = -1;
+  let colMap = { idx:-1, name:-1, number:-1, size:-1, upper:-1, lower:-1, remarks:-1 };
+
+  for (let i = 0; i < Math.min(30, rows.length); i++) {
+    const ru = (rows[i]||[]).map(c => String(c||'').toUpperCase().trim());
+
+    const nameCol  = ru.findIndex(c => c === 'NAME' || c === 'PLAYER');
+    const hasSz    = ru.some(c => c === 'SIZE' || c === 'LABEL');
+    const hasUpper = ru.some(c => c.includes('UPPER') || c === 'SANDO' || c === 'TOP');
+    const hasLower = ru.some(c => c.includes('LOWER') || c.includes('SHORT') || c === 'BOTTOM');
+
+    // Needs at least a NAME column + one size/set column
+    if (nameCol >= 0 && (hasSz || hasUpper || hasLower)) {
+      headerRow = i;
+      ru.forEach((c, j) => {
+        if      (c === '#' || c === 'NO' || c === 'NO.')                          colMap.idx     = j;
+        else if (c === 'NAME' || c === 'PLAYER')                                  colMap.name    = j;
+        else if (c.includes('JERSEY') || c.includes('NUMBER'))                    colMap.number  = j;
+        else if (c === 'SIZE' || c === 'LABEL')                                   colMap.size    = j;
+        else if (c.includes('UPPER') || c === 'SANDO' || c === 'TOP')            colMap.upper   = j;
+        else if (c.includes('LOWER') || c.includes('SHORT') || c === 'BOTTOM')   colMap.lower   = j;
+        else if (c === 'REMARKS' || c === 'NOTES')                                colMap.remarks = j;
+      });
+      break;
+    }
+  }
+
+  // Fallback defaults if header not cleanly detected
+  if (colMap.name   < 0) colMap.name   = 1;
+  if (colMap.number < 0) colMap.number = colMap.name + 1;
+
+  const isSplit = colMap.upper >= 0 || colMap.lower >= 0;
+  const kind    = isSplit ? 'split-set' : 'individual-number';
+  // For split, default size col to upper
+  if (isSplit && colMap.size < 0 && colMap.upper >= 0) colMap.size = colMap.upper;
+
+  // ── Walk rows after header ───────────────────────────────────
+  let curSection = null;
+
+  const isSectionRow = row => {
+    const c0 = cell(row, 0);
+    if (!c0) return false;
+    if (/^SECTION\s+[A-Z]/i.test(c0)) return true;
+    // Standalone apparel-type header line (nothing in member data cols)
+    const noData = [1,2,3,4].every(j => !cell(row, j));
+    return noData && c0.length > 3 && /SANDO|T-SHIRT|JERSEY|POLO|SHORTS|UNIFORM|RUBBER|JACKET/i.test(c0);
+  };
+
+  const isSkipRow = row => {
+    const c0 = cell(row, 0).toUpperCase();
+    if (/^SUBTOTAL|^GRAND\s*TOTAL|^NOTE[:\s\/]|SIKHAY.*FB/.test(c0)) return true;
+    if (/^[─━═\-]{3,}/.test(c0)) return true;
+    if (!c0 && !row.some(c => c != null && String(c).trim())) return true;
+    // Skip a re-appearing header row (some templates repeat it per section)
+    const ru = (row||[]).map(c => String(c||'').toUpperCase().trim());
+    if (ru.some(c => c === 'NAME'||c === 'PLAYER') &&
+        ru.some(c => c === 'SIZE'||c.includes('UPPER')||c.includes('LOWER'))) return true;
+    return false;
+  };
+
+  for (let i = Math.max(headerRow, 0) + 1; i < rows.length; i++) {
+    const row = rows[i] || [];
+    if (isSkipRow(row)) continue;
+
+    if (isSectionRow(row)) {
+      let name = cell(row, 0)
+        .replace(/^SECTION\s+[A-Z]\s*[·•·\-]\s*/i, '')
+        .replace(/\s*\((?:upper|lower|sando|shorts)\s*only\)/i, '')
+        .replace(/\s*\(\d+\s*pcs?\)/i, '')
+        .trim().toUpperCase();
+      curSection = { name: name || 'SECTION', kind, colorBar:'navy', members:[] };
+      result.sections.push(curSection);
+      continue;
+    }
+
+    if (!curSection) {
+      curSection = { name:'MAIN ROSTER', kind, colorBar:'navy', members:[] };
+      result.sections.push(curSection);
+    }
+
+    const nameVal = cell(row, colMap.name);
+    if (!nameVal || isDash(nameVal)) continue;
+
+    const rawNum   = colMap.number  >= 0 ? cell(row, colMap.number).replace(/^#/, '') : '';
+    const rawSize  = colMap.size    >= 0 ? cell(row, colMap.size)                      : '';
+    const rawUpper = colMap.upper   >= 0 ? cell(row, colMap.upper)                     : rawSize;
+    const rawLower = colMap.lower   >= 0 ? cell(row, colMap.lower)                     : '';
+    const rawRmk   = colMap.remarks >= 0 ? cell(row, colMap.remarks)                   : '';
+
+    curSection.members.push({
+      name:      nameVal,
+      number:    rawNum,
+      size:      kind === 'split-set' ? '' : normSz(rawSize),
+      upper:     kind === 'split-set' ? normSz(rawUpper) : '',
+      lower:     kind === 'split-set' ? normSz(rawLower) : '',
+      remarks:   rawRmk,
+      noName:    false,
+      staff:     /\b(coach|trainer|staff|registrar|admin|manager)\b/i.test(nameVal),
+      confirmed: false,
+    });
+  }
+
+  result.sections.forEach(sec => sec.members.forEach((m, i) => { m.idx = i + 1; }));
+  return result;
+}
+
+function parseImportDate(str) {
+  if (!str) return '';
+  str = String(str).trim();
+  // Already ISO
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+  // "August 10, 2026" / "Aug 10, 2026"
+  const MONTHS = {jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12,
+    january:1,february:2,march:3,april:4,june:6,july:7,august:8,september:9,october:10,november:11,december:12};
+  const m = str.match(/(\w+)\s+(\d{1,2}),?\s+(\d{4})/i);
+  if (m) {
+    const mo = MONTHS[m[1].toLowerCase()];
+    if (mo) return `${m[3]}-${String(mo).padStart(2,'0')}-${String(parseInt(m[2])).padStart(2,'0')}`;
+  }
+  // DD/MM/YYYY or MM/DD/YYYY
+  const dm = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (dm) return `${dm[3]}-${dm[1].padStart(2,'0')}-${dm[2].padStart(2,'0')}`;
+  // Excel serial date (number of days since 1900-01-01)
+  if (!isNaN(str) && parseFloat(str) > 40000) {
+    const d = new Date(Date.UTC(1899, 11, 30) + parseFloat(str) * 86400000);
+    return d.toISOString().slice(0, 10);
+  }
+  return '';
+}
+
+// ─────────────────────────────────────────────
+// PDF IMPORT — PDF.js lazy loaded
+// ─────────────────────────────────────────────
+async function importPDF(file) {
+  setImportStatus('Loading PDF reader…');
+  await loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+  // Set worker source
+  if (window.pdfjsLib) {
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+  setImportStatus('Parsing PDF…');
+  const ab  = await file.arrayBuffer();
+  const pdf = await window.pdfjsLib.getDocument({ data: new Uint8Array(ab) }).promise;
+
+  const allItems = []; // { x, y, str }
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page    = await pdf.getPage(p);
+    const vp      = page.getViewport({ scale: 1 });
+    const content = await page.getTextContent();
+    for (const item of content.items) {
+      if (!item.str || !item.str.trim()) continue;
+      // transform[4]=x, transform[5]=y (from bottom of page)
+      allItems.push({ x: item.transform[4], y: Math.round(vp.height - item.transform[5]), str: item.str });
+    }
+  }
+
+  // Group items by y coordinate (±4pt tolerance) → "lines"
+  allItems.sort((a, b) => a.y - b.y || a.x - b.x);
+  const lineGroups = [];
+  for (const item of allItems) {
+    const last = lineGroups[lineGroups.length - 1];
+    if (last && Math.abs(item.y - last.y) <= 4) {
+      last.items.push(item);
+    } else {
+      lineGroups.push({ y: item.y, items: [item] });
+    }
+  }
+
+  // Build "rows" mimicking the xlsx structure: each line → array of cell strings
+  // Cells are separated by significant x gaps (>20pt)
+  const textRows = lineGroups.map(grp => {
+    const sorted = grp.items.sort((a, b) => a.x - b.x);
+    const cells = [];
+    let cur = '';
+    let prevX = null, prevW = 0;
+    for (const item of sorted) {
+      const gap = prevX !== null ? item.x - (prevX + prevW) : 0;
+      if (gap > 18 && cur.trim()) { cells.push(cur.trim()); cur = ''; }
+      cur += (cur ? ' ' : '') + item.str;
+      prevX = item.x;
+      prevW = item.width || 0;
+    }
+    if (cur.trim()) cells.push(cur.trim());
+    return cells;
+  }).filter(row => row.length > 0);
+
+  const data = parseSikhayXlsxRows(textRows); // same parser works for PDF "rows"
+  applyImportedData(data, file.name);
+}
+
+function loadScriptOnce(src) {
+  if (document.querySelector(`script[src="${src}"]`)) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+// ─────────────────────────────────────────────
+// APPLY IMPORTED DATA → FORM + PREVIEW
+// ─────────────────────────────────────────────
+function applyImportedData(data, filename) {
+  setImportStatus('');
+
+  // Meta form
+  const set = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
+  set('m-client',    data.meta.client);
+  set('m-focal',     data.meta.focalPerson);
+  set('m-orderdate', data.meta.orderDate);
+  set('m-duedate',   data.meta.dueDate);
+  set('m-refno',     data.meta.refNo);
+  set('m-apptype',   data.meta.apparelType);
+  set('m-design',    data.meta.designName);
+  if (data.meta.printType) set('m-printtype', data.meta.printType);
+
+  // Brand
+  if (data.brand) setBrand(data.brand);
+
+  // Handle multi-section imports
+  const sections = data.sections.filter(s => s.members.length > 0);
+  if (!sections.length) {
+    setImportStatus('');
+    showToast('No roster data found in file.');
+    return;
+  }
+
+  // For now: use first section (multi-section = P3 combined view)
+  // Flatten all sections into _parsedRows with visual separators if multiple
+  _parsedRows = [];
+  if (sections.length === 1) {
+    // Single section
+    const sec = sections[0];
+    _kind        = sec.kind || 'individual-number';
+    _sectionName = sec.name || 'MAIN ROSTER';
+    _parsedRows  = sec.members.map(m => ({ ...m }));
+  } else {
+    // Multiple sections: load first section, show a notice
+    // Each section gets a synthetic "section divider" marker
+    _kind        = sections[0].kind || 'individual-number';
+    _sectionName = sections[0].name || 'MAIN ROSTER';
+    sections.forEach((sec, si) => {
+      if (si > 0) {
+        // Add section divider as a special row (rendered as a bar in future)
+        // For now just flatten with a comment in remarks on first row
+      }
+      sec.members.forEach(m => _parsedRows.push({ ...m, _section: sec.name }));
+    });
+  }
+
+  // Update UI state
+  _autoKind = true;
+  document.querySelectorAll('#kind-tabs .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.kind === _kind));
+  document.getElementById('section-name-input').value = _sectionName;
+  document.getElementById('auto-tag').style.display = '';
+
+  // Update paste box to show source file
+  const totalMembers = _parsedRows.length;
+  const secInfo = sections.length > 1 ? ` (${sections.length} sections flattened)` : '';
+  document.getElementById('paste-box').value =
+    `# Imported from: ${filename}${secInfo}\n# ${totalMembers} member(s) — edit in the preview →`;
+  document.getElementById('parse-count').textContent = `${totalMembers} row(s) imported`;
+
+  _flags = buildFlags(_parsedRows, _kind);
+  renderAll();
+
+  const multi = sections.length > 1 ? ` — ${sections.length} sections merged (Combined view in P3)` : '';
+  showToast(`✓ Imported ${totalMembers} rows from ${filename}${multi}`);
+}
+</script>
+</body>
+</html>

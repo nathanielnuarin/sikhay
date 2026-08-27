@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sikhay — Google Calendar</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.14.0/dist/tabler-icons.min.css">
+<style>
+:root{--bg:#0a0a0a;--surface:#141414;--sf2:#1e1e1e;--border:#2a2a2a;--text:#f0f0f0;--muted:#6b7280;--blue:#3b82f6;--cyan:#06b6d4;--green:#22c55e;--danger:#ef4444;--gcal:#4285f4}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:13px}
+
+/* HEADER */
+.hdr{background:var(--surface);border-bottom:1px solid var(--border);height:44px;display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0}
+.hdr-logo{width:26px;height:26px;background:linear-gradient(135deg,#1a1a1a,#2a2a2a);border:1px solid var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:8px;color:var(--gcal);flex-shrink:0}
+.hdr-title{font-size:13px;font-weight:800}
+.hdr-sep{flex:1}
+.hdr-btn{background:var(--sf2);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;padding:4px 10px;font-family:inherit;display:flex;align-items:center;gap:5px;transition:all .15s}
+.hdr-btn:hover{background:#2a2a2a;color:var(--text)}
+
+/* SETUP SCREEN */
+.setup{display:flex;align-items:center;justify-content:center;height:calc(100vh - 44px);padding:20px}
+.setup-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:32px 36px;max-width:500px;width:100%}
+.setup-icon{font-size:36px;margin-bottom:12px;display:block}
+.setup-title{font-size:17px;font-weight:900;margin-bottom:4px}
+.setup-sub{color:var(--muted);font-size:12px;margin-bottom:22px;line-height:1.6}
+.steps{background:var(--sf2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:22px}
+.step{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;font-size:12px;line-height:1.5}
+.step:last-child{margin-bottom:0}
+.step-num{width:18px;height:18px;border-radius:50%;background:var(--gcal);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step b{color:var(--text);font-weight:700}
+.step span{color:var(--muted)}
+.inp-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.inp{width:100%;background:var(--sf2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:inherit;padding:9px 12px;outline:none;margin-bottom:12px}
+.inp:focus{border-color:var(--gcal)}
+.inp::placeholder{color:#374151}
+.save-btn{width:100%;background:var(--gcal);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:800;padding:10px;cursor:pointer;font-family:inherit;transition:background .15s}
+.save-btn:hover{background:#5a9af5}
+.err-msg{color:var(--danger);font-size:11px;margin-top:4px;display:none}
+
+/* CALENDAR FRAME */
+.cal-wrap{height:calc(100vh - 44px);display:none}
+.cal-wrap iframe{width:100%;height:100%;border:none;display:block}
+
+/* TOAST */
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%) translateY(40px);background:var(--sf2);border:1px solid #333;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;z-index:999;transition:transform .2s,opacity .2s;opacity:0;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.ok{border-color:var(--green);color:var(--green)}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hdr-logo"><i class="ti ti-brand-google" style="font-size:12px"></i></div>
+  <div class="hdr-title">Google Calendar</div>
+  <div class="hdr-sep"></div>
+  <button class="hdr-btn" id="change-btn" onclick="showSetup()" style="display:none">
+    <i class="ti ti-settings"></i> Change Calendar URL
+  </button>
+  <button class="hdr-btn" onclick="openFull()" title="Open in Google Calendar" style="color:var(--gcal);border-color:#4285f430">
+    <i class="ti ti-external-link"></i> Open Google Calendar
+  </button>
+</header>
+
+<!-- SETUP SCREEN -->
+<div class="setup" id="setup-screen">
+  <div class="setup-card">
+    <span class="setup-icon">📅</span>
+    <div class="setup-title">Connect Your Google Calendar</div>
+    <div class="setup-sub">Paste your Google Calendar embed URL below to view your calendar inside this dashboard. This is a one-time setup.</div>
+
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div><b>Go to</b> <span>calendar.google.com → click the gear icon → Settings</span></div></div>
+      <div class="step"><div class="step-num">2</div><div><b>Left sidebar</b> <span>→ under "My calendars", click your calendar name</span></div></div>
+      <div class="step"><div class="step-num">3</div><div><b>Scroll to</b> <span>"Integrate calendar" section</span></div></div>
+      <div class="step"><div class="step-num">4</div><div><b>Copy</b> <span>the URL inside the Embed Code (starts with <code style="color:#f59e0b;font-size:10px">https://calendar.google.com/calendar/embed?src=</code>)</span></div></div>
+      <div class="step"><div class="step-num">5</div><div><b>Paste it</b> <span>in the field below and click Save</span></div></div>
+    </div>
+
+    <div class="inp-label">Your Google Calendar Embed URL</div>
+    <input class="inp" id="embed-url" type="url"
+      placeholder="https://calendar.google.com/calendar/embed?src=your@email.com&ctz=Asia/Manila"
+      onkeydown="if(event.key==='Enter')saveURL()">
+    <div class="err-msg" id="err-msg">Please paste a valid Google Calendar embed URL (must start with https://calendar.google.com/calendar/embed)</div>
+    <button class="save-btn" onclick="saveURL()">Save &amp; View My Calendar</button>
+  </div>
+</div>
+
+<!-- CALENDAR IFRAME -->
+<div class="cal-wrap" id="cal-wrap">
+  <iframe id="cal-frame" src="" allowfullscreen></iframe>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY = 'sikhay_gcal_embed';
+
+function init() {
+  const stored = localStorage.getItem(KEY);
+  if (stored) {
+    loadCalendar(stored);
+  }
+  // else: setup screen stays visible (default)
+}
+
+function saveURL() {
+  const raw = (document.getElementById('embed-url').value || '').trim();
+  const err = document.getElementById('err-msg');
+
+  // Basic validation
+  if (!raw.startsWith('https://calendar.google.com/calendar/embed')) {
+    err.style.display = 'block';
+    return;
+  }
+  err.style.display = 'none';
+
+  // Ensure timezone and mode are set for a better experience
+  let url = raw;
+  if (!url.includes('ctz=')) url += '&ctz=Asia%2FManila';
+  if (!url.includes('mode=')) url += '&mode=MONTH';
+
+  localStorage.setItem(KEY, url);
+  loadCalendar(url);
+  showToast('Calendar connected!', 'ok');
+}
+
+function loadCalendar(url) {
+  document.getElementById('cal-frame').src = url;
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('cal-wrap').style.display = 'block';
+  document.getElementById('change-btn').style.display = 'flex';
+}
+
+function showSetup() {
+  const stored = localStorage.getItem(KEY) || '';
+  document.getElementById('embed-url').value = stored;
+  document.getElementById('cal-wrap').style.display = 'none';
+  document.getElementById('setup-screen').style.display = 'flex';
+  document.getElementById('change-btn').style.display = 'none';
+}
+
+function openFull() {
+  window.open('https://calendar.google.com', '_blank');
+}
+
+let _tt;
+function showToast(msg, type='') {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = 'toast show' + (type ? ' '+type : '');
+  clearTimeout(_tt); _tt = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+init();
+</script>
+</body>
+</html>

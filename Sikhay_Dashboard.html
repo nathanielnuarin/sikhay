@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sikhay Creatives — Operations Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.14.0/dist/tabler-icons.min.css">
+<script src="config.js"></script>
+<script src="SikhayDB.js"></script>
+<style>
+:root {
+  --bg:      #0a0a0a;
+  --surface: #141414;
+  --sf2:     #1e1e1e;
+  --border:  #2a2a2a;
+  --text:    #f0f0f0;
+  --muted:   #6b7280;
+  --blue:    #3b82f6;
+  --purple:  #8b5cf6;
+  --amber:   #f59e0b;
+  --green:   #22c55e;
+  --danger:  #ef4444;
+  --pink:    #ec4899;
+  --cyan:    #06b6d4;
+  --orange:  #f97316;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ── HEADER ── */
+.header {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 20px; height: 52px; display: flex; align-items: center;
+  gap: 12px; flex-shrink: 0; z-index: 100;
+}
+.hd-logo {
+  width: 34px; height: 34px; background: linear-gradient(135deg,#1a1a1a,#2a2a2a);
+  border: 1px solid var(--border); border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 900; font-size: 11px; letter-spacing: .5px; color: var(--amber); flex-shrink: 0;
+}
+.hd-brand { font-size: 14px; font-weight: 800; letter-spacing: .4px; }
+.hd-sub   { font-size: 10px; color: var(--muted); }
+.hd-sep   { flex: 1; }
+.hd-time  { font-size: 11px; color: var(--muted); text-align: right; line-height: 1.4; }
+.hd-badge { font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 600; }
+.badge-online  { background: #14532d; color: #86efac; }
+.badge-offline { background: #431407; color: #fdba74; }
+.btn { padding: 6px 12px; border-radius: 7px; border: none; cursor: pointer; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; transition: all .15s; font-family: inherit; }
+.btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+.btn-ghost:hover { background: var(--sf2); color: var(--text); }
+.btn-sm { padding: 4px 9px; font-size: 10px; }
+.user-label { font-size: 11px; color: var(--muted); max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── APP SHELL ── */
+.app-shell { flex: 1; display: grid; grid-template-columns: 220px 1fr; overflow: hidden; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  background: var(--surface); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.sb-kpi-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+  border-bottom: 1px solid var(--border); background: var(--border); flex-shrink: 0;
+}
+.sb-kpi {
+  background: var(--surface); padding: 10px 12px; text-align: center; cursor: pointer;
+  transition: background .15s;
+}
+.sb-kpi:hover { background: var(--sf2); }
+.sb-kpi-val { font-size: 22px; font-weight: 800; line-height: 1; }
+.sb-kpi-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; margin-top: 2px; }
+.sb-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
+.sb-group {
+  font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .9px;
+  color: var(--muted); padding: 12px 14px 5px; opacity: .6;
+}
+.sb-item {
+  display: flex; align-items: center; gap: 8px; padding: 7px 14px;
+  cursor: pointer; transition: all .15s; text-decoration: none;
+  color: var(--muted); position: relative; border-radius: 0;
+}
+.sb-item:hover { background: var(--sf2); color: var(--text); }
+.sb-item.active { background: #f59e0b12; color: var(--amber); }
+.sb-item-icon { font-size: 15px; flex-shrink: 0; width: 18px; text-align: center; }
+.sb-item-name { flex: 1; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-item-stage { font-size: 9px; color: var(--muted); background: var(--sf2); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; flex-shrink: 0; }
+.sb-badge {
+  font-size: 9px; font-weight: 800; padding: 1px 6px; border-radius: 10px;
+  flex-shrink: 0; min-width: 18px; text-align: center;
+}
+.sb-badge.danger { background: #ef444422; color: var(--danger); border: 1px solid #ef444433; }
+.sb-badge.warn   { background: #f59e0b22; color: var(--amber);  border: 1px solid #f59e0b33; }
+.sb-badge.info   { background: #3b82f622; color: var(--blue);   border: 1px solid #3b82f633; }
+.sb-badge.ok     { background: #22c55e22; color: var(--green);  border: 1px solid #22c55e33; }
+.sb-divider { height: 1px; background: var(--border); margin: 6px 14px; }
+.sb-footer { padding: 10px 12px; border-top: 1px solid var(--border); flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
+.sb-footer-user { flex: 1; font-size: 10px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Scrollbar */
+.sb-nav::-webkit-scrollbar { width: 4px; }
+.sb-nav::-webkit-scrollbar-track { background: transparent; }
+.sb-nav::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 2px; }
+
+/* ── MAIN CONTENT ── */
+.main-content { overflow: hidden; display: flex; flex-direction: column; }
+#dash-view { flex: 1; overflow-y: auto; padding: 18px 22px 40px; }
+#dash-view::-webkit-scrollbar { width: 5px; }
+#dash-view::-webkit-scrollbar-track { background: transparent; }
+#dash-view::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 3px; }
+
+/* ── TOOL VIEW ── */
+#tool-view { flex: 1; display: none; flex-direction: column; overflow: hidden; }
+#tool-view.open { display: flex; }
+.tool-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 9px 16px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.tool-back { background: var(--sf2); border: 1px solid var(--border); border-radius: 6px; color: var(--muted); padding: 5px 11px; font-size: 11px; font-weight: 700; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 5px; transition: all .15s; }
+.tool-back:hover { color: var(--text); background: #252525; }
+.tool-crumb-sep { font-size: 13px; color: var(--border); }
+.tool-crumb-name { font-size: 12px; font-weight: 700; color: var(--text); }
+#tool-frame { flex: 1; border: none; width: 100%; display: block; }
+
+/* ── BUSINESS PULSE ── */
+.pulse-strip { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 16px; }
+.pulse-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; position: relative; overflow: hidden; }
+.pulse-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:3px 0 0 3px; background: var(--pc-color, var(--border)); }
+.pulse-val  { font-size: 22px; font-weight: 800; line-height: 1; margin: 4px 0 3px; }
+.pulse-lbl  { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+.pulse-sub  { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.pulse-icon { font-size: 14px; opacity: .45; }
+
+/* ── QUICK ACTIONS ── */
+.qa-row { display: flex; gap: 8px; margin-bottom: 16px; }
+.qa-btn {
+  flex: 1; padding: 10px 8px; border-radius: 9px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--muted); cursor: pointer;
+  font-size: 11px; font-weight: 700; font-family: inherit; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  transition: all .18s; text-decoration: none;
+}
+.qa-btn i { font-size: 18px; }
+.qa-btn:hover { background: var(--sf2); color: var(--text); border-color: #3a3a3a; transform: translateY(-1px); }
+
+/* ── PANELS ── */
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.panel-head { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); display: flex; align-items: center; gap: 7px; }
+.panel-body { overflow-y: auto; }
+.two-col { display: grid; grid-template-columns: 1fr 360px; gap: 12px; margin-bottom: 14px; }
+.recent-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+
+/* ── ALERTS ── */
+.alert-item { display: flex; align-items: flex-start; gap: 8px; padding: 9px 14px; border-bottom: 1px solid var(--border); transition: background .15s; }
+.alert-item:last-child { border-bottom: none; }
+.alert-item:hover { background: var(--sf2); }
+.alert-dot { width: 7px; height: 7px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+.ad-danger { background: var(--danger); box-shadow: 0 0 4px var(--danger); }
+.ad-warn   { background: var(--amber);  box-shadow: 0 0 4px var(--amber); }
+.ad-info   { background: var(--blue); }
+.alert-msg { flex: 1; font-size: 11px; line-height: 1.5; }
+.alert-who { font-size: 10px; color: var(--muted); }
+.alert-open { background: transparent; border: 1px solid var(--border); border-radius: 5px; color: var(--muted); font-size: 9px; font-weight: 700; cursor: pointer; padding: 2px 7px; font-family: inherit; white-space: nowrap; transition: all .15s; }
+.alert-open:hover { background: var(--sf2); color: var(--text); }
+.no-data { padding: 22px 14px; text-align: center; color: var(--muted); font-size: 11px; }
+.no-data i { font-size: 26px; display: block; margin-bottom: 6px; opacity: .3; }
+
+/* ── FOCUS ── */
+.focus-item { display: flex; align-items: flex-start; gap: 9px; padding: 9px 14px; border-bottom: 1px solid var(--border); }
+.focus-item:last-child { border-bottom: none; }
+.focus-num { width: 20px; height: 20px; border-radius: 50%; background: var(--sf2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 800; color: var(--muted); flex-shrink: 0; margin-top: 1px; }
+.focus-num.hot  { background: #ef444418; border-color: #ef444430; color: var(--danger); }
+.focus-num.warm { background: #f59e0b18; border-color: #f59e0b30; color: var(--amber); }
+.focus-num.cool { background: #3b82f618; border-color: #3b82f630; color: var(--blue); }
+.focus-text   { font-size: 11px; line-height: 1.5; }
+.focus-action { font-size: 10px; color: var(--muted); margin-top: 1px; }
+
+/* ── RECENT ORDERS ── */
+.ord-row { display: flex; align-items: center; gap: 9px; padding: 9px 14px; border-bottom: 1px solid var(--border); transition: background .15s; }
+.ord-row:last-child { border-bottom: none; }
+.ord-row:hover { background: var(--sf2); }
+.or-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.d-for_prod  { background: var(--blue); }
+.d-in_prod   { background: var(--purple); box-shadow: 0 0 4px var(--purple); }
+.d-ready     { background: var(--amber); box-shadow: 0 0 4px var(--amber); }
+.d-delivered { background: var(--green); }
+.or-main { flex: 1; min-width: 0; }
+.or-client { font-size: 11px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.or-meta   { font-size: 10px; color: var(--muted); }
+.or-right  { text-align: right; flex-shrink: 0; }
+.or-status { font-size: 10px; font-weight: 700; }
+.s-for_prod  { color: var(--blue); }   .s-in_prod   { color: var(--purple); }
+.s-ready     { color: var(--amber); }  .s-delivered { color: var(--green); }
+.or-dl { font-size: 9px; color: var(--muted); }
+.or-dl.overdue { color: var(--danger); font-weight: 700; }
+
+/* ── FOOTER ── */
+.dash-footer { text-align: center; font-size: 10px; color: #333; padding-top: 12px; border-top: 1px solid var(--border); margin-top: 4px; }
+
+/* ── TOAST ── */
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(60px); background: var(--sf2); border: 1px solid #333; border-radius: 9px; padding: 8px 16px; font-size: 12px; font-weight: 600; z-index: 9999; transition: transform .25s, opacity .25s; opacity: 0; pointer-events: none; }
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+.toast.ok   { border-color: var(--green); color: var(--green); }
+
+@media (max-width: 900px) {
+  .app-shell { grid-template-columns: 180px 1fr; }
+  .pulse-strip { grid-template-columns: repeat(2,1fr); }
+  .two-col  { grid-template-columns: 1fr; }
+  .recent-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="header">
+  <div class="hd-logo">SC</div>
+  <div>
+    <div class="hd-brand">SIKHAY CREATIVES</div>
+    <div class="hd-sub">Operations Dashboard</div>
+  </div>
+  <div class="hd-sep"></div>
+  <div class="hd-time" id="clock"></div>
+  <span class="hd-badge badge-online" id="sync-badge">● Synced</span>
+  <span class="user-label" id="user-badge"></span>
+  <button class="btn btn-ghost btn-sm" onclick="fullRefresh()"><i class="ti ti-refresh"></i> Refresh</button>
+  <button class="btn btn-ghost btn-sm" onclick="doLogout()"><i class="ti ti-logout"></i></button>
+</header>
+
+<!-- ── APP SHELL ── -->
+<div class="app-shell">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+
+    <!-- Mini KPIs -->
+    <div class="sb-kpi-row">
+      <div class="sb-kpi" onclick="openTool('Sikhay_Order_Tracker.html','Order Tracker')">
+        <div class="sb-kpi-val" id="s-active" style="color:var(--blue)">0</div>
+        <div class="sb-kpi-lbl">Active</div>
+      </div>
+      <div class="sb-kpi" onclick="openTool('Sikhay_Production_Checklist.html','Production Checklist')">
+        <div class="sb-kpi-val" id="s-inprod" style="color:var(--purple)">0</div>
+        <div class="sb-kpi-lbl">In Prod</div>
+      </div>
+      <div class="sb-kpi" onclick="openTool('Sikhay_Delivery_Payment.html','Delivery & Payment')">
+        <div class="sb-kpi-val" id="s-ready" style="color:var(--amber)">0</div>
+        <div class="sb-kpi-lbl">Ready</div>
+      </div>
+      <div class="sb-kpi">
+        <div class="sb-kpi-val" id="s-alerts" style="color:var(--danger)">0</div>
+        <div class="sb-kpi-lbl">Alerts</div>
+      </div>
+    </div>
+
+    <!-- Nav -->
+    <nav class="sb-nav">
+
+      <div class="sb-group">Workflow</div>
+
+      <div class="sb-item" data-file="ext" onclick="window.open('https://manychat.com','_blank')">
+        <i class="ti ti-brand-facebook sb-item-icon" style="color:#1877f2"></i>
+        <span class="sb-item-name">ManyChat</span>
+        <span class="sb-item-stage">S1</span>
+        <span class="sb-badge ok">Live</span>
+      </div>
+
+      <div class="sb-item" data-file="Sikhay_Quote_Calculator%20V2.html" onclick="openTool('Sikhay_Quote_Calculator%20V2.html','Quote Calculator')">
+        <i class="ti ti-calculator sb-item-icon" style="color:#f59e0b"></i>
+        <span class="sb-item-name">Quote Calculator</span>
+        <span class="sb-item-stage">S2</span>
+      </div>
+
+      <div class="sb-item" data-file="Sikhay_Order_Form.html" onclick="openTool('Sikhay_Order_Form.html','Order Form')">
+        <i class="ti ti-clipboard-list sb-item-icon" style="color:#e63329"></i>
+        <span class="sb-item-name">Order Form</span>
+        <span class="sb-item-stage">S3</span>
+      </div>
+
+<div class="sb-item" data-file="Sikhay_Order_Tracker.html" onclick="openTool('Sikhay_Order_Tracker.html','Order Tracker')">
+        <i class="ti ti-package sb-item-icon" style="color:#06b6d4"></i>
+        <span class="sb-item-name">Order Tracker</span>
+        <span class="sb-item-stage">S4b</span>
+        <span class="sb-badge info" id="sb-b-tracker" style="display:none"></span>
+      </div>
+
+      <div class="sb-item" data-file="Sikhay_Production_Checklist.html" onclick="openTool('Sikhay_Production_Checklist.html','Production Checklist')">
+        <i class="ti ti-checklist sb-item-icon" style="color:#ec4899"></i>
+        <span class="sb-item-name">Production</span>
+        <span class="sb-item-stage">S5</span>
+        <span class="sb-badge info" id="sb-b-prod" style="display:none"></span>
+      </div>
+
+      <div class="sb-item" data-file="Sikhay_Delivery_Payment.html" onclick="openTool('Sikhay_Delivery_Payment.html','Delivery & Payment')">
+        <i class="ti ti-truck-delivery sb-item-icon" style="color:#22c55e"></i>
+        <span class="sb-item-name">Delivery & Payment</span>
+        <span class="sb-item-stage">S6</span>
+        <span class="sb-badge warn" id="sb-b-delivery" style="display:none"></span>
+      </div>
+
+      <div class="sb-item" data-file="Sikhay_AfterSales_Feedback.html" onclick="openTool('Sikhay_AfterSales_Feedback.html','After-Sales')">
+        <i class="ti ti-heart-handshake sb-item-icon" style="color:#f97316"></i>
+        <span class="sb-item-name">After-Sales</span>
+        <span class="sb-item-stage">S7</span>
+        <span class="sb-badge danger" id="sb-b-aftersales" style="display:none"></span>
+      </div>
+
+      <div class="sb-divider"></div>
+      <div class="sb-group">Business</div>
+
+      <div class="sb-item" data-file="Sikhay_Finance.html" onclick="openTool('Sikhay_Finance.html','Finance')">
+        <i class="ti ti-coin sb-item-icon" style="color:#22c55e"></i>
+        <span class="sb-item-name">Finance</span>
+        <span class="sb-item-stage">S8</span>
+      </div>
+
+      <div class="sb-item" data-file="Sikhay_HR.html" onclick="openTool('Sikhay_HR.html','HR & Payroll')">
+        <i class="ti ti-users sb-item-icon" style="color:#f59e0b"></i>
+        <span class="sb-item-name">HR & Payroll</span>
+        <span class="sb-item-stage">S9</span>
+      </div>
+
+      <div class="sb-item" data-file="Sikhay_CRM.html" onclick="openTool('Sikhay_CRM.html','CRM')">
+        <i class="ti ti-users sb-item-icon" style="color:#a855f7"></i>
+        <span class="sb-item-name">CRM</span>
+        <span class="sb-item-stage">CRM</span>
+        <span class="sb-badge info" id="sb-b-crm" style="display:none"></span>
+      </div>
+
+      <div class="sb-item" data-file="Sikhay_Marketing.html" onclick="openTool('Sikhay_Marketing.html','Marketing')">
+        <i class="ti ti-speakerphone sb-item-icon" style="color:#ec4899"></i>
+        <span class="sb-item-name">Marketing</span>
+        <span class="sb-item-stage">MKT</span>
+      </div>
+
+      <div class="sb-divider"></div>
+      <div class="sb-group">Agents</div>
+
+<div class="sb-item" data-file="Sikhay_Google_Calendar.html" onclick="openTool('Sikhay_Google_Calendar.html','Google Calendar')">
+        <i class="ti ti-calendar-event sb-item-icon" style="color:#4285f4"></i>
+        <span class="sb-item-name">Google Calendar</span>
+        <span class="sb-item-stage">GCal</span>
+      </div>
+
+<div class="sb-divider"></div>
+      <div class="sb-group">Utilities</div>
+
+      <div class="sb-item" data-file="Sikhay_Backup.html" onclick="openTool('Sikhay_Backup.html','Data Backup')">
+        <i class="ti ti-database-export sb-item-icon" style="color:#6b7280"></i>
+        <span class="sb-item-name">Data Backup</span>
+        <span class="sb-item-stage">★</span>
+        <span class="sb-badge warn" id="sb-b-backup" style="display:none">!</span>
+      </div>
+
+    </nav>
+
+    <!-- Footer -->
+    <div class="sb-footer">
+      <i class="ti ti-user-circle" style="color:var(--muted);font-size:14px;flex-shrink:0"></i>
+      <div class="sb-footer-user" id="sb-user"></div>
+    </div>
+
+  </aside>
+
+  <!-- ── MAIN CONTENT ── -->
+  <main class="main-content">
+
+    <!-- ── TOOL VIEW (iframe) ── -->
+    <div id="tool-view">
+      <div class="tool-bar">
+        <button class="tool-back" onclick="backToDash()"><i class="ti ti-arrow-left"></i> Dashboard</button>
+        <span class="tool-crumb-sep">/</span>
+        <span class="tool-crumb-name" id="tool-crumb-name"></span>
+      </div>
+      <iframe id="tool-frame" src="about:blank" allowfullscreen></iframe>
+    </div>
+
+    <!-- ── DASHBOARD VIEW ── -->
+    <div id="dash-view">
+
+    <!-- Cloud Sync Banner -->
+    <div id="sync-banner" style="display:none; margin:12px 16px 0; background:#1a1a0a; border:1px solid #f59e0b55; border-radius:10px; padding:12px 16px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+      <i class="ti ti-cloud-upload" style="color:#f59e0b; font-size:18px; flex-shrink:0;"></i>
+      <div style="flex:1; min-width:180px;">
+        <div style="font-size:13px; font-weight:700; color:#f59e0b;">Sync local data to Firebase</div>
+        <div id="sync-status" style="font-size:11px; color:#9ca3af; margin-top:2px;">Your existing data is on this device only. Sync it once to access from any device.</div>
+      </div>
+      <button id="sync-btn" onclick="doCloudSync()" style="background:#f59e0b; color:#0a0a0a; border:none; border-radius:7px; padding:7px 14px; font-size:12px; font-weight:700; cursor:pointer; flex-shrink:0;">Sync to Firebase</button>
+      <button onclick="dismissSync()" style="background:transparent; border:none; color:#6b7280; cursor:pointer; font-size:16px; line-height:1; flex-shrink:0;">×</button>
+    </div>
+
+    <!-- Business Pulse -->
+    <div class="pulse-strip" id="pulse-strip"></div>
+
+    <!-- Quick Actions -->
+    <div class="qa-row">
+      <div class="qa-btn" onclick="openTool('Sikhay_Order_Form.html','Order Form')">
+        <i class="ti ti-clipboard-plus"></i> New Order
+      </div>
+      <div class="qa-btn" onclick="openTool('Sikhay_Quote_Calculator%20V2.html','Quote Calculator')">
+        <i class="ti ti-calculator"></i> New Quote
+      </div>
+      <div class="qa-btn" onclick="openTool('Sikhay_Production_Checklist.html','Production Checklist')">
+        <i class="ti ti-checklist"></i> Production
+      </div>
+      <div class="qa-btn" onclick="openTool('Sikhay_Delivery_Payment.html','Delivery & Payment')">
+        <i class="ti ti-cash"></i> Collect Payment
+      </div>
+      <div class="qa-btn" onclick="openTool('Sikhay_AfterSales_Feedback.html','After-Sales')">
+        <i class="ti ti-star"></i> Follow Up
+      </div>
+      <div class="qa-btn" onclick="openTool('Sikhay_CRM.html','CRM')">
+        <i class="ti ti-users"></i> CRM
+      </div>
+    </div>
+
+    <!-- Alerts + Focus -->
+    <div class="two-col" id="section-alerts-focus">
+
+      <div class="panel">
+        <div class="panel-head">
+          <i class="ti ti-alert-circle"></i> Action Items
+          <span id="alert-count" style="margin-left:auto;background:var(--sf2);border:1px solid var(--border);border-radius:10px;padding:1px 7px;font-size:9px;"></span>
+        </div>
+        <div class="panel-body" id="alert-list" style="max-height:240px;overflow-y:auto;">
+          <div class="no-data"><i class="ti ti-circle-check"></i>All clear!</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><i class="ti ti-target"></i> Today's Focus</div>
+        <div class="panel-body" id="focus-list" style="max-height:240px;overflow-y:auto;">
+          <div class="no-data"><i class="ti ti-sun"></i>Loading priorities…</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Recent Orders + Design Status -->
+    <div class="recent-grid">
+
+      <div class="panel">
+        <div class="panel-head">
+          <i class="ti ti-history"></i> Recent Orders
+          <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="openTool('Sikhay_Order_Tracker.html','Order Tracker')">View All</button>
+        </div>
+        <div class="panel-body" id="recent-orders" style="max-height:300px;overflow-y:auto;"></div>
+      </div>
+
+
+    </div>
+
+    <div class="dash-footer">
+      <span id="last-sync">—</span> &nbsp;·&nbsp; Sikhay Creatives &nbsp;·&nbsp; Dasmariñas, Cavite
+    </div>
+
+    </div><!-- /dash-view -->
+
+  </main>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+let db    = null;
+let _data = { orders: [], designs: [], production: {}, deliveries: [], afterSales: [] };
+
+function getOrders()     { return _data.orders; }
+function getDesigns()    { return _data.designs; }
+function getPCMap()      { return _data.production; }
+function getDlvs()       { return _data.deliveries; }
+function getAfterSales() { return _data.afterSales; }
+
+async function loadAll() {
+  [_data.orders, _data.designs, _data.production, _data.deliveries, _data.afterSales] = await Promise.all([
+    db.getOrders(), db.getDesigns(), db.getProduction(), db.getDeliveries(), db.getAfterSales()
+  ]);
+}
+
+async function doLogout() { await db.signOut(); }
+
+async function updateUserBadge() {
+  const user = await db.getCurrentUser();
+  if (user) {
+    document.getElementById('user-badge').textContent = user.email;
+    const sb = document.getElementById('sb-user');
+    if (sb) sb.textContent = user.email;
+  }
+}
+
+function updateSyncBadge() {
+  const online = navigator.onLine;
+  const el     = document.getElementById('sync-badge');
+  if (!el) return;
+  el.textContent = online ? '● Synced' : '● Offline';
+  el.className   = 'hd-badge ' + (online ? 'badge-online' : 'badge-offline');
+}
+
+// ── Finance/HR summary from localStorage ──
+function computeFinanceHR() {
+  try {
+    const fin  = JSON.parse(localStorage.getItem('sikhay_fin_v1') || 'null') || { expenses: [], orderCosts: [] };
+    const hr   = JSON.parse(localStorage.getItem('sikhay_hr_v1')  || 'null') || { employees: [], payrolls: [] };
+    const ords = JSON.parse(localStorage.getItem('sikhay_ot_v1')  || 'null') || [];
+    const dlvs = JSON.parse(localStorage.getItem('sikhay_dlv_v1') || 'null') || [];
+    const now  = new Date();
+    const yr = now.getFullYear(), mo = now.getMonth();
+    const inMonth = ds => { if (!ds) return false; const d=new Date(ds); return d.getFullYear()===yr && d.getMonth()===mo; };
+
+    const deliveredOrds = ords.filter(o => {
+      if (o.status !== 'delivered') return false;
+      const dlv = dlvs.find(x => x.orderId === o.id);
+      return dlv && inMonth(dlv.deliveredAt);
+    });
+    const revenue   = deliveredOrds.reduce((s,o) => s+(parseFloat(o.total)||0), 0);
+    const overhead  = (fin.expenses||[]).filter(e=>inMonth(e.date)).reduce((s,e)=>s+(parseFloat(e.amount)||0), 0);
+    const poc       = (fin.orderCosts||[]).reduce((s,c) => {
+      const o = deliveredOrds.find(x=>x.id===c.orderId);
+      if (!o) return s;
+      return s+(parseFloat(c.garments)||0)+(parseFloat(c.inkPaper)||0)+(parseFloat(c.labor)||0)+(parseFloat(c.other)||0);
+    }, 0);
+    const netProfit = revenue - overhead - poc;
+    const payroll   = (hr.payrolls||[]).filter(p=>p.status==='released'&&inMonth(p.weekEnd))
+                        .reduce((s,p)=>s+(parseFloat(p.totalNetPay)||0), 0);
+    return { revenue, netProfit, payroll };
+  } catch { return { revenue:0, netProfit:0, payroll:0 }; }
+}
+
+// ── Computed ──
+function computeAll() {
+  const orders  = getOrders();
+  const designs = getDesigns();
+  const dlvs    = getDlvs();
+  const asRecs  = getAfterSales();
+  const pc      = getPCMap();
+  const today   = new Date(); today.setHours(0,0,0,0);
+
+  const active    = orders.filter(o => ['for_prod','in_prod','ready'].includes(o.status));
+  const inProd    = orders.filter(o => o.status === 'in_prod');
+  const ready     = orders.filter(o => o.status === 'ready');
+  const delivered = orders.filter(o => o.status === 'delivered');
+
+  const overdue = orders.filter(o => {
+    if (o.status === 'delivered') return false;
+    if (!o.deadline) return false;
+    return new Date(o.deadline) < today;
+  });
+
+  const noDelivery = ready.filter(o => {
+    const d = dlvs.find(x => x.orderId === o.id);
+    return !d?.method;
+  });
+
+  const unpaidBalance = delivered.filter(o => {
+    const dlv  = dlvs.find(x => x.orderId === o.id) || {};
+    const extra = (dlv.gcash||[]).reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
+    return ((parseFloat(o.dp)||0) + extra) < (parseFloat(o.total)||0);
+  });
+
+  const openComplaints = asRecs.filter(r => r.complaint?.active && r.complaint?.status !== 'resolved');
+
+  const needFeedback = delivered.filter(o => {
+    const r = asRecs.find(x => x.orderId === o.id);
+    return !r || !r.feedback?.rating;
+  });
+
+
+  const pendingBalTotal = unpaidBalance.reduce((sum, o) => {
+    const dlv   = dlvs.find(x => x.orderId === o.id) || {};
+    const extra = (dlv.gcash||[]).reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
+    const paid  = (parseFloat(o.dp)||0) + extra;
+    return sum + Math.max(0, (parseFloat(o.total)||0) - paid);
+  }, 0);
+
+  const atRisk = orders.filter(o => {
+    if (o.status === 'delivered' || !o.deadline) return false;
+    const dl   = new Date(o.deadline);
+    const diff = Math.ceil((dl - today) / 86400000);
+    return diff >= 0 && diff <= 7 && ['for_layout','for_prod'].includes(o.status);
+  });
+
+  return { orders, designs, dlvs, asRecs, pc, active, inProd, ready, delivered, overdue, noDelivery, unpaidBalance, openComplaints, needFeedback, pendingBalTotal, atRisk };
+}
+
+// ── Render ──
+function render() {
+  const D   = computeAll();
+  const fhr = computeFinanceHR();
+
+  // Mini KPIs in sidebar
+  document.getElementById('s-active').textContent = D.active.length;
+  document.getElementById('s-inprod').textContent = D.inProd.length;
+  document.getElementById('s-ready').textContent  = D.ready.length;
+  const alertTotal = D.overdue.length + D.openComplaints.length + D.unpaidBalance.length + D.noDelivery.length + D.atRisk.length;
+  document.getElementById('s-alerts').textContent = alertTotal;
+
+  // Sidebar badges
+updateSidebarBadge('sb-b-tracker',   D.active.length,        'info');
+  updateSidebarBadge('sb-b-prod',      D.inProd.length,        'info');
+  updateSidebarBadge('sb-b-delivery',  D.ready.length,         'warn');
+  updateSidebarBadge('sb-b-aftersales',D.openComplaints.length,'danger');
+
+  // CRM badge from localStorage
+  try {
+    const crm = JSON.parse(localStorage.getItem('sikhay_crm_v1') || '{}');
+    const activeLeads = (crm.leads||[]).filter(l => !['won','lost'].includes(l.stage)).length;
+    updateSidebarBadge('sb-b-crm', activeLeads, 'info');
+  } catch {}
+
+  // Backup badge
+  const lastBackup = localStorage.getItem('sikhay_last_backup');
+  const backupAge  = lastBackup ? Math.floor((Date.now()-new Date(lastBackup).getTime())/(1000*60*60*24)) : 999;
+  const bkpEl = document.getElementById('sb-b-backup');
+  if (bkpEl) { bkpEl.style.display = backupAge > 6 ? '' : 'none'; }
+
+  renderPulse(D, fhr);
+  renderAlerts(D);
+  renderFocus(D);
+  renderRecentOrders(D);
+
+  document.getElementById('last-sync').textContent = 'Last updated: ' + new Date().toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'});
+}
+
+function updateSidebarBadge(id, count, cls) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (count > 0) {
+    el.textContent  = count;
+    el.className    = 'sb-badge ' + cls;
+    el.style.display = '';
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+// ── Business Pulse ──
+function renderPulse(D, fhr) {
+  const el = document.getElementById('pulse-strip');
+  if (!el) return;
+  const p  = v => '₱' + Math.round(Math.abs(v)).toLocaleString('en-PH');
+  const pc = fhr.netProfit >= 0 ? 'var(--green)' : 'var(--danger)';
+  const pd = D.pendingBalTotal > 0 ? 'var(--danger)' : 'var(--green)';
+  el.innerHTML = `
+    <div class="pulse-card" style="--pc-color:var(--green)">
+      <div class="pulse-lbl"><i class="ti ti-trending-up pulse-icon"></i> Revenue</div>
+      <div class="pulse-val" style="color:var(--green)">${p(fhr.revenue)}</div>
+      <div class="pulse-sub">Recognized this month</div>
+    </div>
+    <div class="pulse-card" style="--pc-color:${pc}">
+      <div class="pulse-lbl"><i class="ti ti-coin pulse-icon"></i> Net Profit</div>
+      <div class="pulse-val" style="color:${pc}">${fhr.netProfit<0?'-':''}${p(fhr.netProfit)}</div>
+      <div class="pulse-sub">${fhr.revenue>0?Math.round(fhr.netProfit/fhr.revenue*100)+'% margin':'No revenue logged'}</div>
+    </div>
+    <div class="pulse-card" style="--pc-color:var(--amber)">
+      <div class="pulse-lbl"><i class="ti ti-users pulse-icon"></i> Payroll</div>
+      <div class="pulse-val" style="color:var(--amber)">${p(fhr.payroll)}</div>
+      <div class="pulse-sub">Released this month</div>
+    </div>
+    <div class="pulse-card" style="--pc-color:${pd}">
+      <div class="pulse-lbl"><i class="ti ti-clock-dollar pulse-icon"></i> Pending Collections</div>
+      <div class="pulse-val" style="color:${pd}">${p(D.pendingBalTotal)}</div>
+      <div class="pulse-sub">${D.unpaidBalance.length} order${D.unpaidBalance.length!==1?'s':''} with balance</div>
+    </div>`;
+}
+
+// ── Alerts ──
+function renderAlerts(D) {
+  const el   = document.getElementById('alert-list');
+  const cnt  = document.getElementById('alert-count');
+  const items = [];
+
+  D.overdue.forEach(o => items.push({ level:'danger', msg:`Overdue — ${esc(o.clientName)}`, sub:`${esc(o.apparel)} × ${o.qty} · due ${fmtDate(o.deadline)}`, file:'Sikhay_Order_Tracker.html', name:'Order Tracker' }));
+  D.openComplaints.forEach(r => {
+    const o = D.orders.find(x => x.id === r.orderId);
+    if (!o) return;
+    items.push({ level:'danger', msg:`Open complaint — ${esc(o.clientName)}`, sub: r.complaint.type||'Issue logged', file:'Sikhay_AfterSales_Feedback.html', name:'After-Sales' });
+  });
+  D.atRisk.forEach(o => {
+    const dl   = new Date(o.deadline);
+    const diff = Math.ceil((dl - new Date().setHours(0,0,0,0)) / 86400000);
+    const daysLabel = diff === 0 ? 'due today' : diff === 1 ? 'due tomorrow' : `${diff}d left`;
+    const stage = o.status === 'for_layout' ? 'For Layout' : 'For Print';
+    items.push({ level:'warn', msg:`At risk — ${esc(o.clientName)}`, sub:`${stage} · deadline ${daysLabel}`, file:'Sikhay_Order_Tracker.html', name:'Order Tracker' });
+  });
+  D.noDelivery.forEach(o => items.push({ level:'warn', msg:`Ready, no delivery set — ${esc(o.clientName)}`, sub:`${esc(o.apparel)} · Set pickup or courier`, file:'Sikhay_Delivery_Payment.html', name:'Delivery & Payment' }));
+  D.unpaidBalance.forEach(o => {
+    const dlv   = D.dlvs.find(x => x.orderId === o.id) || {};
+    const extra = (dlv.gcash||[]).reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
+    const bal   = Math.max(0,(parseFloat(o.total)||0)-(parseFloat(o.dp)||0)-extra);
+    items.push({ level:'warn', msg:`Uncollected balance — ${esc(o.clientName)}`, sub:`₱${bal.toLocaleString()} pending`, file:'Sikhay_Delivery_Payment.html', name:'Delivery & Payment' });
+  });
+
+  cnt.textContent = items.length || '';
+
+  if (!items.length) {
+    el.innerHTML = `<div class="no-data"><i class="ti ti-circle-check"></i>All clear! Walang urgent items.</div>`;
+    return;
+  }
+  el.innerHTML = items.map(a => `
+    <div class="alert-item">
+      <div class="alert-dot ${a.level==='danger'?'ad-danger':a.level==='warn'?'ad-warn':'ad-info'}"></div>
+      <div class="alert-msg">${esc(a.msg)}<div class="alert-who">${esc(a.sub)}</div></div>
+      <button class="alert-open" onclick="openTool('${a.file}','${a.name||''}')">Open →</button>
+    </div>`).join('');
+}
+
+// ── Today's Focus ──
+function renderFocus(D) {
+  const el    = document.getElementById('focus-list');
+  const items = [];
+
+  if (D.overdue.length)       items.push({ heat:'hot',  n:D.overdue.length,    text:`Check ${D.overdue.length} overdue order${D.overdue.length>1?'s':''}`, action:'Order Tracker → review deadlines' });
+  if (D.inProd.length)        items.push({ heat:'warm', n:D.inProd.length,     text:`Update ${D.inProd.length} in-production order${D.inProd.length>1?'s':''}`, action:'Production Checklist → mark progress' });
+  if (D.noDelivery.length)    items.push({ heat:'warm', n:D.noDelivery.length, text:`Set delivery for ${D.noDelivery.length} ready order${D.noDelivery.length>1?'s':''}`, action:'Delivery & Payment → setup method' });
+  if (D.unpaidBalance.length) items.push({ heat:'warm', n:D.unpaidBalance.length, text:`Collect ₱${D.pendingBalTotal.toLocaleString()} pending balance`, action:'Delivery & Payment → GCash records' });
+  if (D.openComplaints.length) items.push({ heat:'hot', n:D.openComplaints.length, text:`Resolve ${D.openComplaints.length} open complaint${D.openComplaints.length>1?'s':''}`, action:'After-Sales → Complaint Log' });
+  if (D.needFeedback.length>0) items.push({ heat:'cool', n:Math.min(D.needFeedback.length,3), text:`Send ${Math.min(D.needFeedback.length,3)} feedback request${Math.min(D.needFeedback.length,3)>1?'s':''}`, action:'After-Sales → Need Follow-up' });
+
+  if (!items.length) {
+    el.innerHTML = `<div class="no-data" style="padding:22px 14px"><i class="ti ti-coffee"></i>Walang naka-pending. Good job!</div>`;
+    return;
+  }
+  el.innerHTML = items.map((item, i) => `
+    <div class="focus-item">
+      <div class="focus-num ${item.heat}">${item.n||i+1}</div>
+      <div><div class="focus-text">${item.text}</div><div class="focus-action">${item.action}</div></div>
+    </div>`).join('');
+}
+
+// ── Recent Orders ──
+function renderRecentOrders(D) {
+  const el     = document.getElementById('recent-orders');
+  const PRIO   = { in_prod:0, for_prod:1, ready:2, delivered:3 };
+  const orders = [...D.orders].sort((a,b) => {
+    const pd = (PRIO[a.status]??9) - (PRIO[b.status]??9);
+    if (pd !== 0) return pd;
+    if (a.status !== 'delivered') {
+      if (!a.deadline) return 1; if (!b.deadline) return -1;
+      return new Date(a.deadline) - new Date(b.deadline);
+    }
+    return new Date(b.dateAdded||0) - new Date(a.dateAdded||0);
+  }).slice(0,10);
+
+  const today   = new Date(); today.setHours(0,0,0,0);
+  const SLB     = { for_prod:'For Print', in_prod:'In Production', ready:'Ready', delivered:'Delivered' };
+
+  if (!orders.length) {
+    el.innerHTML = `<div class="no-data"><i class="ti ti-inbox"></i>No orders yet.</div>`;
+    return;
+  }
+  el.innerHTML = orders.map(o => {
+    const dl  = o.deadline ? new Date(o.deadline) : null;
+    const ov  = dl && dl < today && o.status !== 'delivered';
+    return `<div class="ord-row">
+      <div class="or-dot d-${o.status}"></div>
+      <div class="or-main">
+        <div class="or-client">${esc(o.clientName)}</div>
+        <div class="or-meta">${esc(o.apparel)} · ${o.qty} pcs${o.ref?' · '+esc(o.ref):''}</div>
+      </div>
+      <div class="or-right">
+        <div class="or-status s-${o.status}">${SLB[o.status]||o.status}</div>
+        ${dl?`<div class="or-dl ${ov?'overdue':''}">${ov?'⚠ ':''}${dl.toLocaleDateString('en-PH',{month:'short',day:'numeric'})}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+
+// ── Navigation ──
+let _activeTool = null;
+
+function openTool(file, name) {
+  if (!file) return;
+  if (file.startsWith('http')) { window.open(file, '_blank'); return; }
+
+  _activeTool = file;
+
+  // Sidebar active highlight
+  document.querySelectorAll('.sb-item').forEach(el =>
+    el.classList.toggle('active', el.dataset.file === file)
+  );
+
+  // Breadcrumb label
+  const lbl = document.getElementById('tool-crumb-name');
+  if (lbl) lbl.textContent = name || file.replace(/Sikhay_|\.html|%20/g,' ').trim();
+
+  // Switch to tool view
+  document.getElementById('dash-view').style.display = 'none';
+  document.getElementById('tool-view').classList.add('open');
+  document.getElementById('tool-frame').src = './' + file;
+}
+
+function backToDash() {
+  _activeTool = null;
+  document.querySelectorAll('.sb-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('tool-frame').src = 'about:blank';
+  document.getElementById('tool-view').classList.remove('open');
+  document.getElementById('dash-view').style.display = '';
+  render();
+}
+
+// ── Clock ──
+function updateClock() {
+  const now  = new Date();
+  const time = now.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'});
+  const date = now.toLocaleDateString('en-PH',{weekday:'short',month:'short',day:'numeric'});
+  const el   = document.getElementById('clock');
+  if (el) el.innerHTML = `${date} &nbsp;<strong>${time}</strong>`;
+}
+
+// ── Utils ──
+function esc(s)     { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtDate(s) { return s ? new Date(s).toLocaleDateString('en-PH',{month:'short',day:'numeric'}) : '—'; }
+
+let _toastTimer;
+function showToast(msg, type='ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className   = 'toast show ' + type;
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function fullRefresh() { render(); showToast('Dashboard refreshed!', 'ok'); }
+
+// ── Boot ──
+(async () => {
+  db = await SikhayDB.requireAuth();
+  if (!db) return;
+
+  await loadAll();
+  render();
+  updateClock();
+  updateUserBadge();
+  updateSyncBadge();
+  checkSyncBanner();
+
+  // Auto-refresh every 60s — does NOT re-render if tab is hidden to avoid disturbing active work in other tabs
+  setInterval(async () => {
+    if (document.hidden) return;
+    await loadAll();
+    render();
+  }, 60000);
+
+  setInterval(updateClock, 1000);
+
+  // Only re-render on focus if data might have changed (throttle to once per 15s)
+  let _lastFocusRender = 0;
+  window.addEventListener('focus', async () => {
+    const now = Date.now();
+    if (now - _lastFocusRender < 15000) return;
+    _lastFocusRender = now;
+    await loadAll();
+    render();
+  });
+
+  window.addEventListener('online',  () => updateSyncBadge());
+  window.addEventListener('offline', () => updateSyncBadge());
+})();
+
+// ── Cloud Sync ──
+function checkSyncBanner() {
+  if (localStorage.getItem('sikhay_cloud_synced')) return;
+  const hasData = (
+    (JSON.parse(localStorage.getItem('sikhay_ot_v1')  || '[]')).length > 0 ||
+    (JSON.parse(localStorage.getItem('sikhay_dt_v1')  || '[]')).length > 0 ||
+    (JSON.parse(localStorage.getItem('sikhay_dlv_v1') || '[]')).length > 0
+  );
+  if (hasData) {
+    const b = document.getElementById('sync-banner');
+    if (b) b.style.display = 'flex';
+  }
+}
+
+async function doCloudSync() {
+  const btn = document.getElementById('sync-btn');
+  const status = document.getElementById('sync-status');
+  btn.disabled = true;
+  btn.textContent = 'Syncing…';
+  try {
+    await db.migrateLocalToCloud(msg => { status.textContent = msg; });
+    status.textContent = 'All data synced to Firebase!';
+    status.style.color = '#22c55e';
+    btn.textContent = 'Done';
+    setTimeout(() => {
+      const b = document.getElementById('sync-banner');
+      if (b) b.style.display = 'none';
+    }, 3000);
+  } catch(e) {
+    status.textContent = 'Sync failed: ' + e.message;
+    status.style.color = '#ef4444';
+    btn.disabled = false;
+    btn.textContent = 'Retry';
+  }
+}
+
+function dismissSync() {
+  localStorage.setItem('sikhay_cloud_synced', '1');
+  const b = document.getElementById('sync-banner');
+  if (b) b.style.display = 'none';
+}
+</script>
+</body>
+</html>

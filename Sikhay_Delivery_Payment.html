@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sikhay Delivery &amp; Payment — Stage 6</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.14.0/dist/tabler-icons.min.css">
+<style>
+:root {
+  --bg:       #0a0a0a;
+  --surface:  #141414;
+  --surface2: #1e1e1e;
+  --border:   #2a2a2a;
+  --text:     #f0f0f0;
+  --muted:    #888;
+  --blue:     #3b82f6;
+  --purple:   #8b5cf6;
+  --amber:    #f59e0b;
+  --green:    #22c55e;
+  --danger:   #ef4444;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  font-size: 14px;
+}
+
+/* ── HEADER ── */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex; align-items: center; gap: 12px;
+  position: sticky; top: 0; z-index: 100;
+}
+.logo-box {
+  width: 38px; height: 38px; flex-shrink: 0;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  font-weight: 900; font-size: 11px; color: var(--amber);
+}
+.header-text { flex: 1; }
+.header-title { font-size: 17px; font-weight: 700; letter-spacing: .3px; }
+.header-subtitle { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.header-right { display: flex; gap: 8px; align-items: center; }
+
+/* ── STATS ── */
+.stats-bar {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 10px; padding: 18px 24px 10px;
+}
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 16px;
+  cursor: pointer; transition: border-color .2s; user-select: none;
+}
+.stat-card:hover { border-color: #3a3a3a; }
+.stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .7px; margin-bottom: 6px; }
+.stat-count { font-size: 28px; font-weight: 700; }
+.s-pickup .stat-count  { color: var(--amber); }
+.s-courier .stat-count { color: var(--blue); }
+.s-today .stat-count   { color: var(--green); }
+.s-total .stat-count   { color: var(--muted); }
+
+/* ── MAIN LAYOUT ── */
+.main {
+  display: grid; grid-template-columns: 290px 1fr;
+  padding: 0 24px 24px; gap: 0;
+  height: calc(100vh - 182px); min-height: 500px;
+}
+
+/* ── LEFT LIST PANEL ── */
+.list-panel {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; display: flex; flex-direction: column; overflow: hidden;
+}
+.list-head {
+  padding: 12px 16px 10px; border-bottom: 1px solid var(--border);
+  font-size: 11px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .7px;
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+}
+.list-tabs { padding: 10px 16px 0; flex-shrink: 0; display: flex; gap: 6px; }
+.ltab {
+  padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;
+  border: 1px solid var(--border); background: transparent; color: var(--muted);
+  cursor: pointer; font-family: inherit; transition: all .15s;
+}
+.ltab:hover { background: var(--surface2); color: var(--text); }
+.ltab.active { background: var(--surface2); color: var(--text); border-color: #555; }
+.list-body { overflow-y: auto; flex: 1; }
+
+/* ── ORDER ITEM ── */
+.order-item {
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: background .15s; user-select: none;
+}
+.order-item:hover { background: var(--surface2); }
+.order-item.sel { background: var(--surface2); border-left: 3px solid var(--blue); padding-left: 13px; }
+.order-item.dlv { border-left: 3px solid #22c55e40; padding-left: 13px; opacity: .7; }
+.oi-name { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+.oi-meta { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+.oi-foot { display: flex; align-items: center; gap: 6px; }
+.sdot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.sdot-ready     { background: var(--amber); box-shadow: 0 0 4px var(--amber); }
+.sdot-delivered { background: var(--green); }
+.bal-tag { font-size: 11px; font-weight: 700; margin-left: auto; }
+.bal-due  { color: var(--danger); }
+.bal-zero { color: var(--green); }
+
+/* ── DETAIL PANEL ── */
+.detail-panel { margin-left: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+.empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--muted); gap: 10px; }
+.empty-state i { font-size: 48px; opacity: .3; }
+.empty-state p { font-size: 13px; opacity: .6; }
+
+/* ── SECTION CARD ── */
+.sec { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; flex-shrink: 0; }
+.sec-head { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.sec-body { padding: 16px; }
+
+/* ── ORDER HEADER CARD ── */
+.ord-hdr { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; flex-shrink: 0; }
+.oh-row1 { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
+.oh-client { font-size: 19px; font-weight: 800; }
+.oh-meta { font-size: 12px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; }
+.pay-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+.pay-box { background: var(--surface2); border-radius: 8px; padding: 10px 14px; }
+.pay-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+.pay-val { font-size: 16px; font-weight: 700; }
+.pay-val.danger { color: var(--danger); }
+.pay-val.success { color: var(--green); }
+
+/* ── DELIVERY METHOD TOGGLE ── */
+.meth-toggle { display: flex; gap: 8px; }
+.meth-btn {
+  flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border);
+  background: transparent; color: var(--muted); cursor: pointer;
+  font-size: 13px; font-weight: 600; font-family: inherit;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  transition: all .2s;
+}
+.meth-btn:hover { background: var(--surface2); color: var(--text); }
+.meth-btn.m-pickup  { background: #f59e0b18; border-color: var(--amber); color: var(--amber); }
+.meth-btn.m-courier { background: #3b82f618; border-color: var(--blue); color: var(--blue); }
+
+/* ── FORM ── */
+.fgrid   { display: grid; gap: 10px; margin-top: 12px; }
+.fgrid-2 { grid-template-columns: 1fr 1fr; }
+.fgrid-3 { grid-template-columns: 1fr 1fr 1fr; }
+.fgroup  { display: flex; flex-direction: column; gap: 5px; }
+.flbl    { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+.finp, .fsel, .farea {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text); font-family: inherit;
+  font-size: 13px; padding: 8px 12px; outline: none;
+  transition: border-color .2s; width: 100%;
+}
+.finp:focus, .fsel:focus, .farea:focus { border-color: #555; }
+.fsel option { background: #1a1a1a; }
+.farea { resize: vertical; min-height: 70px; }
+.finp[readonly] { opacity: .6; cursor: default; }
+
+/* ── GCASH RECORDS ── */
+.gcash-add {
+  display: grid; grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 8px; align-items: end; padding: 12px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; margin-bottom: 12px;
+}
+.gcash-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px;
+}
+.gcash-item:last-child { margin-bottom: 0; }
+.gi-ref  { font-size: 12px; font-weight: 700; color: var(--blue); font-family: monospace; }
+.gi-note { font-size: 11px; color: var(--muted); }
+.gi-date { font-size: 10px; color: var(--muted); }
+.gi-amt  { font-size: 14px; font-weight: 800; color: var(--green); margin-left: auto; white-space: nowrap; }
+.dp-row  {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; opacity: .65;
+}
+
+/* ── TEMPLATES ── */
+.tpl-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; }
+.tpl-card:last-child { margin-bottom: 0; }
+.tpl-title { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+.tpl-body { font-size: 12px; line-height: 1.65; color: #ccc; white-space: pre-wrap; word-break: break-word; }
+
+/* ── BUTTONS ── */
+.btn {
+  padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer;
+  font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;
+  transition: all .18s; font-family: inherit;
+}
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn-primary { background: white; color: black; }
+.btn-primary:hover:not(:disabled) { background: #ddd; }
+.btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+.btn-ghost:hover:not(:disabled) { background: var(--surface2); color: var(--text); }
+.btn-green  { background: #22c55e20; color: var(--green);  border: 1px solid #22c55e40; }
+.btn-green:hover:not(:disabled)  { background: #22c55e30; }
+.btn-amber  { background: #f59e0b20; color: var(--amber);  border: 1px solid #f59e0b40; }
+.btn-amber:hover:not(:disabled)  { background: #f59e0b30; }
+.btn-blue   { background: #3b82f620; color: var(--blue);   border: 1px solid #3b82f640; }
+.btn-blue:hover:not(:disabled)   { background: #3b82f630; }
+.btn-danger { background: transparent; color: var(--danger); border: 1px solid #3a3a3a; }
+.btn-danger:hover:not(:disabled) { background: #ef444418; }
+.btn-sm  { padding: 5px 12px; font-size: 12px; }
+.btn-xs  { padding: 3px 8px;  font-size: 11px; }
+.btn-ico { padding: 7px; border-radius: 7px; }
+
+/* ── BADGE ── */
+.badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+.b-ready     { background: #f59e0b20; color: var(--amber);  border: 1px solid #f59e0b30; }
+.b-delivered { background: #22c55e20; color: var(--green);  border: 1px solid #22c55e30; }
+.b-pickup    { background: #f59e0b15; color: var(--amber); }
+.b-courier   { background: #3b82f615; color: var(--blue);  }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(60px);
+  background: #1e1e1e; border: 1px solid #333; border-radius: 10px;
+  padding: 10px 18px; font-size: 13px; font-weight: 600;
+  z-index: 9999; transition: transform .25s, opacity .25s; opacity: 0; pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+.toast.err  { border-color: var(--danger); color: var(--danger); }
+.toast.ok   { border-color: var(--green);  color: var(--green);  }
+.toast.info { border-color: var(--blue);   color: var(--blue);   }
+
+/* ── RECEIPT MODAL ── */
+.modal-ov {
+  position: fixed; inset: 0; background: rgba(0,0,0,.82);
+  z-index: 300; display: flex; align-items: center; justify-content: center; padding: 24px;
+}
+.modal-box {
+  background: #fff; color: #000; border-radius: 12px;
+  padding: 24px; max-width: 380px; width: 100%; max-height: 90vh; overflow-y: auto;
+}
+.modal-acts { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; padding-top: 16px; border-top: 1px solid #eee; }
+.modal-close { background: transparent; border: 1px solid #ccc; cursor: pointer; padding: 7px 14px; border-radius: 7px; font-size: 13px; font-family: inherit; }
+.modal-print { background: #000; color: #fff; border: none; cursor: pointer; padding: 7px 14px; border-radius: 7px; font-size: 13px; font-weight: 700; font-family: inherit; display: inline-flex; align-items: center; gap: 5px; }
+
+/* ── RECEIPT ── */
+.rct { font-family: 'Courier New', monospace; font-size: 12px; }
+.rct-logo { text-align: center; font-size: 16px; font-weight: 900; letter-spacing: 1px; margin-bottom: 2px; }
+.rct-sub  { text-align: center; font-size: 10px; color: #666; margin-bottom: 10px; }
+.rct-div  { border: none; border-top: 1px dashed #bbb; margin: 8px 0; }
+.rct-row  { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.rct-lbl  { color: #666; }
+.rct-total { display: flex; justify-content: space-between; font-weight: 900; font-size: 14px; margin: 5px 0; }
+.rct-foot { text-align: center; font-size: 10px; color: #666; margin-top: 12px; line-height: 1.6; }
+
+/* ── SCROLL ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #444; }
+
+@media print {
+  body * { visibility: hidden; }
+  #rct-area, #rct-area * { visibility: visible; }
+  #rct-area { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); width: 320px; background: #fff; color: #000; font-family: 'Courier New', monospace; }
+}
+</style>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="SikhayDB.js"></script>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="header">
+  <div class="logo-box">S6</div>
+  <div class="header-text">
+    <div class="header-title">Delivery &amp; Payment</div>
+    <div class="header-subtitle">Stage 6 — Sikhay Premium Apparel</div>
+  </div>
+  <div class="header-right">
+    <button class="btn btn-ghost btn-sm" onclick="refresh()">
+      <i class="ti ti-refresh"></i> Refresh
+    </button>
+  </div>
+</header>
+
+<!-- ── STATS ── -->
+<div class="stats-bar">
+  <div class="stat-card s-pickup" onclick="setListFilter('ready')">
+    <div class="stat-label">Awaiting Pickup</div>
+    <div class="stat-count" id="cnt-pickup">0</div>
+  </div>
+  <div class="stat-card s-courier" onclick="setListFilter('ready')">
+    <div class="stat-label">Out for Delivery</div>
+    <div class="stat-count" id="cnt-courier">0</div>
+  </div>
+  <div class="stat-card s-today">
+    <div class="stat-label">Delivered Today</div>
+    <div class="stat-count" id="cnt-today">0</div>
+  </div>
+  <div class="stat-card s-total" onclick="setListFilter('delivered')">
+    <div class="stat-label">Total Delivered</div>
+    <div class="stat-count" id="cnt-total">0</div>
+  </div>
+</div>
+
+<!-- ── MAIN ── -->
+<div class="main">
+
+  <!-- LEFT: ORDER LIST -->
+  <div class="list-panel">
+    <div class="list-head">
+      <i class="ti ti-package"></i>
+      <span>Orders</span>
+      <span id="list-count" style="margin-left:auto;"></span>
+    </div>
+    <div class="list-tabs">
+      <button class="ltab active" id="ltab-ready"     onclick="setListFilter('ready')">Ready</button>
+      <button class="ltab"        id="ltab-all"       onclick="setListFilter('all')">All Active</button>
+      <button class="ltab"        id="ltab-delivered" onclick="setListFilter('delivered')">Delivered</button>
+    </div>
+    <div style="height:8px;flex-shrink:0;"></div>
+    <div class="list-body" id="order-list">
+      <div style="padding:40px 16px;text-align:center;color:var(--muted);font-size:12px;">
+        <i class="ti ti-inbox" style="font-size:32px;display:block;margin-bottom:8px;opacity:.3;"></i>
+        No orders found
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: DETAIL PANEL -->
+  <div class="detail-panel" id="detail-panel">
+    <div class="empty-state">
+      <i class="ti ti-truck-delivery"></i>
+      <p>Select an order to manage delivery &amp; payment</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── TOAST ── -->
+<div class="toast" id="toast"></div>
+
+<!-- ── RECEIPT MODAL ── -->
+<div id="rct-modal" style="display:none;" class="modal-ov" onclick="if(event.target===this)closeReceipt()">
+  <div class="modal-box">
+    <div id="rct-area"></div>
+    <div class="modal-acts">
+      <button class="modal-close" onclick="closeReceipt()">Close</button>
+      <button class="modal-print" onclick="window.print()">
+        <i class="ti ti-printer"></i> Print Receipt
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── KEYS ────────────────────────────────────────────────────
+const OT_KEY  = 'sikhay_ot_v1';
+const DLV_KEY = 'sikhay_dlv_v1';
+
+let _orders     = [];
+let _deliveries = [];
+let db          = null;
+
+// ─── STATE ───────────────────────────────────────────────────
+let activeId   = null;
+let listFilter = 'ready';
+
+// ─── DATA ────────────────────────────────────────────────────
+function getOrders()     { return _orders; }
+function getDeliveries() { return _deliveries; }
+
+function getOrder(id) {
+  return getOrders().find(o => o.id === id) || null;
+}
+
+function getDlv(orderId) {
+  const existing = getDeliveries().find(d => d.orderId === orderId);
+  if (existing) return existing;
+  // Auto-populate method from Order Form choice
+  const o = getOrder(orderId);
+  const autoMethod = o?.delivery === 'delivery' ? 'courier'
+                   : o?.delivery === 'pickup'   ? 'pickup' : null;
+  return {
+    orderId,
+    method:         autoMethod,
+    courierName:    '',
+    trackingNo:     '',
+    estDelivery:    '',
+    courierFee:     '',
+    gcash:          [],
+    deliveredAt:    null,
+    internalNotes:  ''
+  };
+}
+
+async function saveDlv(dlv) {
+  _deliveries = _deliveries.filter(d => d.orderId !== dlv.orderId);
+  _deliveries.push(dlv);
+  await db.saveDelivery(dlv);
+}
+
+async function patchOrder(orderId, fields) {
+  const o = _orders.find(o => o.id === orderId);
+  if (!o) return;
+  Object.assign(o, fields);
+  await db.updateOrder(orderId, fields);
+}
+
+// ─── PAYMENT CALC ────────────────────────────────────────────
+function calcPay(o, dlv) {
+  const total  = parseFloat(o.total) || 0;
+  const dp     = parseFloat(o.dp)    || 0;
+  const extra  = (dlv.gcash || []).reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
+  const paid   = dp + extra;
+  const balance = Math.max(0, total - paid);
+  return { total, dp, extra, paid, balance };
+}
+
+// ─── RENDER ──────────────────────────────────────────────────
+function render() {
+  renderStats();
+  renderList();
+  if (activeId) renderDetail(activeId);
+}
+
+function renderStats() {
+  const orders  = getOrders();
+  const dlvs    = getDeliveries();
+  const today   = new Date().toDateString();
+  const ready   = orders.filter(o => o.status === 'ready');
+
+  let pickup = 0, courier = 0;
+  ready.forEach(o => {
+    const d = dlvs.find(x => x.orderId === o.id);
+    if (d?.method === 'pickup')  pickup++;
+    if (d?.method === 'courier') courier++;
+  });
+
+  const todayCount = orders.filter(o => {
+    if (o.status !== 'delivered') return false;
+    const d = dlvs.find(x => x.orderId === o.id);
+    return d?.deliveredAt && new Date(d.deliveredAt).toDateString() === today;
+  }).length;
+
+  document.getElementById('cnt-pickup').textContent  = pickup;
+  document.getElementById('cnt-courier').textContent = courier;
+  document.getElementById('cnt-today').textContent   = todayCount;
+  document.getElementById('cnt-total').textContent   = orders.filter(o => o.status === 'delivered').length;
+}
+
+function renderList() {
+  const orders = getOrders();
+  const dlvs   = getDeliveries();
+  const el     = document.getElementById('order-list');
+
+  let list;
+  if      (listFilter === 'ready')     list = orders.filter(o => o.status === 'ready');
+  else if (listFilter === 'delivered') list = orders.filter(o => o.status === 'delivered').slice(0, 50);
+  else list = orders.filter(o => o.status === 'ready' || o.status === 'delivered');
+
+  // Sort: ready before delivered; within ready sort by deadline
+  list = [...list].sort((a, b) => {
+    const p = { ready: 0, delivered: 1 };
+    const pd = (p[a.status]??9) - (p[b.status]??9);
+    if (pd !== 0) return pd;
+    if (a.status === 'ready') {
+      if (!a.deadline) return 1; if (!b.deadline) return -1;
+      return new Date(a.deadline) - new Date(b.deadline);
+    }
+    return new Date(b.dateAdded||0) - new Date(a.dateAdded||0);
+  });
+
+  document.getElementById('list-count').textContent = list.length + ' orders';
+
+  if (!list.length) {
+    el.innerHTML = `<div style="padding:40px 16px;text-align:center;color:var(--muted);font-size:12px;">
+      <i class="ti ti-inbox" style="font-size:32px;display:block;margin-bottom:8px;opacity:.3;"></i>
+      No orders here
+    </div>`;
+    return;
+  }
+
+  el.innerHTML = list.map(o => {
+    const dlv       = dlvs.find(x => x.orderId === o.id) || {};
+    const pay       = calcPay(o, dlv);
+    const isActive  = o.id === activeId;
+    const isDlv     = o.status === 'delivered';
+    let mChip = '';
+    if (dlv.method === 'pickup')  mChip = `<span class="badge b-pickup"><i class="ti ti-walk"></i> Pickup</span>`;
+    if (dlv.method === 'courier') mChip = `<span class="badge b-courier"><i class="ti ti-truck"></i> Courier</span>`;
+    return `<div class="order-item ${isActive?'sel':''} ${isDlv?'dlv':''}" onclick="selectOrder('${o.id}')">
+      <div class="oi-name">
+        <span class="sdot ${isDlv?'sdot-delivered':'sdot-ready'}"></span>
+        ${esc(o.clientName)}
+      </div>
+      <div class="oi-meta">${esc(o.apparel)} · ${o.qty} pcs${o.ref?' · '+esc(o.ref):''}</div>
+      <div class="oi-foot">
+        ${mChip}
+        <span class="bal-tag ${pay.balance<=0?'bal-zero':'bal-due'}" style="margin-left:auto;">
+          ${pay.balance <= 0
+            ? '<i class="ti ti-check" style="font-size:11px;"></i> Paid'
+            : '₱'+fmt(pay.balance)+' due'}
+        </span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setListFilter(f) {
+  listFilter = f;
+  document.querySelectorAll('.ltab').forEach(t => t.classList.remove('active'));
+  document.getElementById('ltab-' + f)?.classList.add('active');
+  renderList();
+}
+
+function selectOrder(id) {
+  activeId = id;
+  renderList();
+  renderDetail(id);
+}
+
+// ─── DETAIL ──────────────────────────────────────────────────
+function renderDetail(id) {
+  const o = getOrder(id);
+  if (!o) {
+    document.getElementById('detail-panel').innerHTML = '<div class="empty-state"><i class="ti ti-alert-circle"></i><p>Order not found</p></div>';
+    return;
+  }
+  const dlv = getDlv(id);
+  const pay = calcPay(o, dlv);
+  document.getElementById('detail-panel').innerHTML =
+    renderOrdHdr(o, dlv, pay) +
+    renderDeliverySection(o, dlv) +
+    renderPaymentSection(o, dlv, pay) +
+    renderTemplatesSection(o, dlv, pay) +
+    renderActionsSection(o, dlv);
+}
+
+// ── Order Header ──
+function renderOrdHdr(o, dlv, pay) {
+  const dl = o.deadline
+    ? new Date(o.deadline).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})
+    : '—';
+  return `<div class="ord-hdr">
+    <div class="oh-row1">
+      <div>
+        <div class="oh-client">${esc(o.clientName)}</div>
+        <div class="oh-meta" style="margin-top:4px;">
+          <span><i class="ti ti-shirt" style="font-size:11px;"></i> ${esc(o.apparel)}</span>
+          <span><i class="ti ti-stack" style="font-size:11px;"></i> ${o.qty} pcs</span>
+          ${o.ref ? `<span><i class="ti ti-hash" style="font-size:11px;"></i> ${esc(o.ref)}</span>` : ''}
+          <span><i class="ti ti-calendar" style="font-size:11px;"></i> ${dl}</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+        <span class="badge ${o.status==='ready'?'b-ready':'b-delivered'}">
+          ${o.status === 'ready' ? 'Ready' : 'Delivered'}
+        </span>
+        <button class="btn btn-ghost btn-sm" onclick="generateReceipt('${o.id}')">
+          <i class="ti ti-receipt"></i> Receipt
+        </button>
+      </div>
+    </div>
+    <div class="pay-grid">
+      <div class="pay-box">
+        <div class="pay-lbl">Total</div>
+        <div class="pay-val">₱${fmt(pay.total)}</div>
+      </div>
+      <div class="pay-box">
+        <div class="pay-lbl">Amount Paid</div>
+        <div class="pay-val ${pay.balance<=0?'success':''}">₱${fmt(pay.paid)}</div>
+      </div>
+      <div class="pay-box">
+        <div class="pay-lbl">Balance</div>
+        <div class="pay-val ${pay.balance>0?'danger':'success'}">
+          ${pay.balance > 0 ? '₱'+fmt(pay.balance) : '✓ Paid'}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Delivery Setup ──
+function renderDeliverySection(o, dlv) {
+  const pCls = dlv.method === 'pickup'  ? 'm-pickup'  : '';
+  const cCls = dlv.method === 'courier' ? 'm-courier' : '';
+
+  const courierFields = dlv.method === 'courier' ? `
+    <div class="fgrid fgrid-3">
+      <div class="fgroup">
+        <label class="flbl">Courier / Service</label>
+        <input class="finp" value="${esc(dlv.courierName)}" placeholder="J&amp;T, LBC, Ninja Van…"
+          oninput="patchDlv('${o.id}','courierName',this.value)">
+      </div>
+      <div class="fgroup">
+        <label class="flbl">Tracking Number</label>
+        <input class="finp" value="${esc(dlv.trackingNo)}" placeholder="e.g. JT1234567890"
+          oninput="patchDlv('${o.id}','trackingNo',this.value)">
+      </div>
+      <div class="fgroup">
+        <label class="flbl">Est. Delivery Date</label>
+        <input class="finp" type="date" value="${dlv.estDelivery || ''}"
+          oninput="patchDlv('${o.id}','estDelivery',this.value)">
+      </div>
+    </div>
+    <div class="fgrid fgrid-2" style="margin-top:0;">
+      <div class="fgroup">
+        <label class="flbl">Shipping Fee (₱)</label>
+        <input class="finp" type="number" value="${dlv.courierFee || ''}" placeholder="0"
+          oninput="patchDlv('${o.id}','courierFee',this.value)">
+      </div>
+      <div class="fgroup">
+        <label class="flbl">Delivery Address (from order)</label>
+        <input class="finp" value="${esc(o.notes || '—')}" readonly>
+      </div>
+    </div>` : '';
+
+  const pickupNote = dlv.method === 'pickup' ? `
+    <div style="margin-top:12px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;">Pickup note from order form</div>
+      <div style="font-size:13px;">${esc(o.notes) || '<span style="color:var(--muted);">No address/note in order form.</span>'}</div>
+    </div>` : '';
+
+  return `<div class="sec">
+    <div class="sec-head"><i class="ti ti-truck-delivery"></i> Delivery Setup</div>
+    <div class="sec-body">
+      <div class="meth-toggle">
+        <button class="meth-btn ${pCls}" onclick="setMethod('${o.id}','pickup')">
+          <i class="ti ti-walk"></i> Walk-in / Pickup
+        </button>
+        <button class="meth-btn ${cCls}" onclick="setMethod('${o.id}','courier')">
+          <i class="ti ti-truck"></i> Courier / Delivery
+        </button>
+      </div>
+      ${courierFields}
+      ${pickupNote}
+      <div style="margin-top:12px;">
+        <div class="fgroup">
+          <label class="flbl">Internal Notes</label>
+          <textarea class="farea" placeholder="Delivery instructions, special arrangements…"
+            oninput="patchDlv('${o.id}','internalNotes',this.value)">${esc(dlv.internalNotes)}</textarea>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Payment Section ──
+function renderPaymentSection(o, dlv, pay) {
+  const gcashItems = (dlv.gcash || []).map(g => `
+    <div class="gcash-item">
+      <div>
+        <div class="gi-ref">Ref# ${esc(g.ref)}</div>
+        ${g.note ? `<div class="gi-note">${esc(g.note)}</div>` : ''}
+        <div class="gi-date">${g.date ? new Date(g.date).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}) : ''}</div>
+      </div>
+      <div class="gi-amt">+₱${fmt(g.amount)}</div>
+      <button class="btn btn-danger btn-xs btn-ico" onclick="removeGcash('${o.id}','${g.id}')" title="Remove">
+        <i class="ti ti-trash" style="font-size:12px;"></i>
+      </button>
+    </div>`).join('');
+
+  const dpRow = pay.dp > 0 ? `
+    <div class="dp-row">
+      <div>
+        <div class="gi-ref" style="color:var(--muted);">Downpayment</div>
+        <div class="gi-note">Recorded in Order Form</div>
+      </div>
+      <div class="gi-amt" style="color:var(--muted);">₱${fmt(pay.dp)}</div>
+    </div>` : '';
+
+  const emptyMsg = !gcashItems && pay.dp <= 0
+    ? `<div style="text-align:center;color:var(--muted);font-size:12px;padding:14px 0;">No payment records yet</div>`
+    : '';
+
+  const balAlert = pay.balance > 0
+    ? `<div style="margin-top:8px;padding:8px 12px;background:#ef444410;border:1px solid #ef444430;border-radius:8px;font-size:12px;color:var(--danger);font-weight:700;">
+        ⚠ Balance due: ₱${fmt(pay.balance)}
+      </div>`
+    : `<div style="margin-top:8px;padding:8px 12px;background:#22c55e10;border:1px solid #22c55e30;border-radius:8px;font-size:12px;color:var(--green);font-weight:700;">
+        ✓ Fully Paid
+      </div>`;
+
+  return `<div class="sec">
+    <div class="sec-head"><i class="ti ti-device-mobile"></i> GCash Payment Records</div>
+    <div class="sec-body">
+      <!-- Add form -->
+      <div class="gcash-add">
+        <div class="fgroup">
+          <label class="flbl">Ref Number</label>
+          <input class="finp" id="gc-ref" placeholder="GCash ref #">
+        </div>
+        <div class="fgroup">
+          <label class="flbl">Amount (₱)</label>
+          <input class="finp" id="gc-amt" type="number" placeholder="0.00">
+        </div>
+        <div class="fgroup">
+          <label class="flbl">Note (optional)</label>
+          <input class="finp" id="gc-note" placeholder="Balance, COD, etc.">
+        </div>
+        <button class="btn btn-green" onclick="addGcash('${o.id}')">
+          <i class="ti ti-plus"></i> Add
+        </button>
+      </div>
+
+      <!-- Records -->
+      ${dpRow}
+      ${gcashItems}
+      ${emptyMsg}
+
+      <!-- Summary bar -->
+      <div style="padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:12px;color:var(--muted);">Total Collected</span>
+        <span style="font-size:16px;font-weight:800;color:${pay.balance<=0?'var(--green)':'var(--amber)'};">
+          ₱${fmt(pay.paid)} / ₱${fmt(pay.total)}
+        </span>
+      </div>
+      ${balAlert}
+    </div>
+  </div>`;
+}
+
+// ── Messenger Templates ──
+function renderTemplatesSection(o, dlv, pay) {
+  const c       = o.clientName || 'Client';
+  const ap      = o.apparel    || 'your order';
+  const qty     = o.qty        || 0;
+  const ref     = o.ref        ? `\n🏷️ Ref: ${o.ref}` : '';
+  const courier = dlv.courierName  || '[Courier]';
+  const trk     = dlv.trackingNo   || '[Tracking No.]';
+  const estDl   = dlv.estDelivery
+    ? new Date(dlv.estDelivery).toLocaleDateString('en-PH',{month:'long',day:'numeric'})
+    : '[date]';
+  const balLine = pay.balance > 0
+    ? `\n💰 Balance: ₱${fmt(pay.balance)}`
+    : `\n✅ Fully Paid`;
+  const codLine = pay.balance > 0 ? `\n💰 Balance COD: ₱${fmt(pay.balance)}` : '';
+
+  const tpls = [
+    {
+      id:    'tpl-pickup',
+      title: 'Ready for Pickup',
+      icon:  'ti-walk',
+      body:  `Hi ${c}! 👋\n\nAng inyong order ay handa na para sa pickup! 🎉\n\n📦 Order: ${ap} × ${qty} pcs${ref}${balLine}\n\nPlease coordinate sa amin para sa pickup schedule.\nOpen kami Monday–Saturday!\n\nSalamat sa inyong tiwala sa Sikhay Creatives! 🙏`
+    },
+    {
+      id:    'tpl-courier',
+      title: 'Order Dispatched (Courier)',
+      icon:  'ti-truck',
+      body:  `Hi ${c}! 👋\n\nYour order has been shipped! 📦\n\n📦 Order: ${ap} × ${qty} pcs${ref}\n🚚 Courier: ${courier}\n🔢 Tracking: ${trk}\n📅 Est. Delivery: ${estDl}${codLine}\n\nPwede na po kayong mag-track ng inyong order gamit ang tracking number sa itaas.\n\nSalamat at sana ay magustuhan ninyo! 🙏`
+    },
+    {
+      id:    'tpl-balance',
+      title: 'Balance Reminder',
+      icon:  'ti-cash',
+      body:  `Hi ${c}! 😊\n\nFriendly reminder po regarding your order:\n\n📦 ${ap} × ${qty} pcs\n💰 Total: ₱${fmt(pay.total)}\n✅ Paid: ₱${fmt(pay.paid)}\n⚠️ Balance: ₱${fmt(pay.balance)}\n\nGCash: 09XX XXX XXXX (Nathaniel N.)\nAccount Name: Sikhay Creatives\n\nThank you po! 🙏`
+    },
+    {
+      id:    'tpl-delivered',
+      title: 'Delivered Confirmation',
+      icon:  'ti-circle-check',
+      body:  `Hi ${c}! 🎉\n\nYour order has been delivered successfully!\n\n📦 ${ap} × ${qty} pcs\n✅ Payment: Fully Paid\n\nWe hope you love your order! ✨\n\nKung may questions or concerns kayo, don't hesitate to reach out. 😊\n\n— Sikhay Creatives 🎨`
+    },
+    {
+      id:    'tpl-thankyou',
+      title: 'Thank You & Feedback',
+      icon:  'ti-heart',
+      body:  `Hi ${c}! 😊\n\nThank you so much for your order! 🙏 Hope you're happy with your ${ap} from Sikhay Creatives.\n\nKung may time po kayo:\n📸 Tag us sa inyong photos!\n⭐ Send us your rating\n💬 Share your feedback\n\nYour support means everything to us! 💙\n\nHanggang sa muli!\n— Sikhay Creatives 🎨`
+    }
+  ];
+
+  const cards = tpls.map(t => `
+    <div class="tpl-card">
+      <div class="tpl-title">
+        <span><i class="ti ${t.icon}" style="margin-right:4px;"></i>${t.title}</span>
+        <button class="btn btn-ghost btn-xs" onclick="copyTpl('${t.id}')">
+          <i class="ti ti-copy"></i> Copy
+        </button>
+      </div>
+      <pre class="tpl-body" id="${t.id}">${esc(t.body)}</pre>
+    </div>`).join('');
+
+  return `<div class="sec">
+    <div class="sec-head"><i class="ti ti-message-circle"></i> Messenger Templates</div>
+    <div class="sec-body">${cards}</div>
+  </div>`;
+}
+
+// ── Actions Section ──
+function renderActionsSection(o, dlv) {
+  if (o.status === 'delivered') {
+    const ts = dlv.deliveredAt
+      ? new Date(dlv.deliveredAt).toLocaleString('en-PH',{month:'long',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'})
+      : 'Date not recorded';
+    return `<div class="sec" style="border-color:#22c55e40;">
+      <div class="sec-body" style="display:flex;align-items:center;gap:14px;">
+        <i class="ti ti-circle-check" style="font-size:30px;color:var(--green);flex-shrink:0;"></i>
+        <div>
+          <div style="font-size:15px;font-weight:800;color:var(--green);">Order Delivered</div>
+          <div style="font-size:12px;color:var(--muted);">${ts}</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" style="margin-left:auto;" onclick="undoDelivered('${o.id}')">
+          <i class="ti ti-arrow-back"></i> Undo
+        </button>
+      </div>
+    </div>`;
+  }
+
+  const canGo = !!dlv.method;
+  const hint = !dlv.method
+    ? `<div style="font-size:12px;color:var(--muted);">⚠ Set delivery method (Pickup or Courier) before marking as delivered.</div>`
+    : dlv.method === 'courier' && !dlv.trackingNo
+    ? `<div style="font-size:12px;color:var(--amber);">ℹ Tracking number not set yet — OK to proceed kung wala pa.</div>`
+    : `<div style="font-size:12px;color:var(--muted);">Ready to mark as delivered.</div>`;
+
+  return `<div class="sec">
+    <div class="sec-body" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <div style="flex:1;">${hint}</div>
+      <button class="btn btn-green" onclick="markDelivered('${o.id}')" ${canGo?'':'disabled'}>
+        <i class="ti ti-circle-check"></i> Mark as Delivered
+      </button>
+    </div>
+  </div>`;
+}
+
+// ─── ACTIONS ────────────────────────────────────────────────
+function setMethod(orderId, method) {
+  const dlv = getDlv(orderId);
+  dlv.method = method;
+  saveDlv(dlv);
+  renderDetail(orderId);
+  renderList();
+  renderStats();
+}
+
+function patchDlv(orderId, field, value) {
+  const dlv  = getDlv(orderId);
+  dlv[field] = value;
+  saveDlv(dlv);
+}
+
+function addGcash(orderId) {
+  const refEl  = document.getElementById('gc-ref');
+  const amtEl  = document.getElementById('gc-amt');
+  const noteEl = document.getElementById('gc-note');
+  const ref    = refEl?.value.trim();
+  const amt    = parseFloat(amtEl?.value) || 0;
+  const note   = noteEl?.value.trim() || '';
+
+  if (!ref) { showToast('Enter GCash reference number.', 'err'); return; }
+  if (!amt) { showToast('Enter payment amount.', 'err'); return; }
+
+  const dlv = getDlv(orderId);
+  dlv.gcash.push({
+    id:     Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+    ref, amount: amt, note,
+    date:   new Date().toISOString()
+  });
+  saveDlv(dlv);
+
+  // Sync total paid back to sikhay_ot_v1
+  const o   = getOrder(orderId);
+  const pay = calcPay(o, dlv);
+  patchOrder(orderId, { dp: pay.paid, fullyPaid: pay.balance <= 0 });
+
+  showToast('GCash record added!', 'ok');
+  renderDetail(orderId);
+  renderList();
+  renderStats();
+}
+
+function removeGcash(orderId, gcashId) {
+  if (!confirm('Remove this GCash record?')) return;
+  const dlv  = getDlv(orderId);
+  dlv.gcash  = (dlv.gcash || []).filter(g => g.id !== gcashId);
+  saveDlv(dlv);
+
+  const o   = getOrder(orderId);
+  const pay = calcPay(o, dlv);
+  patchOrder(orderId, { dp: pay.paid, fullyPaid: pay.balance <= 0 });
+
+  renderDetail(orderId);
+  renderList();
+  renderStats();
+}
+
+function markDelivered(orderId) {
+  const dlv = getDlv(orderId);
+  if (!dlv.method) { showToast('Set delivery method muna!', 'err'); return; }
+  if (!confirm('Mark this order as Delivered? This will update the Order Tracker.')) return;
+  dlv.deliveredAt = new Date().toISOString();
+  saveDlv(dlv);
+  patchOrder(orderId, { status: 'delivered' });
+  showToast('Order marked as Delivered! 🎉', 'ok');
+  renderDetail(orderId);
+  renderList();
+  renderStats();
+}
+
+function undoDelivered(orderId) {
+  if (!confirm('Undo delivery? Status will go back to Ready.')) return;
+  const dlv = getDlv(orderId);
+  dlv.deliveredAt = null;
+  saveDlv(dlv);
+  patchOrder(orderId, { status: 'ready' });
+  showToast('Status reset to Ready.', 'info');
+  renderDetail(orderId);
+  renderList();
+  renderStats();
+}
+
+function copyTpl(tplId) {
+  const el = document.getElementById(tplId);
+  if (!el) return;
+  const text = el.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Template copied!', 'ok');
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('Template copied!', 'ok');
+  });
+}
+
+// ─── RECEIPT ────────────────────────────────────────────────
+function generateReceipt(orderId) {
+  const o   = getOrder(orderId);
+  const dlv = getDlv(orderId);
+  if (!o) return;
+  const pay = calcPay(o, dlv);
+
+  const now  = new Date().toLocaleDateString('en-PH', { year:'numeric', month:'long', day:'numeric' });
+  const meth = dlv.method === 'pickup' ? 'Walk-in / Pickup'
+             : dlv.method === 'courier' ? `Courier — ${dlv.courierName || '—'}` : 'Not set';
+
+  const dpRow = pay.dp > 0
+    ? `<div class="rct-row"><span class="rct-lbl">Downpayment</span><span>₱${fmt(pay.dp - ((dlv.gcash||[]).reduce((s,r)=>s+(parseFloat(r.amount)||0),0)))}</span></div>`
+    : '';
+
+  const gcashRows = (dlv.gcash || []).map(g => `
+    <div class="rct-row">
+      <span class="rct-lbl">GCash Ref# ${esc(g.ref)}</span>
+      <span>+₱${fmt(g.amount)}</span>
+    </div>`).join('');
+
+  const sfeeRow = dlv.courierFee
+    ? `<div class="rct-row"><span class="rct-lbl">Shipping Fee</span><span>₱${fmt(dlv.courierFee)}</span></div>`
+    : '';
+
+  document.getElementById('rct-area').innerHTML = `
+    <div class="rct">
+      <div class="rct-logo">SIKHAY CREATIVES</div>
+      <div class="rct-sub">Digital Printing Shop · Dasmariñas, Cavite<br>${now}</div>
+      <hr class="rct-div">
+      <div class="rct-row"><span class="rct-lbl">Client</span><span>${esc(o.clientName)}</span></div>
+      ${o.ref ? `<div class="rct-row"><span class="rct-lbl">Ref</span><span>${esc(o.ref)}</span></div>` : ''}
+      <hr class="rct-div">
+      <div class="rct-row"><span class="rct-lbl">Item</span><span>${esc(o.apparel)}</span></div>
+      <div class="rct-row"><span class="rct-lbl">Quantity</span><span>${o.qty} pcs</span></div>
+      <div class="rct-row"><span class="rct-lbl">Delivery</span><span>${meth}</span></div>
+      ${dlv.trackingNo ? `<div class="rct-row"><span class="rct-lbl">Tracking</span><span>${esc(dlv.trackingNo)}</span></div>` : ''}
+      ${sfeeRow}
+      <hr class="rct-div">
+      <div class="rct-total"><span>TOTAL</span><span>₱${fmt(pay.total)}</span></div>
+      ${dpRow}
+      ${gcashRows}
+      <hr class="rct-div">
+      <div class="rct-total" style="color:${pay.balance<=0?'#16a34a':'#dc2626'};">
+        <span>BALANCE</span>
+        <span>${pay.balance <= 0 ? 'PAID ✓' : '₱' + fmt(pay.balance)}</span>
+      </div>
+      <hr class="rct-div">
+      <div class="rct-foot">
+        Thank you for choosing Sikhay Creatives! 🙏<br>
+        Facebook: Sikhay Creatives<br>
+        Please keep this receipt for your records.
+      </div>
+    </div>`;
+
+  document.getElementById('rct-modal').style.display = 'flex';
+}
+
+function closeReceipt() {
+  document.getElementById('rct-modal').style.display = 'none';
+}
+
+// ─── UTILS ──────────────────────────────────────────────────
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function fmt(n) {
+  return (parseFloat(n) || 0).toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
+let _tt;
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + (type === 'err' ? 'err' : type === 'ok' ? 'ok' : 'info');
+  clearTimeout(_tt);
+  _tt = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function refresh() { render(); showToast('Refreshed.', 'info'); }
+
+// ─── BOOT ─────────────────────────────────────────────────────
+(async () => {
+  db          = await SikhayDB.requireAuth();
+  if (!db) return;
+  _orders     = await db.getOrders();
+  _deliveries = await db.getDeliveries();
+  render();
+  window.addEventListener('focus', async () => {
+    _orders     = await db.getOrders();
+    _deliveries = await db.getDeliveries();
+    render();
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sikhay Creatives — Sign In</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.14.0/dist/tabler-icons.min.css">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0a0a0a;color:#e5e7eb;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center}
+  .card{background:#141414;border:1px solid #222;border-radius:16px;padding:40px;width:100%;max-width:400px}
+  .logo{text-align:center;margin-bottom:32px}
+  .logo h1{font-size:24px;font-weight:700;color:#fff;letter-spacing:1px}
+  .logo p{font-size:13px;color:#6b7280;margin-top:4px}
+  .form-group{margin-bottom:20px}
+  label{display:block;font-size:13px;color:#9ca3af;margin-bottom:6px}
+  input{width:100%;background:#0a0a0a;border:1px solid #333;border-radius:8px;padding:12px 14px;color:#e5e7eb;font-size:15px;outline:none;transition:border-color .15s}
+  input:focus{border-color:#3b82f6}
+  .btn{width:100%;background:#3b82f6;color:#fff;border:none;border-radius:8px;padding:13px;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .15s;margin-top:8px}
+  .btn:hover{opacity:.9}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .error{background:#7f1d1d;border:1px solid #991b1b;border-radius:8px;padding:12px;font-size:13px;color:#fca5a5;margin-bottom:16px;display:none}
+  .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <h1>SIKHAY CREATIVES</h1>
+    <p>Operations System</p>
+  </div>
+  <div class="error" id="err-msg"></div>
+  <div class="form-group">
+    <label for="email">Email</label>
+    <input type="email" id="email" placeholder="yourname@sikhaycreatives.com" autocomplete="email">
+  </div>
+  <div class="form-group">
+    <label for="password">Password</label>
+    <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password">
+  </div>
+  <button class="btn" id="login-btn" onclick="doLogin()">Sign In</button>
+</div>
+
+<script src="config.js"></script>
+<script src="SikhayDB.js"></script>
+<script>
+  const db = new SikhayDB()
+
+  // Once Firebase is ready, redirect if already signed in
+  db._ensureFirebase().then(ok => {
+    if (!ok) { showErr('Cannot reach Firebase. Check your internet.'); return }
+    db._auth.onAuthStateChanged(user => {
+      if (user) window.location.href = 'Sikhay_Dashboard.html'
+    })
+  })
+
+  document.getElementById('password').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin()
+  })
+
+  async function doLogin() {
+    const email    = document.getElementById('email').value.trim()
+    const password = document.getElementById('password').value
+    const btn      = document.getElementById('login-btn')
+    const errEl    = document.getElementById('err-msg')
+
+    if (!email || !password) {
+      showErr('Please enter your email and password.')
+      return
+    }
+
+    btn.disabled  = true
+    btn.innerHTML = '<span class="spinner"></span>Signing in…'
+    errEl.style.display = 'none'
+
+    try {
+      await db.signIn(email, password)
+      window.location.href = 'Sikhay_Dashboard.html'
+    } catch(e) {
+      showErr(friendlyErr(e.code))
+      btn.disabled  = false
+      btn.innerHTML = 'Sign In'
+    }
+  }
+
+  function friendlyErr(code = '') {
+    if (code.includes('user-not-found') || code.includes('wrong-password') || code.includes('invalid-credential'))
+      return 'Wrong email or password.'
+    if (code.includes('too-many-requests'))
+      return 'Too many failed attempts. Try again later.'
+    if (code.includes('network'))
+      return 'Network error. Check your connection.'
+    return 'Sign in failed. Check your email and password.'
+  }
+
+  function showErr(msg) {
+    const el = document.getElementById('err-msg')
+    el.textContent   = msg
+    el.style.display = 'block'
+  }
+</script>
+</body>
+</html>

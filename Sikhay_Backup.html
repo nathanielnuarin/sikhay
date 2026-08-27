@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sikhay — Data Backup & Restore</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.14.0/dist/tabler-icons.min.css">
+<style>
+:root {
+  --bg:      #0a0a0a;
+  --surface: #141414;
+  --surface2:#1e1e1e;
+  --border:  #2a2a2a;
+  --text:    #f0f0f0;
+  --muted:   #6b7280;
+  --amber:   #f59e0b;
+  --green:   #22c55e;
+  --danger:  #ef4444;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; font-size:14px; }
+
+/* HEADER */
+.header { background:var(--surface); border-bottom:1px solid var(--border); padding:14px 28px; display:flex; align-items:center; gap:14px; position:sticky; top:0; z-index:100; }
+.logo { width:38px; height:38px; background:linear-gradient(135deg,#1a1a1a,#2a2a2a); border:1px solid var(--border); border-radius:9px; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:12px; color:var(--amber); flex-shrink:0; }
+.hd-text { flex:1; }
+.hd-brand { font-size:15px; font-weight:800; }
+.hd-sub   { font-size:11px; color:var(--muted); margin-top:1px; }
+
+.wrap { max-width:960px; margin:0 auto; padding:24px 28px 60px; }
+
+/* WARNING BANNER */
+.warn-banner { background:#f59e0b10; border:1px solid #f59e0b35; border-radius:10px; padding:14px 18px; margin-bottom:20px; display:flex; align-items:flex-start; gap:12px; font-size:13px; line-height:1.6; color:#fbbf24; }
+.warn-banner i { font-size:20px; flex-shrink:0; margin-top:2px; }
+.warn-banner strong { color:#fcd34d; }
+
+/* LAST BACKUP BAR */
+.lb-bar { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 18px; margin-bottom:24px; display:flex; align-items:center; gap:14px; }
+.lb-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.lb-dot.ok     { background:var(--green); box-shadow:0 0 7px #22c55e80; }
+.lb-dot.warn   { background:var(--amber); box-shadow:0 0 7px #f59e0b80; }
+.lb-dot.never  { background:var(--danger); box-shadow:0 0 7px #ef444480; }
+.lb-info  { flex:1; }
+.lb-label { font-size:13px; font-weight:700; }
+.lb-time  { font-size:11px; color:var(--muted); margin-top:2px; }
+
+/* SECTION LABEL */
+.section-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.7px; color:var(--muted); margin-bottom:12px; display:flex; align-items:center; gap:7px; }
+
+/* STATUS GRID */
+.key-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; margin-bottom:28px; }
+.key-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 16px; position:relative; overflow:hidden; }
+.key-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:3px 0 0 3px; background:var(--kc,var(--border)); }
+.kc-top  { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.kc-icon { font-size:17px; }
+.kc-name { font-size:13px; font-weight:700; }
+.kc-row  { display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-top:4px; }
+.kc-val  { font-weight:700; color:var(--text); }
+.kc-empty { font-size:11px; color:var(--muted); font-style:italic; margin-top:4px; }
+
+/* ACTION CARDS */
+.action-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:0; }
+.action-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:20px; }
+.ac-title { font-size:13px; font-weight:700; margin-bottom:6px; display:flex; align-items:center; gap:8px; }
+.ac-desc  { font-size:12px; color:var(--muted); margin-bottom:16px; line-height:1.6; }
+.ac-note  { font-size:11px; color:var(--muted); margin-top:10px; }
+
+/* BUTTONS */
+.btn { padding:9px 18px; border-radius:8px; border:none; cursor:pointer; font-size:13px; font-weight:700; display:inline-flex; align-items:center; gap:6px; transition:all .18s; font-family:inherit; }
+.btn-green  { background:var(--green); color:#000; }
+.btn-green:hover  { background:#16a34a; color:#fff; }
+.btn-amber  { background:var(--amber); color:#000; }
+.btn-amber:hover  { background:#d97706; }
+.btn-danger { background:var(--danger); color:#fff; }
+.btn-danger:hover { background:#dc2626; }
+.btn-ghost  { background:transparent; color:var(--muted); border:1px solid var(--border); }
+.btn-ghost:hover  { background:var(--surface2); color:var(--text); }
+
+/* IMPORT PANEL */
+.import-panel { background:var(--surface2); border:1px solid var(--border); border-radius:9px; padding:16px; margin-top:14px; }
+.ip-head  { font-size:12px; font-weight:700; color:var(--amber); margin-bottom:4px; }
+.ip-meta  { font-size:11px; color:var(--muted); margin-bottom:14px; }
+.ip-table { width:100%; border-collapse:collapse; font-size:12px; margin-bottom:12px; }
+.ip-table th { text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); padding:5px 8px; border-bottom:1px solid var(--border); font-weight:700; }
+.ip-table td { padding:8px 8px; border-bottom:1px solid #1e1e1e; vertical-align:middle; }
+.ip-table tr:last-child td { border-bottom:none; }
+.ip-table input[type=checkbox] { width:15px; height:15px; accent-color:var(--amber); cursor:pointer; }
+.ip-warn { background:#ef444412; border:1px solid #ef444430; border-radius:7px; padding:10px 12px; font-size:12px; color:#fca5a5; margin-bottom:12px; line-height:1.5; }
+.ip-actions { display:flex; gap:8px; }
+
+/* TOAST */
+.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(60px); background:#1e1e1e; border:1px solid #333; border-radius:10px; padding:9px 18px; font-size:13px; font-weight:600; z-index:9999; transition:transform .25s, opacity .25s; opacity:0; pointer-events:none; max-width:420px; text-align:center; }
+.toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+.toast.ok   { border-color:var(--green);  color:var(--green); }
+.toast.err  { border-color:var(--danger); color:var(--danger); }
+
+::-webkit-scrollbar { width:5px; } ::-webkit-scrollbar-track { background:transparent; } ::-webkit-scrollbar-thumb { background:#333; border-radius:3px; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">SC</div>
+  <div class="hd-text">
+    <div class="hd-brand">Data Backup &amp; Restore</div>
+    <div class="hd-sub">Sikhay Creatives — All Tools</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="warn-banner">
+    <i class="ti ti-alert-triangle"></i>
+    <div>Lahat ng data ng Sikhay tools ay nakaimbak sa <strong>browser localStorage lang</strong> — hindi ito nasa cloud. Kung mag-clear ng browser cache o mag-switch ng computer, <strong>mawawala lahat ng orders, finance, HR, at design records mo</strong>. Mag-export ng backup regularly para safe.</div>
+  </div>
+
+  <!-- LAST BACKUP STATUS -->
+  <div class="lb-bar">
+    <div class="lb-dot never" id="lb-dot"></div>
+    <div class="lb-info">
+      <div class="lb-label" id="lb-label">Checking backup status…</div>
+      <div class="lb-time"  id="lb-time"></div>
+    </div>
+    <button class="btn btn-green" onclick="exportAll()">
+      <i class="ti ti-download"></i> Export Backup Now
+    </button>
+  </div>
+
+  <!-- DATA STATUS -->
+  <div class="section-label"><i class="ti ti-database"></i> Current Data</div>
+  <div class="key-grid" id="key-grid"></div>
+
+  <!-- ACTIONS -->
+  <div class="action-row">
+
+    <!-- EXPORT -->
+    <div class="action-card">
+      <div class="ac-title"><i class="ti ti-download" style="color:var(--green)"></i> Export Backup</div>
+      <div class="ac-desc">I-download ang lahat ng data bilang isang <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:11px">.json</code> file. I-save sa Google Drive, USB, o ibang safe na lugar.</div>
+      <button class="btn btn-green" onclick="exportAll()">
+        <i class="ti ti-download"></i> Download Full Backup
+      </button>
+      <div class="ac-note" id="export-size"></div>
+    </div>
+
+    <!-- IMPORT -->
+    <div class="action-card">
+      <div class="ac-title"><i class="ti ti-upload" style="color:var(--amber)"></i> Restore from Backup</div>
+      <div class="ac-desc">Mag-upload ng dati mong backup file para ma-restore ang data. Pwede kang pumili kung aling tools lang ang i-restore.</div>
+      <button class="btn btn-ghost" onclick="document.getElementById('file-input').click()">
+        <i class="ti ti-file-upload"></i> Choose Backup File…
+      </button>
+      <input type="file" id="file-input" accept=".json" style="display:none" onchange="loadFile(event)">
+      <div id="import-panel"></div>
+    </div>
+
+  </div>
+
+  <!-- GOOGLE DRIVE -->
+  <div style="margin-top:20px">
+    <div class="section-label"><i class="ti ti-brand-google-drive"></i> Google Drive Auto-Upload</div>
+    <div class="action-card" style="width:100%">
+      <div class="ac-title"><i class="ti ti-cloud-upload" style="color:#4285f4"></i> Upload to Google Drive</div>
+      <div class="ac-desc">
+        Automatic upload sa iyong Google Drive gamit ang Apps Script. One-time setup lang, tapos auto-upload na tuwing mag-e-export.
+        <span id="gdrive-status-inline"></span>
+      </div>
+
+      <div id="gdrive-configured" style="display:none">
+        <button class="btn btn-ghost" style="border-color:#4285f4;color:#4285f4" onclick="uploadToDrive()">
+          <i class="ti ti-brand-google-drive"></i> Upload to Drive Now
+        </button>
+        <button class="btn btn-ghost" style="margin-left:8px;font-size:11px" onclick="showGDriveSetup()">Change URL</button>
+      </div>
+
+      <div id="gdrive-setup-panel">
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:14px;font-size:12px;line-height:1.7;color:var(--muted)">
+          <div style="font-weight:700;color:var(--text);margin-bottom:8px"><i class="ti ti-info-circle"></i> One-time setup (5 minutes)</div>
+          <ol style="padding-left:18px;display:flex;flex-direction:column;gap:4px">
+            <li>Pumunta sa <strong style="color:var(--text)">script.google.com</strong> → New Project</li>
+            <li>I-replace ang laman ng editor ng code sa ibaba:</li>
+          </ol>
+          <pre style="background:#0a0a0a;border:1px solid #333;border-radius:6px;padding:12px;margin:10px 0;font-size:11px;overflow-x:auto;color:#d4d4d4">function doPost(e) {
+  try {
+    var body   = JSON.parse(e.postData.contents);
+    var name   = body.filename || ('sikhay-backup-' +
+      Utilities.formatDate(new Date(),'Asia/Manila','yyyy-MM-dd-HHmm') + '.json');
+    var folder, folders = DriveApp.getFoldersByName('Sikhay Backups');
+    folder = folders.hasNext() ? folders.next() : DriveApp.createFolder('Sikhay Backups');
+    folder.createFile(name, JSON.stringify(body.data, null, 2), MimeType.PLAIN_TEXT);
+    return ContentService.createTextOutput('{"ok":true}')
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput('{"ok":false}')
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}</pre>
+          <ol style="padding-left:18px;display:flex;flex-direction:column;gap:4px" start="3">
+            <li>Click <strong style="color:var(--text)">Deploy → New Deployment</strong></li>
+            <li>Type: <strong style="color:var(--text)">Web App</strong> → Execute as: <strong style="color:var(--text)">Me</strong> → Who has access: <strong style="color:var(--text)">Anyone</strong></li>
+            <li>Click Deploy, authorize when asked</li>
+            <li>Copy ang <strong style="color:var(--text)">Web App URL</strong> at i-paste dito:</li>
+          </ol>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="url" class="form-input" id="gdrive-url-input" placeholder="https://script.google.com/macros/s/…/exec" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:7px;font-size:12px;font-family:inherit">
+          <button class="btn btn-ghost" style="border-color:#4285f4;color:#4285f4;white-space:nowrap" onclick="saveGDriveURL()">
+            <i class="ti ti-check"></i> Save URL
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const KEYS = [
+  { key:'sikhay_ot_v1',  label:'Order Tracker',        icon:'ti-package',          color:'#06b6d4' },
+  { key:'sikhay_dt_v1',  label:'Design Tracker',        icon:'ti-palette',          color:'#8b5cf6' },
+  { key:'sikhay_pc_v1',  label:'Production Checklist',  icon:'ti-checklist',        color:'#ec4899' },
+  { key:'sikhay_dlv_v1', label:'Delivery & Payment',    icon:'ti-truck-delivery',   color:'#22c55e' },
+  { key:'sikhay_as_v1',  label:'After-Sales',           icon:'ti-heart-handshake',  color:'#f97316' },
+  { key:'sikhay_fin_v1', label:'Finance',               icon:'ti-coin',             color:'#22c55e' },
+  { key:'sikhay_hr_v1',  label:'HR / Payroll',          icon:'ti-users',            color:'#f59e0b' },
+];
+
+let _pendingBackup = null;
+
+// ── HELPERS ───────────────────────────────────────────────────
+function getKeyData(key) {
+  try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
+}
+
+function getRecordCount(key, data) {
+  if (data === null || data === undefined) return null;
+  if (Array.isArray(data)) return data.length;
+  let count = 0;
+  for (const k of ['orders','designs','employees','payrolls','expenses','orderCosts','entries','records']) {
+    if (Array.isArray(data[k])) count += data[k].length;
+  }
+  if (count === 0) return Object.keys(data).length;
+  return count;
+}
+
+function getByteSize(key) {
+  const raw = localStorage.getItem(key);
+  if (!raw) return 0;
+  return new Blob([raw]).size;
+}
+
+function fmtSize(bytes) {
+  if (bytes === 0) return '0 B';
+  if (bytes < 1024)       return bytes + ' B';
+  if (bytes < 1024*1024)  return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/(1024*1024)).toFixed(2) + ' MB';
+}
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('en-PH', { month:'short', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── RENDER STATUS GRID ────────────────────────────────────────
+function renderGrid() {
+  let totalBytes = 0;
+  const html = KEYS.map(k => {
+    const data  = getKeyData(k.key);
+    const size  = getByteSize(k.key);
+    const count = getRecordCount(k.key, data);
+    totalBytes += size;
+    const hasData = data !== null && size > 0;
+    return `<div class="key-card" style="--kc:${k.color}">
+      <div class="kc-top">
+        <i class="ti ${k.icon} kc-icon" style="color:${k.color}"></i>
+        <span class="kc-name">${k.label}</span>
+      </div>
+      ${hasData
+        ? `<div class="kc-row"><span>Records</span><span class="kc-val">${count ?? '—'}</span></div>
+           <div class="kc-row"><span>Size</span><span class="kc-val">${fmtSize(size)}</span></div>`
+        : `<div class="kc-empty">Walang data</div>`
+      }
+    </div>`;
+  }).join('');
+
+  document.getElementById('key-grid').innerHTML = html;
+
+  const sizeEl = document.getElementById('export-size');
+  if (sizeEl) sizeEl.textContent = `Estimated backup size: ~${fmtSize(totalBytes)}`;
+}
+
+// ── LAST BACKUP BAR ───────────────────────────────────────────
+function renderLastBackup() {
+  const ts    = localStorage.getItem('sikhay_last_backup');
+  const dot   = document.getElementById('lb-dot');
+  const label = document.getElementById('lb-label');
+  const time  = document.getElementById('lb-time');
+
+  if (!ts) {
+    dot.className   = 'lb-dot never';
+    label.textContent = 'Wala pang backup na na-export';
+    time.textContent  = 'Mag-export ng backup ngayon para masafe ang data mo.';
+    return;
+  }
+
+  const age = (Date.now() - new Date(ts).getTime()) / (1000*60*60*24);
+  if (age < 3) {
+    dot.className = 'lb-dot ok';
+    label.textContent = 'Backup is up to date ✓';
+  } else if (age < 7) {
+    dot.className = 'lb-dot warn';
+    label.textContent = `Backup is ${Math.floor(age)} days old`;
+  } else {
+    dot.className = 'lb-dot never';
+    label.textContent = `Backup is ${Math.floor(age)} days old — needs update!`;
+  }
+  time.textContent = 'Last exported: ' + fmtDate(ts);
+}
+
+// ── EXPORT ────────────────────────────────────────────────────
+function exportAll() {
+  const backup = {
+    exported: new Date().toISOString(),
+    version:  '1',
+    tool:     'sikhay-backup',
+    keys:     {}
+  };
+
+  KEYS.forEach(k => {
+    const raw = localStorage.getItem(k.key);
+    if (raw) {
+      try   { backup.keys[k.key] = JSON.parse(raw); }
+      catch { backup.keys[k.key] = raw; }
+    }
+  });
+
+  const json    = JSON.stringify(backup, null, 2);
+  const blob    = new Blob([json], { type:'application/json' });
+  const url     = URL.createObjectURL(blob);
+  const a       = document.createElement('a');
+  const dateStr = new Date().toISOString().split('T')[0];
+  a.href        = url;
+  a.download    = `sikhay-backup-${dateStr}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  localStorage.setItem('sikhay_last_backup', new Date().toISOString());
+  renderLastBackup();
+  if (getGDriveURL()) {
+    uploadToDrive();
+    showToast('Backup downloaded at naka-upload sa Google Drive!', 'ok');
+  } else {
+    showToast('Backup downloaded! I-save sa Google Drive o USB para safe.', 'ok');
+  }
+}
+
+// ── IMPORT — LOAD FILE ────────────────────────────────────────
+function loadFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const backup = JSON.parse(e.target.result);
+      if (!backup.keys || typeof backup.keys !== 'object') {
+        showToast('Invalid backup file — missing keys.', 'err');
+        return;
+      }
+      _pendingBackup = backup;
+      renderImportPanel(file.name);
+    } catch {
+      showToast('Hindi ma-read ang file. Siguruhing valid .json backup ito.', 'err');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ── IMPORT — SHOW PREVIEW ─────────────────────────────────────
+function renderImportPanel(filename) {
+  const backup = _pendingBackup;
+  if (!backup) return;
+
+  const rows = KEYS.map(k => {
+    const inBackup  = backup.keys[k.key];
+    if (!inBackup) return `<tr>
+      <td><input type="checkbox" id="chk-${k.key}" disabled style="opacity:.3"></td>
+      <td style="color:var(--muted)"><i class="ti ${k.icon}" style="margin-right:6px"></i>${k.label}</td>
+      <td style="text-align:center;color:var(--muted)">—</td>
+      <td style="text-align:center;color:var(--muted)">not in file</td>
+    </tr>`;
+
+    const inStorage    = getKeyData(k.key);
+    const backupCount  = getRecordCount(k.key, inBackup);
+    const currentCount = inStorage !== null ? getRecordCount(k.key, inStorage) : null;
+
+    return `<tr>
+      <td><input type="checkbox" id="chk-${k.key}" checked></td>
+      <td><i class="ti ${k.icon}" style="color:${k.color};margin-right:6px"></i>${k.label}</td>
+      <td style="text-align:center;font-weight:700">${backupCount ?? '—'}</td>
+      <td style="text-align:center;color:var(--muted)">${currentCount !== null ? currentCount : '<em>empty</em>'}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('import-panel').innerHTML = `
+    <div class="import-panel">
+      <div class="ip-head"><i class="ti ti-file-check"></i> ${esc(filename)}</div>
+      <div class="ip-meta">Exported: ${fmtDate(backup.exported)} &nbsp;·&nbsp; Version ${backup.version || '?'}</div>
+      <table class="ip-table">
+        <thead><tr>
+          <th style="width:30px"></th>
+          <th>Tool</th>
+          <th style="text-align:center">In Backup</th>
+          <th style="text-align:center">Current</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="ip-warn">
+        <i class="ti ti-alert-circle"></i> <strong>Warning:</strong> Ang restore ay mag-o-<strong>overwrite ng current data</strong> ng napiling tools. Hindi ito ma-undo. Siguraduhing tama ang file bago i-restore.
+      </div>
+      <div class="ip-actions">
+        <button class="btn btn-danger" onclick="restoreSelected()">
+          <i class="ti ti-restore"></i> Restore Selected
+        </button>
+        <button class="btn btn-ghost" onclick="cancelImport()">Cancel</button>
+      </div>
+    </div>`;
+}
+
+// ── IMPORT — EXECUTE ──────────────────────────────────────────
+function restoreSelected() {
+  if (!_pendingBackup) return;
+  const backup   = _pendingBackup;
+  const restored = [];
+  const failed   = [];
+
+  KEYS.forEach(k => {
+    const chk = document.getElementById('chk-' + k.key);
+    if (!chk || !chk.checked || chk.disabled) return;
+    const data = backup.keys[k.key];
+    if (!data) return;
+    try {
+      localStorage.setItem(k.key, JSON.stringify(data));
+      restored.push(k.label);
+    } catch (err) {
+      failed.push(k.label);
+    }
+  });
+
+  if (!restored.length) {
+    showToast('Walang napili. Lagyan ng check ang gustong i-restore.', 'err');
+    return;
+  }
+
+  _pendingBackup = null;
+  document.getElementById('import-panel').innerHTML = '';
+  renderGrid();
+
+  if (failed.length) {
+    showToast(`Restored: ${restored.join(', ')}. Failed: ${failed.join(', ')}.`, 'err');
+  } else {
+    showToast(`Na-restore na: ${restored.join(', ')} ✓`, 'ok');
+  }
+}
+
+function cancelImport() {
+  _pendingBackup = null;
+  document.getElementById('import-panel').innerHTML = '';
+  document.getElementById('file-input').value = '';
+}
+
+// ── TOAST ─────────────────────────────────────────────────────
+let _tt;
+function showToast(msg, type='ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className   = 'toast show ' + type;
+  clearTimeout(_tt);
+  _tt = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ── GOOGLE DRIVE ──────────────────────────────────────────────
+const GDRIVE_KEY = 'sikhay_gdrive_url';
+
+function getGDriveURL() { return localStorage.getItem(GDRIVE_KEY) || ''; }
+
+function renderGDriveStatus() {
+  const url      = getGDriveURL();
+  const panel    = document.getElementById('gdrive-setup-panel');
+  const btnRow   = document.getElementById('gdrive-configured');
+  const inline   = document.getElementById('gdrive-status-inline');
+  if (url) {
+    panel.style.display  = 'none';
+    btnRow.style.display = 'block';
+    if (inline) inline.innerHTML = ` <span style="font-size:11px;color:var(--green);margin-left:6px">✓ Drive connected</span>`;
+  } else {
+    panel.style.display  = 'block';
+    btnRow.style.display = 'none';
+  }
+}
+
+function showGDriveSetup() {
+  document.getElementById('gdrive-setup-panel').style.display = 'block';
+  document.getElementById('gdrive-configured').style.display  = 'none';
+  const input = document.getElementById('gdrive-url-input');
+  if (input) { input.value = getGDriveURL(); input.focus(); }
+}
+
+function saveGDriveURL() {
+  const input = document.getElementById('gdrive-url-input');
+  const url   = (input?.value || '').trim();
+  if (!url || !url.startsWith('https://script.google.com')) {
+    showToast('I-paste ang Apps Script web app URL.', 'err'); return;
+  }
+  localStorage.setItem(GDRIVE_KEY, url);
+  renderGDriveStatus();
+  showToast('Google Drive URL saved! Pwede na mag-upload.', 'ok');
+}
+
+function buildBackup() {
+  const backup = { exported: new Date().toISOString(), version: '1', tool: 'sikhay-backup', keys: {} };
+  KEYS.forEach(k => {
+    const raw = localStorage.getItem(k.key);
+    if (raw) { try { backup.keys[k.key] = JSON.parse(raw); } catch { backup.keys[k.key] = raw; } }
+  });
+  return backup;
+}
+
+async function uploadToDrive() {
+  const url = getGDriveURL();
+  if (!url) { showToast('I-setup muna ang Google Drive URL.', 'err'); return; }
+  const btn = document.querySelector('#gdrive-configured .btn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2"></i> Uploading…'; }
+  const dateStr = new Date().toISOString().split('T')[0];
+  try {
+    await fetch(url, {
+      method:  'POST',
+      mode:    'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body:    JSON.stringify({ filename: `sikhay-backup-${dateStr}.json`, data: buildBackup() })
+    });
+    localStorage.setItem('sikhay_last_backup', new Date().toISOString());
+    renderLastBackup();
+    showToast('Sent to Google Drive! Check the "Sikhay Backups" folder.', 'ok');
+  } catch(e) {
+    showToast('Upload failed — check your internet connection.', 'err');
+  }
+  if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-brand-google-drive"></i> Upload to Drive Now'; }
+}
+
+// ── BOOT ──────────────────────────────────────────────────────
+renderGrid();
+renderLastBackup();
+renderGDriveStatus();
+</script>
+</body>
+</html>

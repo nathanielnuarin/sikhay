@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sikhay CRM — Lead Pipeline</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.14.0/dist/tabler-icons.min.css">
+<style>
+:root {
+  --bg:#0a0a0a; --surface:#141414; --surface2:#1e1e1e; --border:#2a2a2a;
+  --text:#f0f0f0; --muted:#6b7280; --amber:#f59e0b; --green:#22c55e;
+  --danger:#ef4444; --blue:#3b82f6; --purple:#a855f7; --cyan:#06b6d4;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;font-size:14px}
+
+/* HEADER */
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.back-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:5px;transition:all .15s;font-family:inherit}
+.back-btn:hover{border-color:#3a3a3a;color:var(--text)}
+.hd-title{font-size:16px;font-weight:800;letter-spacing:.4px}
+.hd-sub{font-size:11px;color:var(--muted)}
+.btn{padding:7px 14px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:all .18s;font-family:inherit}
+.btn-primary{background:var(--amber);color:#000}
+.btn-primary:hover{background:#e08e07}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--surface2);color:var(--text)}
+.btn-green{background:var(--green);color:#000}
+.btn-green:hover{background:#1da34e}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{background:#cc2222}
+.btn-sm{padding:5px 10px;font-size:11px}
+
+/* TABS */
+.tabs{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex}
+.tab{padding:13px 18px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;display:flex;align-items:center;gap:6px}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--amber);border-bottom-color:var(--amber)}
+
+/* LAYOUT */
+.wrap{padding:20px 24px 40px}
+
+/* PIPELINE BOARD */
+.pipeline-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px}
+.pipeline-board{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;align-items:start}
+.col-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;min-height:160px}
+.col-wrap.drag-over{border-color:var(--amber);background:#f59e0b09}
+.col-wrap.stage-won{border-color:#22c55e28}
+.col-wrap.stage-lost{border-color:#ef444428;background:#ef44440a}
+.col-head{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.col-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.col-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px}
+.col-count{margin-left:auto;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1px 7px;font-size:10px;color:var(--muted)}
+.col-value{font-size:10px;color:var(--muted);margin-top:1px;display:block}
+.col-cards{padding:8px;display:flex;flex-direction:column;gap:7px;min-height:90px}
+
+/* LEAD CARDS */
+.lead-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;cursor:pointer;transition:all .18s;position:relative}
+.lead-card:hover{border-color:#3a3a3a;transform:translateY(-1px)}
+.lead-card.dragging{opacity:.45}
+.card-name{font-size:13px;font-weight:700;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:20px}
+.card-product{font-size:11px;color:var(--muted);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-meta{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.card-val{font-size:12px;font-weight:700;color:var(--green)}
+.source-chip{font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px;text-transform:uppercase;letter-spacing:.5px}
+.src-facebook{background:#1877f220;color:#60a5fa}
+.src-messenger{background:#a855f720;color:#c084fc}
+.src-walkin{background:#22c55e20;color:#86efac}
+.src-referral{background:#f59e0b20;color:#fcd34d}
+.src-other{background:#33333380;color:#9ca3af}
+.card-date{font-size:10px;color:var(--muted);margin-left:auto}
+.card-notes-badge{position:absolute;top:8px;right:8px;font-size:9px;color:var(--muted)}
+.add-col-btn{border:1px dashed var(--border);border-radius:8px;padding:8px;text-align:center;font-size:11px;color:var(--muted);cursor:pointer;transition:all .15s;margin:0 8px 8px}
+.add-col-btn:hover{border-color:var(--amber);color:var(--amber)}
+.col-empty{text-align:center;padding:16px 8px;color:var(--muted);font-size:11px;opacity:.6}
+
+/* CLIENTS */
+.clients-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.search-box{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--text);font-size:13px;font-family:inherit}
+.search-box:focus{outline:none;border-color:var(--amber)}
+.clients-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.clients-table{width:100%;border-collapse:collapse}
+.clients-table th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);padding:8px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.clients-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:13px}
+.clients-table tr:last-child td{border-bottom:none}
+.clients-table tbody tr:hover td{background:var(--surface2);cursor:pointer}
+.c-avatar{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#1e1e1e,#2a2a2a);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:var(--amber);border:1px solid var(--border);flex-shrink:0}
+.tag{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600}
+.tag-won{background:#22c55e20;color:#86efac}
+.tag-lead{background:#3b82f620;color:#93c5fd}
+.tag-lost{background:#ef444420;color:#fca5a5}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;background:var(--border)}
+.stat-blue::before{background:var(--blue)} .stat-green::before{background:var(--green)} .stat-amber::before{background:var(--amber)} .stat-purple::before{background:var(--purple)}
+.stat-icon{font-size:18px;margin-bottom:8px;opacity:.6;display:block}
+.stat-val{font-size:28px;font-weight:800;line-height:1}
+.stat-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-top:4px}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:3px}
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px}
+.chart-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.chart-wrap{position:relative;height:200px}
+.funnel-row{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.funnel-label{font-size:11px;color:var(--muted);width:90px;text-align:right;flex-shrink:0}
+.funnel-bar-bg{flex:1;background:var(--surface2);border-radius:4px;height:22px;overflow:hidden}
+.funnel-bar{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:700;min-width:2px;transition:width .4s}
+.funnel-n{font-size:11px;color:var(--muted);width:28px;text-align:right;flex-shrink:0}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:#000a;z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.overlay.hidden{display:none}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto}
+.modal-head{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px}
+.stage-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.modal-name{font-size:18px;font-weight:800}
+.modal-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.modal-close{margin-left:auto;background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:2px;line-height:1}
+.modal-body{padding:16px 22px}
+.m-section{margin-bottom:18px}
+.m-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border);padding-bottom:6px}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.info-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.info-item label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px}
+.info-item .ival{font-size:13px;font-weight:600}
+.stage-pills{display:flex;gap:6px;flex-wrap:wrap}
+.stage-pill{padding:6px 12px;border-radius:20px;font-size:11px;font-weight:700;border:2px solid transparent;cursor:pointer;transition:all .15s;opacity:.5}
+.stage-pill.active{opacity:1}
+.stage-pill:hover{opacity:.85}
+.note-form{display:flex;gap:8px;margin-bottom:10px}
+.note-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;font-family:inherit}
+.note-input:focus{outline:none;border-color:var(--amber)}
+.notes-list{display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto}
+.note-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px}
+.note-dt{font-size:10px;color:var(--muted);margin-bottom:3px}
+.note-txt{font-size:12px;line-height:1.5}
+.modal-actions{display:flex;gap:8px;flex-wrap:wrap;padding:14px 22px;border-top:1px solid var(--border)}
+
+/* FORM */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+.field label{font-size:11px;color:var(--muted);font-weight:600}
+.field input,.field select,.field textarea{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;font-family:inherit}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--amber)}
+.field select option{background:#1a1a1a}
+.field textarea{resize:vertical;min-height:70px}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:28px 16px;color:var(--muted)}
+.empty-state i{font-size:32px;display:block;margin-bottom:8px;opacity:.35}
+.empty-state p{font-size:12px}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:13px;z-index:500;box-shadow:0 8px 24px #0006;transform:translateY(80px);opacity:0;transition:all .25s;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+
+@media(max-width:1200px){.pipeline-board{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:800px){.pipeline-board{grid-template-columns:repeat(2,1fr)}.stats-grid{grid-template-columns:repeat(2,1fr)}.charts-grid{grid-template-columns:1fr}}
+
+/* FACEBOOK INBOX */
+.fb-count-badge{background:#ef4444;color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;margin-left:4px;animation:pulse-red 2s infinite}
+@keyframes pulse-red{0%,100%{opacity:1}50%{opacity:.6}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.inbox-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.inbox-item:last-child{margin-bottom:0}
+.inbox-src{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.isrc-messenger{background:#a855f720;color:#c084fc}
+.isrc-lead_ad{background:#22c55e20;color:#86efac}
+.isrc-comment{background:#3b82f620;color:#93c5fd}
+.inbox-name{font-size:14px;font-weight:700;margin-bottom:3px}
+.inbox-msg{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:3;line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.inbox-ts{font-size:10px;color:var(--muted);margin-bottom:10px}
+.inbox-acts{display:flex;gap:7px}
+.inbox-empty{text-align:center;padding:28px 0;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div style="flex:1">
+    <div class="hd-title"><i class="ti ti-users" style="color:var(--purple);margin-right:8px"></i>CRM — Lead Pipeline</div>
+    <div class="hd-sub">Sikhay Creatives · Track leads from first message to won order</div>
+  </div>
+  <span id="sync-badge" style="font-size:11px;padding:4px 10px;border-radius:20px;background:#1e1e1e;color:#6b7280">● Local</span>
+  <button id="fb-inbox-btn" class="btn btn-ghost" style="display:none" onclick="openFbInbox()">
+    <i class="ti ti-brand-facebook" style="color:#1877f2"></i> FB Inbox
+    <span id="fb-inbox-count" class="fb-count-badge">0</span>
+  </button>
+  <button class="btn btn-primary" onclick="openAddLead()"><i class="ti ti-plus"></i> Add Lead</button>
+</header>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" id="tab-pipeline" onclick="switchTab('pipeline')"><i class="ti ti-layout-kanban"></i> Pipeline</div>
+  <div class="tab" id="tab-clients" onclick="switchTab('clients')"><i class="ti ti-address-book"></i> Clients</div>
+  <div class="tab" id="tab-stats" onclick="switchTab('stats')"><i class="ti ti-chart-bar"></i> Stats</div>
+</div>
+
+<div class="wrap">
+
+  <!-- PIPELINE TAB -->
+  <div id="pane-pipeline">
+    <div class="pipeline-header">
+      <div id="pipeline-summary" style="font-size:12px;color:var(--muted)">Loading...</div>
+      <select id="filter-source" onchange="renderPipeline()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);font-size:12px;font-family:inherit;">
+        <option value="">All Sources</option>
+        <option value="messenger">Messenger</option>
+        <option value="facebook">Facebook</option>
+        <option value="walkin">Walk-in</option>
+        <option value="referral">Referral</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="pipeline-board" id="pipeline-board"></div>
+  </div>
+
+  <!-- CLIENTS TAB -->
+  <div id="pane-clients" style="display:none">
+    <div class="clients-header">
+      <input class="search-box" id="client-search" placeholder="Search by name, contact, or product..." oninput="renderClients()" />
+    </div>
+    <div class="clients-panel">
+      <table class="clients-table">
+        <thead><tr>
+          <th>Client</th><th>Contact</th><th>Products</th>
+          <th style="text-align:center">Orders</th><th>Total Spend</th>
+          <th>Last Activity</th><th>Status</th>
+        </tr></thead>
+        <tbody id="clients-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- STATS TAB -->
+  <div id="pane-stats" style="display:none">
+    <div class="stats-grid" id="stats-cards"></div>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title"><i class="ti ti-filter"></i> Lead Funnel</div>
+        <div id="funnel-wrap"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><i class="ti ti-chart-donut"></i> Leads by Source</div>
+        <div class="chart-wrap"><canvas id="chart-source"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><i class="ti ti-chart-bar"></i> Monthly New Leads</div>
+        <div class="chart-wrap"><canvas id="chart-monthly"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><i class="ti ti-trending-up"></i> Monthly Pipeline Value</div>
+        <div class="chart-wrap"><canvas id="chart-pipeval"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- LEAD DETAIL MODAL -->
+<div class="overlay hidden" id="lead-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="stage-dot" id="m-stage-dot"></div>
+      <div>
+        <div class="modal-name" id="m-name"></div>
+        <div class="modal-sub" id="m-sub"></div>
+      </div>
+      <button class="modal-close" onclick="closeLead()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+
+      <div class="m-section">
+        <div class="m-section-title"><i class="ti ti-route"></i> Pipeline Stage</div>
+        <div class="stage-pills" id="m-stage-pills"></div>
+      </div>
+
+      <div class="m-section">
+        <div class="m-section-title"><i class="ti ti-info-circle"></i> Lead Info</div>
+        <div class="info-grid" id="m-info-grid"></div>
+      </div>
+
+      <div class="m-section">
+        <div class="m-section-title"><i class="ti ti-edit"></i> Quick Edit</div>
+        <div class="form-row">
+          <div class="field"><label>Contact / Messenger</label><input type="text" id="edit-contact" placeholder="09xx or FB name" /></div>
+          <div class="field"><label>Estimated Value (₱)</label><input type="number" id="edit-value" placeholder="0" /></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Product / Service</label><input type="text" id="edit-product" placeholder="Basketball Jersey x15" /></div>
+          <div class="field"><label>Source</label>
+            <select id="edit-source">
+              <option value="messenger">Messenger</option><option value="facebook">Facebook</option>
+              <option value="walkin">Walk-in</option><option value="referral">Referral</option><option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="saveQuickEdit()"><i class="ti ti-device-floppy"></i> Save Changes</button>
+      </div>
+
+      <div class="m-section">
+        <div class="m-section-title"><i class="ti ti-notes"></i> Activity Log & Notes</div>
+        <div class="note-form">
+          <input class="note-input" id="note-input" placeholder="Add a note... e.g. Sent quote, Waiting for DP" />
+          <button class="btn btn-primary btn-sm" onclick="addNote()"><i class="ti ti-send"></i></button>
+        </div>
+        <div class="notes-list" id="m-notes"></div>
+      </div>
+
+      <div class="m-section" id="m-linked-section" style="display:none">
+        <div class="m-section-title"><i class="ti ti-package"></i> Linked Orders</div>
+        <div id="m-linked-list"></div>
+      </div>
+
+    </div>
+    <div class="modal-actions" id="m-actions"></div>
+  </div>
+</div>
+
+<!-- ADD LEAD MODAL -->
+<div class="overlay hidden" id="add-modal">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-head">
+      <div><div class="modal-name">New Lead</div><div class="modal-sub">Add a potential client to your pipeline</div></div>
+      <button class="modal-close" onclick="closeAddLead()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="field"><label>Client Name *</label><input type="text" id="new-name" placeholder="e.g. John Santos" /></div>
+        <div class="field"><label>Contact / Messenger</label><input type="text" id="new-contact" placeholder="09xx or FB name" /></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Product / Service *</label><input type="text" id="new-product" placeholder="Basketball Jersey, Tarpaulin 4x8" /></div>
+        <div class="field"><label>Quantity</label><input type="number" id="new-qty" placeholder="e.g. 15" min="1" /></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Estimated Value (₱)</label><input type="number" id="new-value" placeholder="0" /></div>
+        <div class="field"><label>Source *</label>
+          <select id="new-source">
+            <option value="messenger">Messenger</option><option value="facebook">Facebook</option>
+            <option value="walkin">Walk-in</option><option value="referral">Referral</option><option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Initial Note (optional)</label><textarea id="new-note" placeholder="What did they inquire about?"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="saveLead()"><i class="ti ti-plus"></i> Add to Pipeline</button>
+      <button class="btn btn-ghost" onclick="closeAddLead()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- FACEBOOK INBOX MODAL -->
+<div class="overlay hidden" id="fb-inbox-modal">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-name"><i class="ti ti-brand-facebook" style="color:#1877f2;margin-right:8px"></i>Facebook Inbox</div>
+        <div class="modal-sub" id="fb-inbox-sub">Incoming leads from Messenger, Lead Ads, and Comments</div>
+      </div>
+      <button class="modal-close" onclick="closeFbInbox()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body" id="fb-inbox-body" style="max-height:60vh;overflow-y:auto"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" onclick="checkFbInbox()"><i class="ti ti-refresh"></i> Refresh</button>
+      <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="closeFbInbox()">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="SikhayDB.js"></script>
+<script>
+const LS_KEY = 'sikhay_crm_v1';
+
+const STAGES = [
+  { id:'new',         label:'New Inquiry',  color:'#3b82f6' },
+  { id:'quoted',      label:'Quoted',       color:'#f59e0b' },
+  { id:'negotiating', label:'Negotiating',  color:'#a855f7' },
+  { id:'won',         label:'Won',          color:'#22c55e' },
+  { id:'lost',        label:'Lost',         color:'#6b7280' },
+];
+
+const SRC_LABELS = { facebook:'Facebook', messenger:'Messenger', walkin:'Walk-in', referral:'Referral', other:'Other' };
+
+// ── AUTH ──────────────────────────────────────────────────────────
+let _db = null;
+let _stagingLeads = [];
+
+(async () => {
+  _db = await SikhayDB.requireAuth();
+  if (!_db) return;
+  try { await pullCloud(); } catch(e) {}
+  renderPipeline();
+  try { await syncStaging(); } catch(e) {}
+})();
+
+// ── DATA ──────────────────────────────────────────────────────────
+function getData() {
+  try {
+    const d = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+    return { leads: Array.isArray(d.leads) ? d.leads : [] };
+  } catch { return { leads: [] }; }
+}
+
+function saveData(d) {
+  localStorage.setItem(LS_KEY, JSON.stringify(d));
+  if (_db?.saveCRM) _db.saveCRM(d).catch(() => {});
+  pushCloud(d);
+}
+
+function getLeads()  { return getData().leads; }
+
+function getOrders() {
+  try { return JSON.parse(localStorage.getItem('sikhay_ot_v1') || '[]') || []; }
+  catch { return []; }
+}
+
+// ── CLOUD SYNC ────────────────────────────────────────────────────
+async function pushCloud(data) {
+  if (!_db?._client) return;
+  try {
+    await _db._client.from('crm').upsert({ id:'main', data, updated_at: new Date().toISOString() });
+    setBadge(true);
+  } catch {}
+}
+
+async function pullCloud() {
+  if (!_db?._client) return;
+  const { data, error } = await _db._client.from('crm').select('data').eq('id','main').single();
+  if (!error && data?.data?.leads) {
+    const remote = data.data;
+    const local  = getData();
+    if ((remote.leads?.length || 0) > (local.leads?.length || 0)) {
+      localStorage.setItem(LS_KEY, JSON.stringify(remote));
+    }
+    setBadge(true);
+  }
+}
+
+function setBadge(synced) {
+  const b = document.getElementById('sync-badge');
+  if (!b) return;
+  if (_db?._client) {
+    b.style.background = synced ? '#14532d' : '#1e1e1e';
+    b.style.color      = synced ? '#86efac' : '#6b7280';
+    b.textContent      = synced ? '● Synced' : '● Local';
+  }
+}
+
+// ── FACEBOOK STAGING SYNC ────────────────────────────────────────
+async function syncStaging() {
+  if (!_db?._client) return;
+  const { data, error } = await _db._client
+    .from('crm_staging')
+    .select('*')
+    .eq('imported', false)
+    .order('created_at', { ascending: false });
+
+  if (error || !data?.length) { _stagingLeads = []; updateInboxBadge(); return; }
+  _stagingLeads = data;
+  updateInboxBadge();
+}
+
+function updateInboxBadge() {
+  const btn   = document.getElementById('fb-inbox-btn');
+  const count = document.getElementById('fb-inbox-count');
+  if (!btn || !count) return;
+  if (_stagingLeads.length > 0) {
+    btn.style.display = '';
+    count.textContent = _stagingLeads.length;
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+function openFbInbox() {
+  renderInboxBody();
+  document.getElementById('fb-inbox-modal').classList.remove('hidden');
+}
+
+function closeFbInbox() {
+  document.getElementById('fb-inbox-modal').classList.add('hidden');
+}
+
+async function checkFbInbox() {
+  document.getElementById('fb-inbox-body').innerHTML = '<div class="inbox-empty"><i class="ti ti-loader" style="animation:spin 1s linear infinite;display:inline-block"></i> Checking...</div>';
+  try { await syncStaging(); } catch(e) {}
+  renderInboxBody();
+}
+
+function renderInboxBody() {
+  const sub = document.getElementById('fb-inbox-sub');
+  const body = document.getElementById('fb-inbox-body');
+  if (!body) return;
+
+  if (_stagingLeads.length === 0) {
+    sub.textContent = 'No new incoming leads';
+    body.innerHTML = '<div class="inbox-empty"><i class="ti ti-checks" style="font-size:28px;display:block;margin-bottom:8px;color:var(--green)"></i>All caught up! Walang bagong leads.</div>';
+    return;
+  }
+
+  sub.textContent = `${_stagingLeads.length} pending lead${_stagingLeads.length !== 1 ? 's' : ''} — review and import`;
+
+  const SRC_ICONS = { messenger:'ti-brand-messenger', lead_ad:'ti-ad', comment:'ti-message' };
+  const SRC_NAMES = { messenger:'Messenger', lead_ad:'Lead Ad', comment:'FB Comment' };
+
+  body.innerHTML = _stagingLeads.map(s => {
+    const srcClass = `isrc-${s.source_type || 'messenger'}`;
+    const srcIcon  = SRC_ICONS[s.source_type] || 'ti-brand-facebook';
+    const srcName  = SRC_NAMES[s.source_type] || s.source_type || 'Facebook';
+    const ts       = s.created_at ? new Date(s.created_at).toLocaleString('en-PH') : '—';
+    return `
+      <div class="inbox-item" id="si-${esc(s.id)}">
+        <div class="inbox-src ${srcClass}"><i class="ti ${srcIcon}"></i> ${srcName}</div>
+        <div class="inbox-name">${esc(s.name || 'Unknown')}</div>
+        ${s.contact ? `<div style="font-size:11px;color:var(--muted);margin-bottom:4px"><i class="ti ti-phone" style="font-size:10px"></i> ${esc(s.contact)}</div>` : ''}
+        <div class="inbox-msg">${esc(s.message || '(no message)')}</div>
+        <div class="inbox-ts"><i class="ti ti-clock" style="font-size:9px"></i> ${ts}</div>
+        <div class="inbox-acts">
+          <button class="btn btn-primary btn-sm" onclick="importStagingLead('${esc(s.id)}')">
+            <i class="ti ti-user-plus"></i> Add to Pipeline
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="dismissStagingLead('${esc(s.id)}')">
+            <i class="ti ti-x"></i> Dismiss
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function importStagingLead(stagingId) {
+  const s = _stagingLeads.find(x => x.id === stagingId);
+  if (!s) return;
+
+  const srcMap = { messenger:'messenger', lead_ad:'facebook', comment:'facebook' };
+  const data = getData();
+  const lead = {
+    id:             'crm_' + Date.now(),
+    name:           s.name || 'FB Lead',
+    contact:        s.contact || '',
+    product:        '',
+    qty:            0,
+    estimatedValue: 0,
+    source:         srcMap[s.source_type] || 'facebook',
+    stage:          'new',
+    dateAdded:      today(),
+    lastContact:    today(),
+    notes: [{ date: now(), text: `[${(s.source_type||'facebook').toUpperCase()}] ${s.message || ''}`.trim() }],
+  };
+
+  data.leads.unshift(lead);
+  saveData(data);
+  await markStagingImported(stagingId);
+
+  _stagingLeads = _stagingLeads.filter(x => x.id !== stagingId);
+  updateInboxBadge();
+
+  const el = document.getElementById(`si-${stagingId}`);
+  if (el) el.remove();
+  if (_stagingLeads.length === 0) renderInboxBody();
+
+  renderPipeline();
+  toast(`${lead.name} added to pipeline`);
+
+  closeFbInbox();
+  setTimeout(() => openLead(lead.id), 200);
+}
+
+async function dismissStagingLead(stagingId) {
+  await markStagingImported(stagingId);
+  _stagingLeads = _stagingLeads.filter(x => x.id !== stagingId);
+  updateInboxBadge();
+  const el = document.getElementById(`si-${stagingId}`);
+  if (el) el.remove();
+  if (_stagingLeads.length === 0) renderInboxBody();
+  toast('Dismissed');
+}
+
+async function markStagingImported(stagingId) {
+  if (!_db?._client) return;
+  try {
+    await _db._client.from('crm_staging').update({ imported: true }).eq('id', stagingId);
+  } catch {}
+}
+
+// ── TABS ──────────────────────────────────────────────────────────
+function switchTab(t) {
+  ['pipeline','clients','stats'].forEach(x => {
+    document.getElementById(`pane-${x}`).style.display = x === t ? '' : 'none';
+    document.getElementById(`tab-${x}`).classList.toggle('active', x === t);
+  });
+  if (t === 'clients') renderClients();
+  if (t === 'stats')   renderStats();
+}
+
+// ── PIPELINE ──────────────────────────────────────────────────────
+function renderPipeline() {
+  const leads   = getLeads();
+  const srcFlt  = document.getElementById('filter-source')?.value || '';
+  const visible = srcFlt ? leads.filter(l => l.source === srcFlt) : leads;
+  const active  = visible.filter(l => !['won','lost'].includes(l.stage)).length;
+  const pipeVal = visible.filter(l => !['won','lost'].includes(l.stage))
+                         .reduce((s,l) => s + (parseFloat(l.estimatedValue) || 0), 0);
+
+  document.getElementById('pipeline-summary').textContent =
+    `${active} active lead${active !== 1 ? 's' : ''} · Pipeline: ₱${pipeVal.toLocaleString('en-PH')}`;
+
+  document.getElementById('pipeline-board').innerHTML = STAGES.map(stage => {
+    const cards    = visible.filter(l => l.stage === stage.id);
+    const stageVal = cards.reduce((s,l) => s + (parseFloat(l.estimatedValue) || 0), 0);
+    return `
+      <div class="col-wrap stage-${stage.id}" id="col-${stage.id}"
+           ondragover="onDragOver(event,'${stage.id}')"
+           ondragleave="e => e.currentTarget.classList.remove('drag-over')"
+           ondrop="onDrop(event,'${stage.id}')">
+        <div class="col-head">
+          <div class="col-dot" style="background:${stage.color}"></div>
+          <div>
+            <div class="col-label" style="color:${stage.color}">${stage.label}</div>
+            ${stageVal > 0 ? `<span class="col-value">₱${stageVal.toLocaleString('en-PH')}</span>` : ''}
+          </div>
+          <div class="col-count">${cards.length}</div>
+        </div>
+        <div class="col-cards" id="cards-${stage.id}">
+          ${cards.map(renderCard).join('')}
+          ${cards.length === 0 ? '<div class="col-empty">No leads</div>' : ''}
+        </div>
+        ${stage.id === 'new' ? `<div class="add-col-btn" onclick="openAddLead()"><i class="ti ti-plus"></i> Add Lead</div>` : ''}
+      </div>`;
+  }).join('');
+}
+
+function renderCard(l) {
+  const daysAgo   = l.dateAdded ? Math.floor((Date.now() - new Date(l.dateAdded)) / 86400000) : 0;
+  const noteCount = (l.notes || []).length;
+  const srcClass  = `src-${l.source || 'other'}`;
+  return `
+    <div class="lead-card" draggable="true"
+         ondragstart="onDragStart(event,'${l.id}')"
+         ondragend="onDragEnd(event)"
+         onclick="openLead('${l.id}')">
+      ${noteCount > 0 ? `<div class="card-notes-badge"><i class="ti ti-notes"></i> ${noteCount}</div>` : ''}
+      <div class="card-name">${esc(l.name)}</div>
+      <div class="card-product">${esc(l.product || '—')}</div>
+      <div class="card-meta">
+        ${l.estimatedValue > 0 ? `<span class="card-val">₱${Number(l.estimatedValue).toLocaleString('en-PH')}</span>` : ''}
+        <span class="source-chip ${srcClass}">${SRC_LABELS[l.source] || l.source || 'Other'}</span>
+        <span class="card-date">${daysAgo === 0 ? 'Today' : daysAgo === 1 ? '1d ago' : daysAgo + 'd ago'}</span>
+      </div>
+    </div>`;
+}
+
+// ── DRAG AND DROP ─────────────────────────────────────────────────
+let _dragId = null;
+
+function onDragStart(e, id) {
+  _dragId = id;
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function onDragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.col-wrap').forEach(c => c.classList.remove('drag-over'));
+}
+
+function onDragOver(e, stageId) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.getElementById(`col-${stageId}`)?.classList.add('drag-over');
+}
+
+function onDrop(e, stageId) {
+  e.preventDefault();
+  document.querySelectorAll('.col-wrap').forEach(c => c.classList.remove('drag-over'));
+  if (!_dragId) return;
+  const data = getData();
+  const lead = data.leads.find(l => l.id === _dragId);
+  if (!lead || lead.stage === stageId) return;
+  const fromLabel = STAGES.find(s => s.id === lead.stage)?.label;
+  const toLabel   = STAGES.find(s => s.id === stageId)?.label;
+  lead.stage = stageId;
+  lead.lastContact = today();
+  if (!lead.notes) lead.notes = [];
+  lead.notes.unshift({ date: now(), text: `Moved: ${fromLabel} → ${toLabel}` });
+  saveData(data);
+  toast(`Moved to ${toLabel}`);
+  renderPipeline();
+}
+
+// ── LEAD MODAL ────────────────────────────────────────────────────
+let _openId = null;
+
+function openLead(id) {
+  const data = getData();
+  const lead = data.leads.find(l => l.id === id);
+  if (!lead) return;
+  _openId = id;
+
+  const stg = STAGES.find(s => s.id === lead.stage) || STAGES[0];
+  document.getElementById('m-stage-dot').style.background = stg.color;
+  document.getElementById('m-name').textContent = lead.name;
+  document.getElementById('m-sub').textContent  =
+    `${SRC_LABELS[lead.source] || lead.source} · Added ${lead.dateAdded || '—'}`;
+
+  document.getElementById('m-stage-pills').innerHTML = STAGES.map(s => `
+    <div class="stage-pill ${lead.stage === s.id ? 'active' : ''}"
+         style="background:${s.color}22;color:${s.color};border-color:${lead.stage === s.id ? s.color : 'transparent'}"
+         onclick="setStage('${s.id}')">${s.label}</div>`).join('');
+
+  document.getElementById('m-info-grid').innerHTML = `
+    <div class="info-item"><label>Product / Service</label><div class="ival">${esc(lead.product || '—')}</div></div>
+    <div class="info-item"><label>Quantity</label><div class="ival">${lead.qty || '—'}</div></div>
+    <div class="info-item"><label>Estimated Value</label><div class="ival" style="color:var(--green)">${lead.estimatedValue > 0 ? '₱' + Number(lead.estimatedValue).toLocaleString('en-PH') : '—'}</div></div>
+    <div class="info-item"><label>Contact</label><div class="ival">${esc(lead.contact || '—')}</div></div>
+    <div class="info-item"><label>Source</label><div class="ival">${SRC_LABELS[lead.source] || lead.source || '—'}</div></div>
+    <div class="info-item"><label>Last Contact</label><div class="ival">${lead.lastContact || lead.dateAdded || '—'}</div></div>`;
+
+  document.getElementById('edit-contact').value = lead.contact || '';
+  document.getElementById('edit-value').value   = lead.estimatedValue || '';
+  document.getElementById('edit-product').value = lead.product || '';
+  document.getElementById('edit-source').value  = lead.source || 'messenger';
+
+  renderNotes(lead);
+
+  const orders = getOrders().filter(o =>
+    o.clientName && lead.name &&
+    o.clientName.toLowerCase().trim() === lead.name.toLowerCase().trim()
+  );
+  const lsec = document.getElementById('m-linked-section');
+  if (orders.length > 0) {
+    lsec.style.display = '';
+    document.getElementById('m-linked-list').innerHTML = orders.map(o => `
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px">
+        <i class="ti ti-package" style="color:var(--blue)"></i>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:700">${esc(o.id)}</div>
+          <div style="font-size:11px;color:var(--muted)">${esc(o.productType || '–')} · ₱${Number(o.total || 0).toLocaleString('en-PH')}</div>
+        </div>
+        <span style="font-size:10px;padding:2px 7px;border-radius:10px;background:var(--surface);border:1px solid var(--border);color:var(--muted)">${esc(o.status || '–')}</span>
+      </div>`).join('');
+  } else { lsec.style.display = 'none'; }
+
+  document.getElementById('m-actions').innerHTML = `
+    ${lead.stage !== 'won'  ? `<button class="btn btn-green btn-sm" onclick="setStage('won')"><i class="ti ti-trophy"></i> Mark Won</button>` : ''}
+    ${lead.stage !== 'lost' ? `<button class="btn btn-ghost btn-sm" onclick="setStage('lost')"><i class="ti ti-x"></i> Mark Lost</button>` : ''}
+    <button class="btn btn-ghost btn-sm" onclick="copyContact()"><i class="ti ti-copy"></i> Copy Contact</button>
+    <button class="btn btn-ghost btn-sm" onclick="window.open('Sikhay_Order_Form.html','_blank')"><i class="ti ti-clipboard-plus"></i> Create Order</button>
+    <button class="btn btn-danger btn-sm" style="margin-left:auto" onclick="deleteLead()"><i class="ti ti-trash"></i></button>`;
+
+  document.getElementById('lead-modal').classList.remove('hidden');
+}
+
+function renderNotes(lead) {
+  const notes = (lead.notes || []).slice();
+  document.getElementById('m-notes').innerHTML = notes.length === 0
+    ? '<div class="empty-state"><p>No notes yet.</p></div>'
+    : notes.map(n => `
+        <div class="note-item">
+          <div class="note-dt"><i class="ti ti-clock" style="font-size:9px"></i> ${esc(n.date)}</div>
+          <div class="note-txt">${esc(n.text)}</div>
+        </div>`).join('');
+}
+
+function closeLead() {
+  document.getElementById('lead-modal').classList.add('hidden');
+  _openId = null;
+}
+
+function setStage(stageId) {
+  if (!_openId) return;
+  const data = getData();
+  const lead = data.leads.find(l => l.id === _openId);
+  if (!lead || lead.stage === stageId) return;
+  const fromLabel = STAGES.find(s => s.id === lead.stage)?.label;
+  const toLabel   = STAGES.find(s => s.id === stageId)?.label;
+  lead.stage = stageId;
+  lead.lastContact = today();
+  if (!lead.notes) lead.notes = [];
+  lead.notes.unshift({ date: now(), text: `Stage → ${toLabel}` });
+  saveData(data);
+  renderPipeline();
+  openLead(_openId);
+  toast(`Stage: ${fromLabel} → ${toLabel}`);
+}
+
+function saveQuickEdit() {
+  if (!_openId) return;
+  const data = getData();
+  const lead = data.leads.find(l => l.id === _openId);
+  if (!lead) return;
+  lead.contact        = document.getElementById('edit-contact').value.trim();
+  lead.estimatedValue = parseFloat(document.getElementById('edit-value').value) || 0;
+  lead.product        = document.getElementById('edit-product').value.trim();
+  lead.source         = document.getElementById('edit-source').value;
+  lead.lastContact    = today();
+  saveData(data);
+  openLead(_openId);
+  toast('Changes saved');
+}
+
+function addNote() {
+  if (!_openId) return;
+  const input = document.getElementById('note-input');
+  const text  = input.value.trim();
+  if (!text) return;
+  const data = getData();
+  const lead = data.leads.find(l => l.id === _openId);
+  if (!lead) return;
+  if (!lead.notes) lead.notes = [];
+  lead.notes.unshift({ date: now(), text });
+  lead.lastContact = today();
+  input.value = '';
+  saveData(data);
+  renderNotes(lead);
+  renderPipeline();
+}
+
+function copyContact() {
+  if (!_openId) return;
+  const lead = getData().leads.find(l => l.id === _openId);
+  if (!lead?.contact) { toast('No contact saved'); return; }
+  navigator.clipboard?.writeText(lead.contact).then(() => toast('Copied!')).catch(() => toast('Copy failed'));
+}
+
+function deleteLead() {
+  if (!_openId) return;
+  if (!confirm('Delete this lead? Hindi na mababalik.')) return;
+  const data  = getData();
+  data.leads  = data.leads.filter(l => l.id !== _openId);
+  saveData(data);
+  closeLead();
+  renderPipeline();
+  toast('Lead deleted');
+}
+
+// ── ADD LEAD ──────────────────────────────────────────────────────
+function openAddLead() {
+  ['new-name','new-contact','new-product','new-qty','new-value','new-note'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('add-modal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('new-name').focus(), 50);
+}
+
+function closeAddLead() {
+  document.getElementById('add-modal').classList.add('hidden');
+}
+
+function saveLead() {
+  const name    = document.getElementById('new-name').value.trim();
+  const product = document.getElementById('new-product').value.trim();
+  if (!name)    { document.getElementById('new-name').focus(); toast('Name required'); return; }
+  if (!product) { document.getElementById('new-product').focus(); toast('Product/Service required'); return; }
+  const noteText = document.getElementById('new-note').value.trim();
+  const data     = getData();
+  const lead = {
+    id:             'crm_' + Date.now(),
+    name,
+    contact:        document.getElementById('new-contact').value.trim(),
+    product,
+    qty:            parseInt(document.getElementById('new-qty').value) || 0,
+    estimatedValue: parseFloat(document.getElementById('new-value').value) || 0,
+    source:         document.getElementById('new-source').value,
+    stage:          'new',
+    dateAdded:      today(),
+    lastContact:    today(),
+    notes:          noteText ? [{ date: now(), text: noteText }] : [],
+  };
+  data.leads.unshift(lead);
+  saveData(data);
+  closeAddLead();
+  renderPipeline();
+  toast(`${name} added to pipeline`);
+}
+
+// ── CLIENTS ───────────────────────────────────────────────────────
+function renderClients() {
+  const leads  = getLeads();
+  const orders = getOrders();
+  const q      = (document.getElementById('client-search')?.value || '').toLowerCase();
+  const map    = {};
+
+  leads.forEach(l => {
+    const key = (l.name || '').toLowerCase().trim();
+    if (!map[key]) map[key] = { name: l.name, contact: '', source: l.source, leads: [], orders: [] };
+    map[key].leads.push(l);
+    if (l.contact) map[key].contact = l.contact;
+  });
+
+  orders.forEach(o => {
+    if (!o.clientName) return;
+    const key = o.clientName.toLowerCase().trim();
+    if (!map[key]) map[key] = { name: o.clientName, contact: o.clientPhone || '', source: 'order', leads: [], orders: [] };
+    map[key].orders.push(o);
+  });
+
+  let clients = Object.values(map);
+  if (q) clients = clients.filter(c =>
+    c.name.toLowerCase().includes(q) ||
+    (c.contact || '').toLowerCase().includes(q) ||
+    c.leads.some(l => (l.product || '').toLowerCase().includes(q))
+  );
+
+  clients.sort((a, b) => {
+    const ta = Math.max(...a.leads.map(l => +new Date(l.lastContact || l.dateAdded || 0)), 0);
+    const tb = Math.max(...b.leads.map(l => +new Date(l.lastContact || l.dateAdded || 0)), 0);
+    return tb - ta;
+  });
+
+  const tbody = document.getElementById('clients-tbody');
+  if (!tbody) return;
+
+  if (clients.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="ti ti-users"></i><p>No clients found</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = clients.map(c => {
+    const wonLeads    = c.leads.filter(l => l.stage === 'won');
+    const totalSpend  = c.orders.reduce((s,o) => s + (parseFloat(o.total) || 0), 0)
+                      + wonLeads.reduce((s,l) => s + (parseFloat(l.estimatedValue) || 0), 0);
+    const products    = [...new Set([...c.leads.map(l=>l.product), ...c.orders.map(o=>o.productType)].filter(Boolean))].slice(0,2).join(', ');
+    const lastAct     = c.leads.reduce((m, l) => { const d = l.lastContact || l.dateAdded || ''; return d > m ? d : m; }, '');
+    const isClient    = wonLeads.length > 0 || c.orders.length > 0;
+    const isAllLost   = c.leads.length > 0 && c.leads.every(l => l.stage === 'lost') && c.orders.length === 0;
+    const initials    = c.name.split(' ').map(w => w[0] || '').join('').toUpperCase().slice(0,2);
+    const leadId      = c.leads[0]?.id;
+
+    return `<tr onclick="${leadId ? `openLead('${leadId}')` : ''}">
+      <td style="display:flex;align-items:center;gap:10px">
+        <div class="c-avatar">${esc(initials)}</div>
+        <div><div style="font-weight:700">${esc(c.name)}</div>
+          <div style="font-size:11px;color:var(--muted)">${c.leads.length} lead${c.leads.length!==1?'s':''}</div></div>
+      </td>
+      <td style="color:var(--muted);font-size:12px">${esc(c.contact || '—')}</td>
+      <td style="font-size:12px;color:var(--muted)">${esc(products || '—')}</td>
+      <td style="text-align:center">${c.orders.length}</td>
+      <td style="color:var(--green);font-weight:700">${totalSpend > 0 ? '₱' + totalSpend.toLocaleString('en-PH') : '—'}</td>
+      <td style="font-size:12px;color:var(--muted)">${lastAct || '—'}</td>
+      <td><span class="tag ${isClient ? 'tag-won' : isAllLost ? 'tag-lost' : 'tag-lead'}">${isClient ? 'Client' : isAllLost ? 'Lost' : 'Lead'}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── STATS ─────────────────────────────────────────────────────────
+function renderStats() {
+  const leads   = getLeads();
+  const total   = leads.length;
+  const won     = leads.filter(l => l.stage === 'won').length;
+  const lost    = leads.filter(l => l.stage === 'lost').length;
+  const active  = leads.filter(l => !['won','lost'].includes(l.stage)).length;
+  const convRate= total > 0 ? Math.round(won / total * 100) : 0;
+  const pipeVal = leads.filter(l => !['won','lost'].includes(l.stage)).reduce((s,l) => s + (parseFloat(l.estimatedValue) || 0), 0);
+  const wonLeads= leads.filter(l => l.stage === 'won');
+  const avgDeal = wonLeads.length > 0 ? wonLeads.reduce((s,l) => s + (parseFloat(l.estimatedValue) || 0), 0) / wonLeads.length : 0;
+
+  document.getElementById('stats-cards').innerHTML = `
+    <div class="stat-card stat-blue">
+      <i class="ti ti-users stat-icon" style="color:var(--blue)"></i>
+      <div class="stat-val">${total}</div><div class="stat-lbl">Total Leads</div>
+      <div class="stat-sub">${active} active · ${lost} lost</div>
+    </div>
+    <div class="stat-card stat-green">
+      <i class="ti ti-trophy stat-icon" style="color:var(--green)"></i>
+      <div class="stat-val">${convRate}%</div><div class="stat-lbl">Conversion Rate</div>
+      <div class="stat-sub">${won} won / ${total} total</div>
+    </div>
+    <div class="stat-card stat-amber">
+      <i class="ti ti-coin stat-icon" style="color:var(--amber)"></i>
+      <div class="stat-val" style="font-size:22px">₱${pipeVal.toLocaleString('en-PH',{maximumFractionDigits:0})}</div>
+      <div class="stat-lbl">Pipeline Value</div><div class="stat-sub">Active leads only</div>
+    </div>
+    <div class="stat-card stat-purple">
+      <i class="ti ti-chart-line stat-icon" style="color:var(--purple)"></i>
+      <div class="stat-val" style="font-size:22px">₱${Math.round(avgDeal).toLocaleString('en-PH')}</div>
+      <div class="stat-lbl">Avg Won Deal</div><div class="stat-sub">${won > 0 ? won + ' closed deals' : 'No won deals yet'}</div>
+    </div>`;
+
+  // Funnel
+  const maxCount = Math.max(...STAGES.map(s => leads.filter(l => l.stage === s.id).length), 1);
+  document.getElementById('funnel-wrap').innerHTML = STAGES.map(s => {
+    const cnt = leads.filter(l => l.stage === s.id).length;
+    return `<div class="funnel-row">
+      <div class="funnel-label">${s.label}</div>
+      <div class="funnel-bar-bg"><div class="funnel-bar" style="width:${cnt/maxCount*100}%;background:${s.color}33;color:${s.color}">${cnt > 0 ? cnt : ''}</div></div>
+      <div class="funnel-n">${cnt}</div>
+    </div>`;
+  }).join('');
+
+  // Source donut
+  const srcMap = {};
+  leads.forEach(l => { const s = l.source || 'other'; srcMap[s] = (srcMap[s] || 0) + 1; });
+  const srcLabels = Object.keys(srcMap).map(k => SRC_LABELS[k] || k);
+  const srcData   = Object.values(srcMap);
+  const srcColors = ['#a855f7','#3b82f6','#22c55e','#f59e0b','#6b7280'];
+  initDonut('chart-source', srcLabels, srcData, srcColors);
+
+  // Monthly data (last 6 months)
+  const months = [];
+  const nd = new Date();
+  for (let i = 5; i >= 0; i--) {
+    let m = nd.getMonth() - i, y = nd.getFullYear();
+    while (m < 0) { m += 12; y--; }
+    months.push({ y, m });
+  }
+  const mLabels = months.map(x => new Date(x.y, x.m, 1).toLocaleDateString('en-PH', { month:'short', year:'2-digit' }));
+  const mCounts = months.map(x => leads.filter(l => {
+    if (!l.dateAdded) return false;
+    const d = new Date(l.dateAdded);
+    return d.getFullYear() === x.y && d.getMonth() === x.m;
+  }).length);
+  const mVals = months.map(x => leads.filter(l => {
+    if (!l.dateAdded) return false;
+    const d = new Date(l.dateAdded);
+    return d.getFullYear() === x.y && d.getMonth() === x.m;
+  }).reduce((s,l) => s + (parseFloat(l.estimatedValue) || 0), 0));
+
+  initBar('chart-monthly', mLabels, mCounts, '#3b82f6');
+  initLine('chart-pipeval', mLabels, mVals, '#f59e0b');
+}
+
+function initDonut(id, labels, data, colors) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  const ex = Chart.getChart(id);
+  if (ex) ex.destroy();
+  if (data.every(v => v === 0)) {
+    ctx.parentElement.innerHTML = '<div class="empty-state" style="height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center"><i class="ti ti-chart-donut"></i><p>No data yet</p></div>';
+    return;
+  }
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: colors.map(c => c+'bb'), borderColor: colors, borderWidth: 2 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position:'bottom', labels:{ color:'#888', font:{ size:11 }, padding:12 } } }
+    }
+  });
+}
+
+function initBar(id, labels, data, color) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  const ex = Chart.getChart(id);
+  if (ex) ex.destroy();
+  new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ data, backgroundColor: color+'55', borderColor: color, borderWidth: 2, borderRadius: 4 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend:{ display:false } },
+      scales: {
+        x: { ticks:{ color:'#888', font:{ size:11 } }, grid:{ color:'#2a2a2a' } },
+        y: { ticks:{ color:'#888', font:{ size:11 }, stepSize:1 }, grid:{ color:'#2a2a2a' }, min:0 }
+      }
+    }
+  });
+}
+
+function initLine(id, labels, data, color) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  const ex = Chart.getChart(id);
+  if (ex) ex.destroy();
+  new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [{ data, borderColor: color, backgroundColor: color+'18', fill:true, tension:.35, pointBackgroundColor: color, pointRadius:4 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend:{ display:false } },
+      scales: {
+        x: { ticks:{ color:'#888', font:{ size:11 } }, grid:{ color:'#2a2a2a' } },
+        y: { ticks:{ color:'#888', font:{ size:11 }, callback: v => '₱' + v.toLocaleString('en-PH') }, grid:{ color:'#2a2a2a' }, min:0 }
+      }
+    }
+  });
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function today() { return new Date().toISOString().split('T')[0]; }
+function now()   { return new Date().toLocaleString('en-PH'); }
+
+let _toastTimer;
+function toast(msg, dur = 2200) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), dur);
+}
+
+// Close modals on backdrop click
+document.getElementById('lead-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeLead(); });
+document.getElementById('add-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeAddLead(); });
+document.getElementById('fb-inbox-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeFbInbox(); });
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeLead(); closeAddLead(); }
+  if (e.key === 'Enter' && document.activeElement?.id === 'note-input') { e.preventDefault(); addNote(); }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sikhay — Marketing Planner</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.14.0/dist/tabler-icons.min.css">
+<style>
+  :root{--bg:#0a0a0a;--surface:#141414;--surface2:#1e1e1e;--border:#2a2a2a;--amber:#f59e0b;--green:#22c55e;--danger:#ef4444;--muted:#6b7280;--blue:#3b82f6;--purple:#a855f7}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:#e5e7eb;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+
+  .header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px}
+  .header-title{font-size:16px;font-weight:700;letter-spacing:.5px}
+  .header-sub{font-size:12px;color:var(--muted)}
+  .back-btn{background:none;border:1px solid var(--border);color:#9ca3af;border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:5px;text-decoration:none}
+  .back-btn:hover{border-color:var(--amber);color:var(--amber)}
+
+  .tabs{display:flex;gap:2px;padding:16px 20px 0;background:var(--surface);border-bottom:1px solid var(--border)}
+  .tab{padding:10px 18px;font-size:13px;font-weight:600;cursor:pointer;border-radius:8px 8px 0 0;color:var(--muted);transition:all .15s;display:flex;align-items:center;gap:6px}
+  .tab.active{background:var(--bg);color:#e5e7eb;border:1px solid var(--border);border-bottom:1px solid var(--bg);margin-bottom:-1px}
+  .tab:not(.active):hover{color:#e5e7eb}
+
+  .content{padding:20px;max-width:960px;margin:0 auto}
+  .pane{display:none}
+  .pane.active{display:block}
+
+  /* week nav */
+  .week-nav{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+  .week-nav-btn{background:var(--surface);border:1px solid var(--border);color:#e5e7eb;width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
+  .week-nav-btn:hover{border-color:var(--amber)}
+  .week-label{font-size:15px;font-weight:700;flex:1}
+  .today-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:8px;font-size:12px;cursor:pointer}
+  .today-btn:hover{border-color:var(--amber);color:var(--amber)}
+
+  /* day grid */
+  .day-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
+  .day-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;min-height:110px}
+  .day-card.suggested{border-color:#f59e0b44}
+  .day-card.today{border-color:var(--blue)}
+  .day-name{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:2px}
+  .day-date{font-size:20px;font-weight:800;margin-bottom:6px}
+  .day-card.today .day-date{color:var(--blue)}
+  .day-badge{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 6px;border-radius:4px;background:#f59e0b22;color:var(--amber);margin-bottom:8px;display:inline-block}
+  .post-chip{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:5px;margin-bottom:5px}
+  .post-chip:hover{border-color:var(--amber)}
+  .chip-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+  .chip-text{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#9ca3af}
+  .chip-badge{font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;flex-shrink:0}
+  .s-posted{background:#22c55e22;color:var(--green)}
+  .s-draft{background:#6b728022;color:var(--muted)}
+  .s-scheduled{background:#3b82f622;color:var(--blue)}
+  .add-day-btn{width:100%;background:none;border:1px dashed var(--border);color:var(--muted);border-radius:6px;padding:5px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;margin-top:4px}
+  .add-day-btn:hover{border-color:var(--amber);color:var(--amber)}
+
+  /* create */
+  .type-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:24px}
+  .type-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;transition:all .15s}
+  .type-card:hover,.type-card.sel{border-color:var(--amber);background:#f59e0b0a}
+  .type-card i{font-size:22px;display:block;margin-bottom:6px;color:var(--muted)}
+  .type-card.sel i{color:var(--amber)}
+  .type-card .tc-name{font-size:12px;font-weight:600}
+  .type-card .tc-desc{font-size:10px;color:var(--muted);margin-top:2px}
+
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:4px}
+  .form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+  .form-group label{font-size:12px;color:var(--muted)}
+  .form-input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:#e5e7eb;font-size:14px;outline:none;transition:border-color .15s;width:100%}
+  .form-input:focus{border-color:var(--amber)}
+  .form-textarea{resize:vertical;min-height:80px}
+
+  .preview-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:8px}
+  .preview-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;min-height:80px}
+  .preview-text{font-size:14px;line-height:1.65;white-space:pre-wrap;color:#e5e7eb}
+
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{border:none;border-radius:8px;padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:opacity .15s}
+  .btn:hover{opacity:.85}
+  .btn-amber{background:var(--amber);color:#000}
+  .btn-ghost{background:var(--surface2);color:#e5e7eb;border:1px solid var(--border)}
+  .btn-green{background:var(--green);color:#000}
+  .btn-red{background:var(--danger);color:#fff}
+
+  /* history */
+  .stat-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+  .stat-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+  .stat-box .sv{font-size:26px;font-weight:800;margin-bottom:2px}
+  .stat-box .sl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+
+  .filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+  .filter-btn{background:var(--surface);border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:20px;font-size:12px;cursor:pointer;transition:all .15s}
+  .filter-btn.active{border-color:var(--amber);color:var(--amber);background:#f59e0b0a}
+  .filter-btn:hover{color:#e5e7eb;border-color:#3a3a3a}
+
+  .post-row{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:start}
+  .post-row:hover{border-color:#3a3a3a}
+  .type-ico{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;cursor:pointer}
+  .post-meta{font-size:11px;color:var(--muted);margin-top:3px;display:flex;gap:10px;flex-wrap:wrap}
+  .post-preview{font-size:13px;color:#9ca3af;margin-top:4px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;cursor:pointer}
+  .post-actions{display:flex;gap:6px;flex-shrink:0}
+  .ico-btn{background:none;border:1px solid var(--border);color:var(--muted);width:30px;height:30px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}
+  .ico-btn:hover{border-color:var(--amber);color:var(--amber)}
+  .ico-btn.red:hover{border-color:var(--danger);color:var(--danger)}
+
+  .t-showcase{background:#22c55e22;color:var(--green)}
+  .t-promo{background:#f59e0b22;color:var(--amber)}
+  .t-testimonial{background:#a855f722;color:var(--purple)}
+  .t-process{background:#3b82f622;color:var(--blue)}
+  .t-bts{background:#6b728022;color:var(--muted)}
+
+  /* modal */
+  .overlay{position:fixed;inset:0;background:#000000cc;z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+  .overlay.open{display:flex}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto}
+  .modal-hdr{font-size:16px;font-weight:700;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center}
+  .modal-x{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1}
+  .modal-x:hover{color:#e5e7eb}
+  .modal-meta{font-size:12px;color:var(--muted);margin-bottom:14px;display:flex;gap:12px;flex-wrap:wrap}
+
+  .toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:13px;font-weight:600;z-index:200;opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none}
+  .toast.show{opacity:1;transform:translateY(0)}
+  .toast.ok{border-color:var(--green);color:var(--green)}
+  .toast.err{border-color:var(--danger);color:var(--danger)}
+
+  .empty{text-align:center;padding:48px 20px;color:var(--muted)}
+  .empty i{font-size:40px;display:block;margin-bottom:12px}
+  .section-title{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px;display:flex;align-items:center;gap:7px}
+
+  @media(max-width:700px){
+    .day-grid{grid-template-columns:repeat(2,1fr)}
+    .type-grid{grid-template-columns:repeat(3,1fr)}
+    .stat-strip{grid-template-columns:repeat(2,1fr)}
+    .form-grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">MARKETING PLANNER</div>
+    <div class="header-sub">Sikhay Creatives</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('calendar')" id="tab-calendar"><i class="ti ti-calendar-week"></i> This Week</div>
+  <div class="tab" onclick="switchTab('create')" id="tab-create"><i class="ti ti-pencil-plus"></i> Create Post</div>
+  <div class="tab" onclick="switchTab('history')" id="tab-history"><i class="ti ti-history"></i> History</div>
+</div>
+
+<div class="content">
+
+  <!-- CALENDAR -->
+  <div class="pane active" id="pane-calendar">
+    <div class="week-nav">
+      <button class="week-nav-btn" onclick="shiftWeek(-1)"><i class="ti ti-chevron-left"></i></button>
+      <div class="week-label" id="week-label"></div>
+      <button class="today-btn" onclick="goToToday()">Today</button>
+      <button class="week-nav-btn" onclick="shiftWeek(1)"><i class="ti ti-chevron-right"></i></button>
+    </div>
+    <div class="day-grid" id="day-grid"></div>
+  </div>
+
+  <!-- CREATE -->
+  <div class="pane" id="pane-create">
+    <div class="section-title"><i class="ti ti-layout-grid"></i> Content Type</div>
+    <div class="type-grid">
+      <div class="type-card sel" onclick="selectType('showcase')" id="tc-showcase">
+        <i class="ti ti-shirt"></i>
+        <div class="tc-name">Showcase</div>
+        <div class="tc-desc">Finished orders</div>
+      </div>
+      <div class="type-card" onclick="selectType('promo')" id="tc-promo">
+        <i class="ti ti-tag"></i>
+        <div class="tc-name">Promo</div>
+        <div class="tc-desc">Discounts & offers</div>
+      </div>
+      <div class="type-card" onclick="selectType('testimonial')" id="tc-testimonial">
+        <i class="ti ti-star"></i>
+        <div class="tc-name">Testimonial</div>
+        <div class="tc-desc">Client feedback</div>
+      </div>
+      <div class="type-card" onclick="selectType('process')" id="tc-process">
+        <i class="ti ti-flame"></i>
+        <div class="tc-name">Process</div>
+        <div class="tc-desc">Production BTS</div>
+      </div>
+      <div class="type-card" onclick="selectType('bts')" id="tc-bts">
+        <i class="ti ti-camera"></i>
+        <div class="tc-name">Free Post</div>
+        <div class="tc-desc">Custom caption</div>
+      </div>
+    </div>
+    <div class="section-title"><i class="ti ti-forms"></i> Fill in Details</div>
+    <div id="create-form"></div>
+    <div class="preview-label">Caption Preview</div>
+    <div class="preview-box"><div class="preview-text" id="cap-preview">—</div></div>
+    <div class="btn-row">
+      <button class="btn btn-amber" onclick="copyCaption()"><i class="ti ti-copy"></i> Copy Caption</button>
+      <button class="btn btn-ghost" onclick="savePost('draft')"><i class="ti ti-device-floppy"></i> Save Draft</button>
+      <button class="btn btn-green" onclick="savePost('scheduled')"><i class="ti ti-calendar-plus"></i> Add to Calendar</button>
+    </div>
+    <div id="editing-bar" style="display:none;margin-top:12px;font-size:12px;color:var(--amber)">
+      <i class="ti ti-pencil"></i> Editing existing post — <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="cancelEdit()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="pane" id="pane-history">
+    <div class="stat-strip">
+      <div class="stat-box"><div class="sv" id="st-total">0</div><div class="sl">Total Posts</div></div>
+      <div class="stat-box"><div class="sv" id="st-posted" style="color:var(--green)">0</div><div class="sl">Posted</div></div>
+      <div class="stat-box"><div class="sv" id="st-month" style="color:var(--amber)">0</div><div class="sl">This Month</div></div>
+      <div class="stat-box"><div class="sv" id="st-drafts" style="color:var(--muted)">0</div><div class="sl">Drafts</div></div>
+    </div>
+    <div class="filter-bar">
+      <div class="filter-btn active" onclick="setFilter('all')" id="fb-all">All</div>
+      <div class="filter-btn" onclick="setFilter('posted')" id="fb-posted">Posted</div>
+      <div class="filter-btn" onclick="setFilter('scheduled')" id="fb-scheduled">Scheduled</div>
+      <div class="filter-btn" onclick="setFilter('draft')" id="fb-draft">Drafts</div>
+    </div>
+    <div id="history-list"></div>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span id="modal-title">Post</span>
+      <button class="modal-x" onclick="closeModal()">×</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const MKT_KEY = 'sikhay_mkt_v1'
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+
+function getData() {
+  try { return JSON.parse(localStorage.getItem(MKT_KEY)) || { posts: [] } }
+  catch { return { posts: [] } }
+}
+function saveData(d) { localStorage.setItem(MKT_KEY, JSON.stringify(d)) }
+function getPosts() { return getData().posts }
+
+function upsertPost(post) {
+  const d = getData()
+  const idx = d.posts.findIndex(p => p.id === post.id)
+  if (idx >= 0) d.posts[idx] = post; else d.posts.unshift(post)
+  saveData(d)
+}
+
+function removePost(id) {
+  const d = getData()
+  d.posts = d.posts.filter(p => p.id !== id)
+  saveData(d)
+}
+
+function genId() {
+  return 'post_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6)
+}
+
+// ── WEEK NAV ──────────────────────────────────────────────────────────────────
+
+let weekOffset = 0
+
+function getMondayOfWeek(off) {
+  const now = new Date()
+  const day = now.getDay()
+  const diff = day === 0 ? -6 : 1 - day
+  const mon = new Date(now)
+  mon.setDate(now.getDate() + diff + off * 7)
+  mon.setHours(0, 0, 0, 0)
+  return mon
+}
+
+function shiftWeek(dir) { weekOffset += dir; renderCalendar() }
+function goToToday()    { weekOffset = 0;    renderCalendar() }
+
+const DAY_NAMES  = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
+const POST_DAYS  = new Set([0, 2, 4]) // Mon, Wed, Fri
+
+function dateISO(d) { return d.toISOString().split('T')[0] }
+
+// ── CALENDAR ──────────────────────────────────────────────────────────────────
+
+function renderCalendar() {
+  const mon = getMondayOfWeek(weekOffset)
+  const sun = new Date(mon); sun.setDate(mon.getDate() + 6)
+  const fmt = d => d.toLocaleDateString('en-PH', { month:'short', day:'numeric' })
+  document.getElementById('week-label').textContent =
+    fmt(mon) + ' – ' + sun.toLocaleDateString('en-PH', { month:'short', day:'numeric', year:'numeric' })
+
+  const today = dateISO(new Date())
+  const posts  = getPosts()
+  const grid   = document.getElementById('day-grid')
+  grid.innerHTML = ''
+
+  for (let i = 0; i < 7; i++) {
+    const d   = new Date(mon); d.setDate(mon.getDate() + i)
+    const iso = dateISO(d)
+    const dayPosts = posts.filter(p => p.scheduledDate === iso)
+    const isToday  = iso === today
+    const isSugg   = POST_DAYS.has(i)
+
+    const card = document.createElement('div')
+    card.className = 'day-card' + (isSugg ? ' suggested' : '') + (isToday ? ' today' : '')
+
+    let inner = `<div class="day-name">${DAY_NAMES[i]}</div><div class="day-date">${d.getDate()}</div>`
+    if (isSugg) inner += `<div class="day-badge">Post Day</div>`
+
+    dayPosts.forEach(p => {
+      inner += `<div class="post-chip" onclick="openModal('${p.id}')">
+        <span class="chip-dot" style="background:${typeColor(p.type)}"></span>
+        <span class="chip-text">${esc(p.caption.slice(0, 35))}</span>
+        <span class="chip-badge s-${p.status}">${p.status === 'posted' ? '✓' : p.status.slice(0,4)}</span>
+      </div>`
+    })
+
+    inner += `<button class="add-day-btn" onclick="addForDate('${iso}')"><i class="ti ti-plus"></i> Add</button>`
+    card.innerHTML = inner
+    grid.appendChild(card)
+  }
+}
+
+function addForDate(iso) {
+  switchTab('create')
+  setTimeout(() => {
+    const el = document.getElementById('f-date')
+    if (el) { el.value = iso; buildPreview() }
+  }, 60)
+}
+
+// ── TYPE HELPERS ──────────────────────────────────────────────────────────────
+
+const TYPE_COLOR = { showcase:'#22c55e', promo:'#f59e0b', testimonial:'#a855f7', process:'#3b82f6', bts:'#6b7280' }
+const TYPE_LABEL = { showcase:'Showcase', promo:'Promo', testimonial:'Testimonial', process:'Process', bts:'Free Post' }
+const TYPE_ICON  = { showcase:'ti-shirt', promo:'ti-tag', testimonial:'ti-star', process:'ti-flame', bts:'ti-camera' }
+
+function typeColor(t) { return TYPE_COLOR[t] || '#6b7280' }
+function typeLabel(t) { return TYPE_LABEL[t] || t }
+function typeIcon(t)  { return TYPE_ICON[t]  || 'ti-photo' }
+
+// ── TEMPLATES ─────────────────────────────────────────────────────────────────
+
+const TPLS = {
+  showcase: {
+    fields: [
+      { id:'team',   label:'Team / Client Name',  ph:'e.g. Brgy. Sto. Niño Basketball Team', type:'text' },
+      { id:'product',label:'Product Type',         ph:'e.g. Full Sublimation Basketball Jersey', type:'text' },
+      { id:'qty',    label:'Quantity',              ph:'e.g. 15 pcs',    type:'text' },
+      { id:'detail', label:'Notable Detail',        ph:'e.g. with name & number, custom collar', type:'text' },
+      { id:'date',   label:'Post Date',             type:'date' },
+    ],
+    gen: f => `Just delivered: ${f.team||'[Team Name]'} — ${f.product||'[Product]'} × ${f.qty||'[Qty]'}\n${f.detail ? `\n${f.detail}\n` : ''}\nGusto mo rin? DM na tayo! 📩\n\n#SikhayPremiumApparel #FullSublimation #Dasmariñas #CustomJersey`
+  },
+  promo: {
+    fields: [
+      { id:'offer',  label:'Promo Offer',     ph:'e.g. FREE banner sa orders na 15 pcs+',  type:'text' },
+      { id:'until',  label:'Valid Until',      ph:'e.g. June 30',  type:'text' },
+      { id:'cta',    label:'Call to Action',   ph:'e.g. Mag-DM para sa quote!', type:'text' },
+      { id:'date',   label:'Post Date',        type:'date' },
+    ],
+    gen: f => `🔥 PROMO ALERT!\n\n${f.offer||'[Promo Offer]'}\n\nValid hanggang ${f.until||'[Date]'}. Limited orders lang ito!\n\n${f.cta||'DM na para sa quote! 📲'}\n\n#SikhayCreatives #SikhayPremiumApparel #PromoAlert`
+  },
+  testimonial: {
+    fields: [
+      { id:'team',   label:'Team / Client Name', ph:'e.g. Team Grindset', type:'text' },
+      { id:'rating', label:'Star Rating (1–5)',   ph:'5',    type:'text' },
+      { id:'comment',label:'Their Feedback',      ph:'Paste their comment here', type:'textarea' },
+      { id:'product',label:'Product (optional)',  ph:'e.g. Basketball Jersey Set', type:'text' },
+      { id:'date',   label:'Post Date',           type:'date' },
+    ],
+    gen: f => {
+      const stars = '⭐'.repeat(Math.min(5, Math.max(1, parseInt(f.rating) || 5)))
+      return `Salamat sa tiwala! 🙏\n\n${stars} mula sa ${f.team||'[Client Name]'}${f.product ? ` (${f.product})` : ''}.\n\n${f.comment ? `"${f.comment}"` : '[Client feedback here]'}\n\nYour trust means everything sa amin. DM para sa inyong orders! 📩\n\n#SikhayCreatives #ClientLove #CustomerFeedback`
+    }
+  },
+  process: {
+    fields: [
+      { id:'step',   label:'Process / Step',      ph:'e.g. Heat pressing the sublimation design', type:'text' },
+      { id:'note',   label:'Extra Note (optional)',ph:'Any context or highlight', type:'text' },
+      { id:'date',   label:'Post Date',            type:'date' },
+    ],
+    gen: f => `${f.step||'Production process'} 🔥${f.note ? `\n\n${f.note}` : ''}\n\nBawat order, gawa namin ng buong puso. Quality first, lagi.\n\nDM para sa custom orders! 📲 #SikhayPremiumApparel #SublimationPrinting #MadeInCavite`
+  },
+  bts: {
+    fields: [
+      { id:'caption',label:'Your Caption', ph:'Write anything here — no template, free form.', type:'textarea' },
+      { id:'date',   label:'Post Date',    type:'date' },
+    ],
+    gen: f => f.caption || '—'
+  }
+}
+
+// ── CREATE TAB ────────────────────────────────────────────────────────────────
+
+let curType     = 'showcase'
+let editingId   = null
+
+function selectType(type) {
+  curType = type
+  document.querySelectorAll('.type-card').forEach(c => c.classList.remove('sel'))
+  document.getElementById('tc-' + type).classList.add('sel')
+  renderForm()
+}
+
+function renderForm() {
+  const tpl    = TPLS[curType]
+  const fields = tpl.fields
+  let html     = ''
+
+  let i = 0
+  while (i < fields.length) {
+    const f = fields[i]
+    const inputId = 'f-' + f.id
+    const on = 'oninput="buildPreview()"'
+
+    if (f.type === 'textarea') {
+      html += `<div class="form-group"><label for="${inputId}">${f.label}</label><textarea class="form-input form-textarea" id="${inputId}" placeholder="${esc(f.ph||'')}" ${on}></textarea></div>`
+      i++
+    } else if (f.type === 'date') {
+      const today = new Date().toISOString().split('T')[0]
+      html += `<div class="form-group"><label for="${inputId}">${f.label}</label><input type="date" class="form-input" id="${inputId}" value="${today}" ${on}></div>`
+      i++
+    } else {
+      // try to pair with next non-textarea/non-date field
+      const next = fields[i + 1]
+      if (next && next.type !== 'textarea' && next.type !== 'date') {
+        const nId = 'f-' + next.id
+        html += `<div class="form-grid"><div class="form-group"><label for="${inputId}">${f.label}</label><input type="text" class="form-input" id="${inputId}" placeholder="${esc(f.ph||'')}" ${on}></div><div class="form-group"><label for="${nId}">${next.label}</label><input type="text" class="form-input" id="${nId}" placeholder="${esc(next.ph||'')}" ${on}></div></div>`
+        i += 2
+      } else {
+        html += `<div class="form-group"><label for="${inputId}">${f.label}</label><input type="text" class="form-input" id="${inputId}" placeholder="${esc(f.ph||'')}" ${on}></div>`
+        i++
+      }
+    }
+  }
+
+  document.getElementById('create-form').innerHTML = html
+  buildPreview()
+}
+
+function getFields() {
+  const vals = {}
+  TPLS[curType].fields.forEach(f => {
+    const el = document.getElementById('f-' + f.id)
+    if (el) vals[f.id] = el.value.trim()
+  })
+  return vals
+}
+
+function buildPreview() {
+  const vals = getFields()
+  document.getElementById('cap-preview').textContent = TPLS[curType].gen(vals) || '—'
+}
+
+function copyCaption() {
+  const text = document.getElementById('cap-preview').textContent
+  if (!text || text === '—') { showToast('Walang caption pa.', 'err'); return }
+  navigator.clipboard.writeText(text).then(() => showToast('Caption copied!', 'ok'))
+}
+
+function savePost(status) {
+  const vals    = getFields()
+  const caption = TPLS[curType].gen(vals)
+  if (!caption || caption === '—') { showToast('Mag-fill muna ng details.', 'err'); return }
+
+  const now  = new Date().toISOString()
+  const post = {
+    id:            editingId || genId(),
+    type:          curType,
+    caption,
+    fields:        vals,
+    scheduledDate: vals.date || now.split('T')[0],
+    status,
+    createdAt:     now,
+    updatedAt:     now
+  }
+
+  if (editingId) {
+    const existing = getPosts().find(p => p.id === editingId)
+    if (existing) post.createdAt = existing.createdAt
+  }
+
+  upsertPost(post)
+  showToast(status === 'draft' ? 'Saved as draft!' : status === 'scheduled' ? 'Added to calendar!' : 'Posted!', 'ok')
+  cancelEdit()
+
+  if (status === 'scheduled') { switchTab('calendar'); renderCalendar() }
+}
+
+function cancelEdit() {
+  editingId = null
+  document.getElementById('editing-bar').style.display = 'none'
+  renderForm()
+}
+
+function loadForEdit(id) {
+  const p = getPosts().find(x => x.id === id)
+  if (!p) return
+  editingId = id
+  selectType(p.type)
+  setTimeout(() => {
+    TPLS[p.type].fields.forEach(f => {
+      const el = document.getElementById('f-' + f.id)
+      if (el && p.fields?.[f.id] !== undefined) el.value = p.fields[f.id]
+    })
+    buildPreview()
+    document.getElementById('editing-bar').style.display = 'block'
+  }, 60)
+}
+
+// ── HISTORY ───────────────────────────────────────────────────────────────────
+
+let activeFilter = 'all'
+
+function setFilter(f) {
+  activeFilter = f
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'))
+  document.getElementById('fb-' + f).classList.add('active')
+  renderHistory()
+}
+
+function renderHistory() {
+  const posts = getPosts()
+  const now   = new Date()
+  const ym    = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`
+
+  document.getElementById('st-total').textContent  = posts.length
+  document.getElementById('st-posted').textContent = posts.filter(p => p.status === 'posted').length
+  document.getElementById('st-month').textContent  = posts.filter(p => p.status === 'posted' && (p.scheduledDate||'').startsWith(ym)).length
+  document.getElementById('st-drafts').textContent = posts.filter(p => p.status === 'draft').length
+
+  const list = activeFilter === 'all' ? posts : posts.filter(p => p.status === activeFilter)
+  const el   = document.getElementById('history-list')
+
+  if (!list.length) {
+    el.innerHTML = `<div class="empty"><i class="ti ti-photo-off"></i>Walang posts dito</div>`
+    return
+  }
+
+  el.innerHTML = list.map(p => `
+    <div class="post-row">
+      <div class="type-ico t-${p.type}" onclick="openModal('${p.id}')"><i class="ti ${typeIcon(p.type)}"></i></div>
+      <div onclick="openModal('${p.id}')">
+        <div style="font-size:13px;font-weight:600">${typeLabel(p.type)}</div>
+        <div class="post-meta">
+          <span>${p.scheduledDate||'—'}</span>
+          <span class="chip-badge s-${p.status}">${p.status}</span>
+        </div>
+        <div class="post-preview">${esc(p.caption)}</div>
+      </div>
+      <div class="post-actions">
+        ${p.status !== 'posted' ? `<button class="ico-btn" onclick="markPosted('${p.id}')" title="Mark as Posted"><i class="ti ti-check"></i></button>` : ''}
+        <button class="ico-btn" onclick="editPost('${p.id}')" title="Edit"><i class="ti ti-pencil"></i></button>
+        <button class="ico-btn red" onclick="delPost('${p.id}')" title="Delete"><i class="ti ti-trash"></i></button>
+      </div>
+    </div>
+  `).join('')
+}
+
+function markPosted(id) {
+  const p = getPosts().find(x => x.id === id)
+  if (!p) return
+  p.status   = 'posted'
+  p.postedAt = new Date().toISOString()
+  upsertPost(p)
+  renderHistory()
+  renderCalendar()
+  showToast('Marked as posted! ✓', 'ok')
+}
+
+function editPost(id) {
+  switchTab('create')
+  setTimeout(() => loadForEdit(id), 50)
+}
+
+function delPost(id) {
+  if (!confirm('Delete this post?')) return
+  removePost(id)
+  renderHistory()
+  renderCalendar()
+  showToast('Deleted.', 'ok')
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+
+function openModal(id) {
+  const p = getPosts().find(x => x.id === id)
+  if (!p) return
+
+  document.getElementById('modal-title').textContent = typeLabel(p.type) + (p.scheduledDate ? ' — ' + p.scheduledDate : '')
+  document.getElementById('modal-body').innerHTML = `
+    <div class="preview-box" style="margin-bottom:14px"><div class="preview-text">${esc(p.caption)}</div></div>
+    <div class="modal-meta">
+      <span>Status: <b>${p.status}</b></span>
+      <span>Created: ${p.createdAt ? new Date(p.createdAt).toLocaleDateString('en-PH') : '—'}</span>
+      ${p.postedAt ? `<span>Posted: ${new Date(p.postedAt).toLocaleDateString('en-PH')}</span>` : ''}
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-amber" id="modal-copy-btn"><i class="ti ti-copy"></i> Copy Caption</button>
+      ${p.status !== 'posted' ? `<button class="btn btn-green" onclick="markPosted('${id}');closeModal()"><i class="ti ti-check"></i> Mark Posted</button>` : ''}
+      <button class="btn btn-ghost" onclick="editPost('${id}');closeModal()"><i class="ti ti-pencil"></i> Edit</button>
+      <button class="btn btn-red" onclick="delPost('${id}');closeModal()"><i class="ti ti-trash"></i> Delete</button>
+    </div>
+  `
+  document.getElementById('modal-copy-btn').onclick = () => {
+    navigator.clipboard.writeText(p.caption).then(() => showToast('Caption copied!', 'ok'))
+  }
+  document.getElementById('modal-overlay').classList.add('open')
+}
+
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open') }
+
+document.getElementById('modal-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal-overlay')) closeModal()
+})
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+
+function switchTab(tab) {
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'))
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+  document.getElementById('pane-' + tab).classList.add('active')
+  document.getElementById('tab-' + tab).classList.add('active')
+  if (tab === 'history')  renderHistory()
+  if (tab === 'calendar') renderCalendar()
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+
+function esc(s) {
+  return String(s||'')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
+
+let _toastTimer
+function showToast(msg, type) {
+  clearTimeout(_toastTimer)
+  const t = document.getElementById('toast')
+  t.textContent = msg
+  t.className   = 'toast show ' + (type||'ok')
+  _toastTimer   = setTimeout(() => t.classList.remove('show'), 2800)
+}
+
+// ── BOOT ──────────────────────────────────────────────────────────────────────
+
+renderCalendar()
+renderForm()
+
+</script>
+</body>
+</html>

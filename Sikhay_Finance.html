@@ -1,0 +1,2276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sikhay Finance — Stage 8</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.14.0/dist/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="SikhayDB.js"></script>
+<style>
+:root {
+  --bg:       #0a0a0a;
+  --surface:  #141414;
+  --surface2: #1e1e1e;
+  --border:   #2a2a2a;
+  --text:     #f0f0f0;
+  --muted:    #888;
+  --amber:    #f59e0b;
+  --green:    #22c55e;
+  --danger:   #ef4444;
+  --blue:     #3b82f6;
+  --purple:   #8b5cf6;
+  --danger-tint:  #ef444418;
+  --danger-border: #ef444430;
+  --amber-tint:   #f59e0b18;
+  --amber-border: #f59e0b40;
+  --green-tint:   #22c55e18;
+  --green-border: #22c55e30;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; font-size: 14px; }
+
+/* ── HEADER ── */
+.header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; }
+.logo-box { width: 38px; height: 38px; flex-shrink: 0; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 11px; color: var(--amber); }
+.header-text { flex: 1; }
+.header-title { font-size: 17px; font-weight: 700; letter-spacing: .3px; }
+.header-subtitle { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.header-right { display: flex; gap: 8px; align-items: center; }
+.btn { padding: 7px 14px; border-radius: 8px; border: none; cursor: pointer; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; transition: all .18s; font-family: inherit; }
+.btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+.btn-ghost:hover { background: var(--surface2); color: var(--text); }
+.btn-primary { background: var(--amber); color: #000; border: none; }
+.btn-primary:hover { opacity: .88; }
+.btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+.btn-danger:hover { background: var(--danger-tint); }
+
+/* ── TABS ── */
+.tab-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; }
+.tab-bar button.tab {
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+.tab { padding: 13px 18px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all .18s; white-space: nowrap; }
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--text); border-bottom-color: var(--amber); }
+
+/* ── CONTENT ── */
+.content { padding: 24px; max-width: 1100px; margin: 0 auto; }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+/* ── MONTH SELECTOR ── */
+.month-sel { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+.month-sel .ms-label { font-size: 16px; font-weight: 700; min-width: 140px; text-align: center; }
+.month-sel button { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 7px; cursor: pointer; font-size: 13px; }
+.month-sel button:hover { border-color: var(--muted); }
+
+/* ── STATS BAR ── */
+.stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+.stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .7px; margin-bottom: 8px; }
+.stat-value { font-size: 26px; font-weight: 800; }
+.stat-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.stat-green  .stat-value { color: var(--green); }
+.stat-red    .stat-value { color: var(--danger); }
+.stat-amber  .stat-value { color: var(--amber); }
+.stat-muted  .stat-value { color: var(--muted); }
+
+/* ── PANELS ── */
+.panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+.panel-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.panel-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.panel-row:last-child { border-bottom: none; }
+.panel-row-label { color: var(--muted); }
+.panel-row-val { font-weight: 700; }
+.val-green { color: var(--green); }
+.val-amber { color: var(--amber); }
+.val-red   { color: var(--danger); }
+.val-muted { color: var(--muted); }
+
+/* ── EXPENSE FORM ── */
+.form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 20px; }
+.form-card h3 { font-size: 13px; font-weight: 700; margin-bottom: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+.form-row { display: grid; grid-template-columns: 140px 1fr 1fr 140px 120px auto; gap: 10px; align-items: end; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+.form-input, .form-select { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 8px 10px; border-radius: 7px; font-size: 13px; font-family: inherit; width: 100%; }
+.form-input:focus, .form-select:focus { outline: none; border-color: #555; }
+.form-select option { background: var(--surface2); }
+
+/* ── EXPENSE LIST ── */
+.expense-list { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.expense-list-head { display: grid; grid-template-columns: 155px 1fr 140px 100px 90px 50px; gap: 10px; padding: 10px 16px; background: var(--surface2); border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+.expense-row { display: grid; grid-template-columns: 155px 1fr 140px 100px 90px 50px; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 13px; align-items: start; }
+.expense-row:last-child { border-bottom: none; }
+.expense-row:hover { background: var(--surface2); }
+.ex-desc-cell { word-break: break-word; white-space: pre-wrap; line-height: 1.5; padding-top: 1px; }
+.form-textarea { resize: vertical; min-height: 72px; line-height: 1.55; }
+.form-row-top { display: grid; grid-template-columns: 140px 1fr 140px 120px auto; gap: 10px; align-items: end; margin-bottom: 10px; }
+.category-pill { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); white-space: nowrap; }
+.del-btn { background: none; border: none; color: var(--muted); cursor: pointer; padding: 4px 6px; border-radius: 5px; font-size: 14px; }
+.del-btn:hover { color: var(--danger); background: var(--danger-tint); }
+.empty-state { padding: 40px 16px; text-align: center; color: var(--muted); font-size: 13px; }
+.empty-state i { font-size: 32px; opacity: .2; display: block; margin-bottom: 10px; }
+.income-pill { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; background: var(--green-tint); border: 1px solid var(--green-border); color: var(--green); white-space: nowrap; }
+.income-total-bar { padding: 10px 16px; background: var(--green-tint); border-bottom: 1px solid var(--green-border); font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
+.btn-green { background: var(--green); color: #000; border: none; }
+.btn-green:hover { opacity: .88; }
+
+/* ── PER-ORDER COSTS ── */
+.order-cost-form { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 20px; }
+.order-cost-form h3 { font-size: 13px; font-weight: 700; margin-bottom: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+.cost-row { display: grid; grid-template-columns: 1fr 120px 120px 120px 120px; gap: 10px; align-items: end; margin-bottom: 12px; }
+.cost-computed { background: var(--surface2); border-radius: 8px; padding: 12px 16px; display: flex; gap: 24px; flex-wrap: wrap; margin-top: 10px; }
+.cc-item { display: flex; flex-direction: column; gap: 3px; }
+.cc-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+.cc-val { font-size: 16px; font-weight: 800; }
+.orders-cost-list { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.ocl-head { display: grid; grid-template-columns: 1fr 100px 100px 100px 80px 80px; gap: 10px; padding: 10px 16px; background: var(--surface2); border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+.ocl-row { display: grid; grid-template-columns: 1fr 100px 100px 100px 80px 80px; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 13px; align-items: center; }
+.ocl-row:last-child { border-bottom: none; }
+.ocl-row:hover { background: var(--surface2); }
+.margin-pill { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+.margin-good { background: var(--green-tint); color: var(--green); border: 1px solid var(--green-border); }
+.margin-warn { background: var(--amber-tint); color: var(--amber); border: 1px solid var(--amber-border); }
+.margin-bad  { background: var(--danger-tint); color: var(--danger); border: 1px solid var(--danger-border); }
+.no-cost-badge { font-size: 10px; color: var(--muted); font-style: italic; }
+
+/* ── REPORTS ── */
+.report-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+.report-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+.report-table { width: 100%; border-collapse: collapse; }
+.report-table td, .report-table th { padding: 9px 12px; text-align: left; font-size: 13px; }
+.report-table th { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; font-weight: 700; }
+.report-table tr { border-bottom: 1px solid var(--border); }
+.report-table tr:last-child { border-bottom: none; }
+.report-table .val { text-align: right; font-weight: 700; }
+.report-table .section-header td { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; padding-top: 14px; background: var(--surface2); }
+.report-table .total-row td { font-weight: 800; font-size: 14px; color: var(--text); border-top: 1px solid var(--border); }
+.bir-banner { background: var(--amber-tint); border: 1px solid var(--amber-border); border-radius: 8px; padding: 12px 16px; font-size: 12px; color: var(--amber); display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; }
+.bir-banner i { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+/* ── TOAST ── */
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 10px 20px; border-radius: 8px; font-size: 13px; z-index: 9999; opacity: 0; transition: opacity .25s; pointer-events: none; }
+.toast.show { opacity: 1; }
+
+/* ── UPGRADED STAT CARDS ── */
+.stat-card { padding: 20px 22px; position: relative; overflow: hidden; }
+.stat-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background: var(--border); border-radius:3px 0 0 3px; }
+.stat-green::before { background: var(--green); }
+.stat-red::before   { background: var(--danger); }
+.stat-amber::before { background: var(--amber); }
+.stat-icon { font-size: 20px; margin-bottom: 8px; display: block; opacity: .65; }
+.stat-value { font-size: 30px; }
+.stat-card.net-negative { border-color: var(--danger); background: #ef444408; }
+.stat-card.net-negative .stat-label { color: var(--danger); }
+
+/* ── THIS WEEK ── */
+.this-week { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; }
+.tw-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); margin-bottom: 12px; display: flex; align-items: center; gap: 7px; }
+.tw-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.tw-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; text-align: center; }
+.tw-val  { font-size: 20px; font-weight: 800; }
+.tw-lbl  { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-top: 3px; }
+
+/* ── CHARTS ── */
+.chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 16px; }
+.chart-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.chart-wrap { position: relative; height: 210px; }
+
+/* ── PRINT ── */
+@media print {
+  .header, .tab-bar, .month-sel, .form-card, .order-cost-form, .no-print { display: none !important; }
+  body { background: #fff; color: #000; }
+  .report-card { border: 1px solid #ccc; }
+  .report-table td, .report-table th { color: #000 !important; }
+  .bir-banner { border: 1px solid #f59e0b; color: #b45309; }
+}
+
+/* ── INVOICES ── */
+.inv-toolbar { display:flex; gap:10px; align-items:center; margin-bottom:18px; flex-wrap:wrap; }
+.inv-search { flex:1; min-width:180px; background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:8px 12px; border-radius:8px; font-size:13px; font-family:inherit; }
+.inv-search:focus { outline:none; border-color:#555; }
+.inv-filter-group { display:flex; gap:6px; flex-wrap:wrap; }
+.inv-filter { background:var(--surface2); border:1px solid var(--border); color:var(--muted); padding:6px 13px; border-radius:20px; font-size:12px; font-weight:600; cursor:pointer; transition:all .15s; font-family:inherit; }
+.inv-filter:hover { color:var(--text); }
+.inv-filter.active  { background:var(--amber);  color:#000; border-color:var(--amber);  }
+.inv-filter.f-paid.active    { background:var(--green);  color:#000; border-color:var(--green);  }
+.inv-filter.f-overdue.active { background:var(--danger); color:#fff; border-color:var(--danger); }
+.inv-table-wrap { background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+.inv-table-head { display:grid; grid-template-columns:75px 1fr 110px 110px 75px 75px 100px 36px; gap:10px; padding:10px 16px; background:var(--surface2); border-bottom:1px solid var(--border); font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+.inv-row { display:grid; grid-template-columns:75px 1fr 110px 110px 75px 75px 100px 36px; gap:10px; padding:13px 16px; border-bottom:1px solid var(--border); font-size:13px; align-items:center; cursor:pointer; transition:background .12s; }
+.inv-row:last-child { border-bottom:none; }
+.inv-row:hover { background:var(--surface2); }
+.inv-status { display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:700; padding:3px 9px; border-radius:20px; white-space:nowrap; }
+.inv-status.draft   { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
+.inv-status.sent    { background:rgba(59,130,246,.15); color:#60a5fa; border:1px solid rgba(59,130,246,.3); }
+.inv-status.partial { background:rgba(245,158,11,.15); color:#f59e0b; border:1px solid rgba(245,158,11,.35); }
+.inv-status.paid    { background:var(--green-tint); color:var(--green); border:1px solid var(--green-border); }
+.inv-form-wrap { max-width:760px; }
+.inv-top-row { display:flex; justify-content:space-between; align-items:flex-start; gap:20px; margin-bottom:14px; flex-wrap:wrap; }
+.inv-top-left  { flex:1; min-width:220px; }
+.inv-top-right { display:grid; grid-template-columns:1fr 1fr; gap:10px; width:300px; flex-shrink:0; }
+.inv-form-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px; margin-bottom:14px; }
+.inv-form-card h3 { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--muted); margin-bottom:14px; }
+.inv-items-head { display:grid; grid-template-columns:1fr 75px 115px 105px 30px; gap:8px; padding:8px 12px; background:var(--surface2); border-bottom:1px solid var(--border); font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+.inv-item-row  { display:grid; grid-template-columns:1fr 75px 115px 105px 30px; gap:8px; padding:6px 12px; border-bottom:1px solid var(--border); align-items:center; }
+.inv-item-row:last-child { border-bottom:none; }
+.inv-amt-cell { font-size:13px; font-weight:600; text-align:right; color:var(--text); }
+.inv-totals { display:flex; flex-direction:column; gap:5px; }
+.inv-total-row { display:flex; justify-content:space-between; font-size:13px; padding:3px 0; }
+.inv-total-row .lbl { color:var(--muted); }
+.inv-total-row.divider { border-top:1px solid var(--border); margin-top:8px; padding-top:10px; }
+.inv-total-row.grand { font-size:18px; font-weight:800; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo-box" aria-hidden="true">S8</div>
+  <div class="header-text">
+    <div class="header-title">Finance</div>
+    <div class="header-subtitle">Stage 8 — Sikhay Premium Apparel</div>
+  </div>
+  <div class="header-right">
+  </div>
+</header>
+
+<nav class="tab-bar">
+  <button class="tab active" onclick="switchTab('overview',this)">Overview</button>
+  <button class="tab" onclick="switchTab('income',this)">Income</button>
+  <button class="tab" onclick="switchTab('expenses',this)">Expenses</button>
+  <button class="tab" onclick="switchTab('order-costs',this)">Per-Order Costs</button>
+  <button class="tab" onclick="switchTab('reports',this)">Reports</button>
+  <button class="tab" onclick="switchTab('invoices',this)">Invoices</button>
+</nav>
+
+<div class="content">
+  <div id="pane-overview"    class="tab-pane active"></div>
+  <div id="pane-income"      class="tab-pane"></div>
+  <div id="pane-expenses"    class="tab-pane"></div>
+  <div id="pane-order-costs" class="tab-pane"></div>
+  <div id="pane-reports"     class="tab-pane"></div>
+  <div id="pane-invoices"    class="tab-pane"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CLOUD SYNC ────────────────────────────────────────────────
+let _db = null;
+
+// ── KEYS ──────────────────────────────────────────────────────
+const FIN_KEY = 'sikhay_fin_v1';
+const OT_KEY  = 'sikhay_ot_v1';
+const DLV_KEY = 'sikhay_dlv_v1';
+
+const EXPENSE_CATS = [
+  'Materials & Supplies','Printing Costs','Sewing & Labor',
+  'Utilities','Equipment Maintenance','Marketing','Miscellaneous'
+];
+const INCOME_CATS = [
+  'Order Payment — DP','Order Payment — Balance',
+  'Walk-in Sales','Rush Order Premium','Other Income'
+];
+const METHODS = ['GCash','Cash','Bank'];
+
+// ── STATE ─────────────────────────────────────────────────────
+const now = new Date();
+let selYear  = now.getFullYear();
+let selMonth = now.getMonth(); // 0-indexed
+let activeTab = 'overview';
+let selOrderId = null; // for per-order costs form
+
+// ── DATA ACCESS ───────────────────────────────────────────────
+function getFinData() {
+  try {
+    const d = JSON.parse(localStorage.getItem(FIN_KEY)) || {};
+    if (!d.expenses)         d.expenses = [];
+    if (!d.orderCosts)       d.orderCosts = [];
+    if (!d.income)           d.income = [];
+    if (!d.customIncomeCats) d.customIncomeCats = [];
+    if (!d.invoices)         d.invoices = [];
+    return d;
+  } catch { return { expenses:[], orderCosts:[], income:[], customIncomeCats:[] }; }
+}
+function saveFinData(data) {
+  localStorage.setItem(FIN_KEY, JSON.stringify(data));
+  if (_db) _db.saveFinance(data).catch(() => {});
+}
+
+function getOrders() {
+  try { return JSON.parse(localStorage.getItem(OT_KEY)) || []; }
+  catch { return []; }
+}
+function getDeliveries() {
+  try { return JSON.parse(localStorage.getItem(DLV_KEY)) || []; }
+  catch { return []; }
+}
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+// ── MONEY FORMAT ──────────────────────────────────────────────
+function peso(n) { return '₱' + (parseFloat(n)||0).toLocaleString('en-PH', {minimumFractionDigits:0, maximumFractionDigits:0}); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtExpDate(ds) {
+  if (!ds) return '—';
+  const d = new Date(ds + 'T00:00:00');
+  const m = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+  return `${m[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+}
+
+// ── MONTH HELPERS ─────────────────────────────────────────────
+function inMonth(dateStr, year, month) {
+  if (!dateStr) return false;
+  const d = new Date(dateStr);
+  return d.getFullYear() === year && d.getMonth() === month;
+}
+function monthLabel(year, month) {
+  return new Date(year, month, 1).toLocaleDateString('en-PH', { month:'long', year:'numeric' });
+}
+
+// ── COMPUTATION ENGINE ────────────────────────────────────────
+function getDeliveredInMonth(year, month) {
+  const orders = getOrders();
+  const dlvs   = getDeliveries();
+  return orders.filter(o => {
+    if (o.status !== 'delivered') return false;
+    const dlv = dlvs.find(d => d.orderId === o.id);
+    return dlv && inMonth(dlv.deliveredAt, year, month);
+  });
+}
+
+function calcRecognizedRevenue(year, month) {
+  const fin = getFinData();
+  // Orders that have a linked invoice are tracked via invoice payment income entries
+  const invoicedOrderIds = new Set((fin.invoices||[]).map(i => i.orderId).filter(Boolean));
+  // Legacy: delivered orders with no invoice use the order.total field
+  const orderRevenue = getDeliveredInMonth(year, month)
+    .filter(o => !invoicedOrderIds.has(o.id))
+    .reduce((s, o) => s + (parseFloat(o.total)||0), 0);
+  // Invoice-based: payments auto-synced into fin.income (identified by invoiceId field)
+  const invoiceRevenue = (fin.income||[])
+    .filter(e => e.invoiceId && inMonth(e.date, year, month))
+    .reduce((s, e) => s + (parseFloat(e.amount)||0), 0);
+  return orderRevenue + invoiceRevenue;
+}
+
+function calcCashCollected(year, month) {
+  const dlvs = getDeliveries();
+  return getDeliveredInMonth(year, month).reduce((s,o) => {
+    const dp  = parseFloat(o.dp) || 0;
+    const dlv = dlvs.find(d => d.orderId === o.id);
+    const gc  = (dlv?.gcash||[]).reduce((a,r) => a + (parseFloat(r.amount)||0), 0);
+    return s + dp + gc;
+  }, 0);
+}
+
+function calcPendingBalances() {
+  const orders = getOrders();
+  const dlvs   = getDeliveries();
+  return orders.filter(o => o.status !== 'delivered').reduce((s,o) => {
+    const total  = parseFloat(o.total) || 0;
+    const dp     = parseFloat(o.dp)    || 0;
+    const dlv    = dlvs.find(d => d.orderId === o.id);
+    const gcPaid = (dlv?.gcash||[]).reduce((a,r) => a + (parseFloat(r.amount)||0), 0);
+    return s + Math.max(0, total - dp - gcPaid);
+  }, 0);
+}
+
+function calcPerOrderCosts(year, month) {
+  const fin = getFinData();
+  return getDeliveredInMonth(year, month).reduce((s,o) => {
+    const c = fin.orderCosts.find(x => x.orderId === o.id);
+    if (!c) return s;
+    return s + (parseFloat(c.garments)||0) + (parseFloat(c.inkPaper)||0) + (parseFloat(c.labor)||0) + (parseFloat(c.other)||0);
+  }, 0);
+}
+
+function calcOverhead(year, month) {
+  return getFinData().expenses
+    .filter(e => inMonth(e.date, year, month))
+    .reduce((s,e) => s + (parseFloat(e.amount)||0), 0);
+}
+
+function calcManualIncome(year, month) {
+  return (getFinData().income || [])
+    .filter(e => inMonth(e.date, year, month))
+    .reduce((s,e) => s + (parseFloat(e.amount)||0), 0);
+}
+
+function calcNetProfit(year, month) {
+  return calcRecognizedRevenue(year, month) - calcPerOrderCosts(year, month) - calcOverhead(year, month);
+}
+
+function calcBIR(year, month) {
+  return calcRecognizedRevenue(year, month) * 0.03;
+}
+
+function getLargestExpenseCategory(year, month) {
+  const totals = {};
+  getFinData().expenses
+    .filter(e => inMonth(e.date, year, month))
+    .forEach(e => { totals[e.category] = (totals[e.category]||0) + (parseFloat(e.amount)||0); });
+  let top = null, max = 0;
+  Object.entries(totals).forEach(([cat, amt]) => { if (amt > max) { max = amt; top = cat; } });
+  return top ? `${top} (${peso(max)})` : '—';
+}
+
+function getOrderCostForOrder(orderId) {
+  return getFinData().orderCosts.find(x => x.orderId === orderId) || { garments:0, inkPaper:0, labor:0, other:0 };
+}
+
+// ── TOAST ─────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── TAB SWITCHING ─────────────────────────────────────────────
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('pane-' + name).classList.add('active');
+  activeTab = name;
+  if (name === 'overview')    renderOverview();
+  if (name === 'income')      renderIncome();
+  if (name === 'expenses')    renderExpenses();
+  if (name === 'order-costs') renderOrderCosts();
+  if (name === 'reports')     renderReports();
+  if (name === 'invoices')    renderInvoices();
+}
+
+// ── MONTH NAVIGATION ──────────────────────────────────────────
+function prevMonth() {
+  selMonth--;
+  if (selMonth < 0) { selMonth = 11; selYear--; }
+  rerenderActive();
+}
+function nextMonth() {
+  selMonth++;
+  if (selMonth > 11) { selMonth = 0; selYear++; }
+  rerenderActive();
+}
+function rerenderActive() {
+  if (activeTab === 'overview')    renderOverview();
+  if (activeTab === 'income')      renderIncome();
+  if (activeTab === 'expenses')    renderExpenses();
+  if (activeTab === 'reports')     renderReports();
+}
+
+// ── MONTH SELECTOR HTML ───────────────────────────────────────
+function monthSelectorHTML() {
+  return `<div class="month-sel no-print">
+    <button onclick="prevMonth()"><i class="ti ti-chevron-left"></i></button>
+    <span class="ms-label">${monthLabel(selYear, selMonth)}</span>
+    <button onclick="nextMonth()"><i class="ti ti-chevron-right"></i></button>
+  </div>`;
+}
+
+// ── BOOT ──────────────────────────────────────────────────────
+(async () => {
+  _db = await SikhayDB.requireAuth();
+  if (!_db) return;
+  try { await _db.getFinance(); } catch(e) {}
+  renderOverview();
+})();
+window.addEventListener('focus', () => {
+  if (activeTab === 'overview')    renderOverview();
+  if (activeTab === 'income')      renderIncome();
+  if (activeTab === 'expenses')    renderExpenses();
+  if (activeTab === 'order-costs') renderOrderCosts();
+  if (activeTab === 'reports')     renderReports();
+});
+
+// ── CHART & WEEK HELPERS ──────────────────────────────────────
+function getLastNMonths(n) {
+  const result = [];
+  for (let i = n - 1; i >= 0; i--) {
+    let m = selMonth - i, y = selYear;
+    while (m < 0) { m += 12; y--; }
+    result.push({ year: y, month: m });
+  }
+  return result;
+}
+
+function calcThisWeek() {
+  const now = new Date();
+  const day = now.getDay();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+  monday.setHours(0, 0, 0, 0);
+  const sunday = new Date(monday.getTime() + 7 * 24 * 60 * 60 * 1000 - 1);
+  const inWeek = (ds) => { if (!ds) return false; const d = new Date(ds); return d >= monday && d <= sunday; };
+  const orders = getOrders().filter(o => inWeek(o.dateAdded));
+  const fin    = getFinData();
+  const expenses = fin.expenses.filter(e => inWeek(e.date)).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+  return {
+    count:     orders.length,
+    value:     orders.reduce((s, o) => s + (parseFloat(o.total) || 0), 0),
+    expenses:  expenses,
+    delivered: getDeliveries().filter(d => inWeek(d.deliveredAt)).length,
+  };
+}
+
+function initCharts(months) {
+  const labels   = months.map(m => new Date(m.year, m.month, 1).toLocaleDateString('en-PH', { month: 'short', year: '2-digit' }));
+  const revenues = months.map(m => calcRecognizedRevenue(m.year, m.month));
+  const expenses = months.map(m => calcPerOrderCosts(m.year, m.month) + calcOverhead(m.year, m.month));
+  let running = 0;
+  const cashBalance = months.map((m, i) => { running += revenues[i] - expenses[i]; return running; });
+
+  const barCtx = document.getElementById('chart-monthly');
+  if (barCtx) {
+    const ex = Chart.getChart('chart-monthly'); if (ex) ex.destroy();
+    new Chart(barCtx, {
+      type: 'bar',
+      data: { labels, datasets: [
+        { label: 'Revenue',  data: revenues, backgroundColor: '#22c55e55', borderColor: '#22c55e', borderWidth: 2, borderRadius: 4 },
+        { label: 'Expenses', data: expenses, backgroundColor: '#ef444455', borderColor: '#ef4444', borderWidth: 2, borderRadius: 4 },
+      ]},
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#888', font: { size: 11 } } } },
+        scales: {
+          x: { ticks: { color: '#888', font: { size: 11 } }, grid: { color: '#2a2a2a' } },
+          y: { ticks: { color: '#888', font: { size: 11 }, callback: v => '₱' + v.toLocaleString('en-PH') }, grid: { color: '#2a2a2a' } }
+        }
+      }
+    });
+  }
+
+  const lineCtx = document.getElementById('chart-cashflow');
+  if (lineCtx) {
+    const ex = Chart.getChart('chart-cashflow'); if (ex) ex.destroy();
+    new Chart(lineCtx, {
+      type: 'line',
+      data: { labels, datasets: [{
+        label: 'Cumulative Net Profit',
+        data: cashBalance,
+        borderColor: '#f59e0b', backgroundColor: '#f59e0b18',
+        fill: true, tension: 0.35,
+        pointBackgroundColor: cashBalance.map(v => v >= 0 ? '#22c55e' : '#ef4444'),
+        pointRadius: 5,
+      }]},
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#888', font: { size: 11 } } } },
+        scales: {
+          x: { ticks: { color: '#888', font: { size: 11 } }, grid: { color: '#2a2a2a' } },
+          y: { ticks: { color: '#888', font: { size: 11 }, callback: v => '₱' + v.toLocaleString('en-PH') }, grid: { color: '#2a2a2a' } }
+        }
+      }
+    });
+  }
+}
+
+// ── OVERVIEW ──────────────────────────────────────────────────
+function renderOverview() {
+  const rev      = calcRecognizedRevenue(selYear, selMonth);
+  const collected= calcCashCollected(selYear, selMonth);
+  const pending  = calcPendingBalances();
+  const pocCosts = calcPerOrderCosts(selYear, selMonth);
+  const overhead = calcOverhead(selYear, selMonth);
+  const total_ex = pocCosts + overhead;
+  const profit   = calcNetProfit(selYear, selMonth);
+  const bir      = calcBIR(selYear, selMonth);
+  const topCat   = getLargestExpenseCategory(selYear, selMonth);
+  const manInc   = calcManualIncome(selYear, selMonth);
+  const tw       = calcThisWeek();
+  const months   = getLastNMonths(6);
+
+  const profitClass = profit >= 0 ? 'stat-green' : 'stat-red';
+  const negClass    = profit < 0  ? 'net-negative' : '';
+
+  document.getElementById('pane-overview').innerHTML = `
+    ${monthSelectorHTML()}
+
+    <div class="this-week">
+      <div class="tw-title"><i class="ti ti-calendar-week"></i> This Week</div>
+      <div class="tw-grid">
+        <div class="tw-item">
+          <div class="tw-val">${tw.count}</div>
+          <div class="tw-lbl">New Orders</div>
+        </div>
+        <div class="tw-item">
+          <div class="tw-val" style="color:var(--green)">${peso(tw.value)}</div>
+          <div class="tw-lbl">Orders Value</div>
+        </div>
+        <div class="tw-item">
+          <div class="tw-val">${tw.delivered}</div>
+          <div class="tw-lbl">Delivered</div>
+        </div>
+        <div class="tw-item">
+          <div class="tw-val" style="color:var(--danger)">${peso(tw.expenses)}</div>
+          <div class="tw-lbl">Expenses</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-card stat-green">
+        <i class="ti ti-trending-up stat-icon" style="color:var(--green)"></i>
+        <div class="stat-label">Recognized Revenue</div>
+        <div class="stat-value">${peso(rev)}</div>
+        <div class="stat-sub">Orders delivered this month</div>
+      </div>
+      <div class="stat-card stat-red">
+        <i class="ti ti-receipt stat-icon" style="color:var(--danger)"></i>
+        <div class="stat-label">Total Expenses</div>
+        <div class="stat-value" style="color:var(--danger)">${peso(total_ex)}</div>
+        <div class="stat-sub">Costs + Overhead</div>
+      </div>
+      <div class="stat-card ${profitClass} ${negClass}">
+        <i class="ti ti-coin stat-icon"></i>
+        <div class="stat-label">Net Profit</div>
+        <div class="stat-value">${peso(profit)}</div>
+        <div class="stat-sub">${rev > 0 ? Math.round(profit/rev*100) + '% margin' : '—'}</div>
+      </div>
+      <div class="stat-card stat-amber">
+        <i class="ti ti-building-bank stat-icon" style="color:var(--amber)"></i>
+        <div class="stat-label">BIR Tax Due (est.)</div>
+        <div class="stat-value">${peso(bir)}</div>
+        <div class="stat-sub">3% of recognized revenue</div>
+      </div>
+    </div>
+
+    <div class="panels">
+      <div class="panel">
+        <div class="panel-title"><i class="ti ti-trending-up"></i> Revenue Breakdown</div>
+        <div class="panel-row">
+          <span class="panel-row-label">Recognized Revenue</span>
+          <span class="panel-row-val val-green">${peso(rev)}</span>
+        </div>
+        <div class="panel-row">
+          <span class="panel-row-label">Cash Collected (DP + GCash)</span>
+          <span class="panel-row-val">${peso(collected)}</span>
+        </div>
+        <div class="panel-row">
+          <span class="panel-row-label">Income Logged (Manual)</span>
+          <span class="panel-row-val val-green">${peso(manInc)}</span>
+        </div>
+        <div class="panel-row">
+          <span class="panel-row-label">Pending Balances</span>
+          <span class="panel-row-val val-amber">${peso(pending)}</span>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title"><i class="ti ti-trending-down"></i> Expense Breakdown</div>
+        <div class="panel-row">
+          <span class="panel-row-label">Per-Order Costs</span>
+          <span class="panel-row-val val-red">${peso(pocCosts)}</span>
+        </div>
+        <div class="panel-row">
+          <span class="panel-row-label">Overhead</span>
+          <span class="panel-row-val val-red">${peso(overhead)}</span>
+        </div>
+        <div class="panel-row">
+          <span class="panel-row-label">Largest Category</span>
+          <span class="panel-row-val val-muted">${esc(topCat)}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title"><i class="ti ti-chart-bar"></i> Monthly Sales vs Expenses (last 6 months)</div>
+      <div class="chart-wrap"><canvas id="chart-monthly"></canvas></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title"><i class="ti ti-chart-line"></i> Running Cash Balance</div>
+      <div class="chart-wrap"><canvas id="chart-cashflow"></canvas></div>
+    </div>
+  `;
+
+  initCharts(months);
+}
+function getExpenseCats() {
+  const fin = getFinData();
+  const custom = fin.customExpenseCats || [];
+  return [...EXPENSE_CATS, ...custom.filter(c => !EXPENSE_CATS.includes(c))];
+}
+function toggleExpenseCatInput() {
+  const row = document.getElementById('ex-newcat-row');
+  if (!row) return;
+  row.style.display = row.style.display === 'none' ? 'flex' : 'none';
+  if (row.style.display === 'flex') document.getElementById('ex-newcat')?.focus();
+}
+function addExpenseCategory() {
+  const input = document.getElementById('ex-newcat');
+  const name = (input?.value || '').trim();
+  if (!name) { showToast('Enter a category name.'); return; }
+  const fin = getFinData();
+  if (!fin.customExpenseCats) fin.customExpenseCats = [];
+  if (getExpenseCats().includes(name)) { showToast('Category already exists.'); return; }
+  fin.customExpenseCats.push(name);
+  saveFinData(fin);
+  showToast('"' + name + '" added.');
+  // Surgically add the option and select it — avoids wiping the form
+  const sel = document.getElementById('ex-cat');
+  if (sel) {
+    const opt = document.createElement('option');
+    opt.value = name; opt.textContent = name;
+    sel.appendChild(opt);
+    sel.value = name;
+  }
+  const row = document.getElementById('ex-newcat-row');
+  if (row) row.style.display = 'none';
+  if (input) input.value = '';
+}
+
+function renderExpenses() {
+  const fin  = getFinData();
+  const list = fin.expenses
+    .filter(e => inMonth(e.date, selYear, selMonth))
+    .sort((a,b) => a.date.localeCompare(b.date));
+
+  const catOptions = getExpenseCats().map(c => `<option value="${c}">${c}</option>`).join('');
+  const methodOptions = METHODS.map(m => `<option value="${m}">${m}</option>`).join('');
+
+  const today = new Date().toISOString().split('T')[0];
+
+  const rows = list.length ? list.map(e => `
+    <div class="expense-row">
+      <span>${fmtExpDate(e.date)}</span>
+      <span class="ex-desc-cell">${esc(e.description||'—')}</span>
+      <span><span class="category-pill">${esc(e.category)}</span></span>
+      <span style="font-weight:700">${peso(e.amount)}</span>
+      <span style="color:var(--muted)">${esc(e.method)}</span>
+      <button class="del-btn" onclick="deleteExpense('${esc(e.id)}')"><i class="ti ti-trash"></i></button>
+    </div>`).join('')
+  : `<div class="empty-state"><i class="ti ti-inbox"></i>No expenses logged for ${monthLabel(selYear,selMonth)}.</div>`;
+
+  document.getElementById('pane-expenses').innerHTML = `
+    ${monthSelectorHTML()}
+    <div class="form-card no-print">
+      <h3><i class="ti ti-plus" style="margin-right:6px"></i>Add Expense</h3>
+      <div class="form-row-top">
+        <div class="form-group">
+          <label class="form-label">Date</label>
+          <input type="date" class="form-input" id="ex-date" value="${today}" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <select class="form-select" id="ex-cat" style="flex:1">${catOptions}</select>
+            <button class="btn btn-ghost" style="padding:7px 10px;font-size:16px;line-height:1;flex-shrink:0" onclick="toggleExpenseCatInput()" title="Add new category">+</button>
+          </div>
+          <div id="ex-newcat-row" style="display:none;gap:6px;margin-top:6px">
+            <input type="text" class="form-input" id="ex-newcat" placeholder="New category name…" style="flex:1" onkeydown="if(event.key==='Enter')addExpenseCategory()">
+            <button class="btn btn-ghost" style="padding:7px 10px;font-size:12px;white-space:nowrap" onclick="addExpenseCategory()"><i class="ti ti-check"></i> Add</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Amount (₱)</label>
+          <input type="number" class="form-input" id="ex-amount" placeholder="0" min="0" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Method</label>
+          <select class="form-select" id="ex-method">${methodOptions}</select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">&nbsp;</label>
+          <button class="btn btn-primary" onclick="addExpense()"><i class="ti ti-plus"></i> Add</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description / Notes</label>
+        <textarea class="form-input form-textarea" id="ex-desc" placeholder="e.g. Ink refill for Epson L3250, bought at SM — pwede mag-elaborate ng detalye dito…"></textarea>
+      </div>
+    </div>
+    <div class="expense-list">
+      <div class="expense-list-head">
+        <span>Date</span><span>Description</span><span>Category</span>
+        <span>Amount</span><span>Method</span><span></span>
+      </div>
+      ${rows}
+    </div>
+  `;
+}
+
+function addExpense() {
+  const date   = document.getElementById('ex-date').value;
+  const desc   = document.getElementById('ex-desc').value.trim();
+  const cat    = document.getElementById('ex-cat').value;
+  const amount = parseFloat(document.getElementById('ex-amount').value);
+  const method = document.getElementById('ex-method').value;
+  if (!date)         { showToast('Please enter a date.'); return; }
+  if (isNaN(amount) || amount <= 0) { showToast('Please enter a valid amount.'); return; }
+  const fin = getFinData();
+  fin.expenses.push({ id: uid(), date, category: cat, description: desc||cat, amount, method });
+  saveFinData(fin);
+  showToast('Expense added.');
+  renderExpenses();
+}
+
+function deleteExpense(id) {
+  if (!confirm('Delete this expense entry?')) return;
+  const fin = getFinData();
+  fin.expenses = fin.expenses.filter(e => e.id !== id);
+  saveFinData(fin);
+  showToast('Expense deleted.');
+  renderExpenses();
+}
+
+// ── INCOME TRACKER ────────────────────────────────────────────
+function getIncomeCats() {
+  const fin = getFinData();
+  const custom = fin.customIncomeCats || [];
+  return [...INCOME_CATS, ...custom.filter(c => !INCOME_CATS.includes(c))];
+}
+
+function toggleIncomeCatInput() {
+  const row = document.getElementById('inc-newcat-row');
+  if (!row) return;
+  row.style.display = row.style.display === 'none' ? 'flex' : 'none';
+  if (row.style.display === 'flex') document.getElementById('inc-newcat')?.focus();
+}
+
+function addIncomeCategory() {
+  const input = document.getElementById('inc-newcat');
+  const name = (input?.value || '').trim();
+  if (!name) { showToast('Enter a category name.'); return; }
+  const fin = getFinData();
+  if (!fin.customIncomeCats) fin.customIncomeCats = [];
+  if (getIncomeCats().includes(name)) { showToast('Category already exists.'); return; }
+  fin.customIncomeCats.push(name);
+  saveFinData(fin);
+  showToast('"' + name + '" added.');
+  const sel = document.getElementById('inc-cat');
+  if (sel) {
+    const opt = document.createElement('option');
+    opt.value = name; opt.textContent = name;
+    sel.appendChild(opt);
+    sel.value = name;
+  }
+  const row = document.getElementById('inc-newcat-row');
+  if (row) row.style.display = 'none';
+  if (input) input.value = '';
+}
+
+function renderIncome() {
+  const fin  = getFinData();
+  const list = (fin.income || [])
+    .filter(e => inMonth(e.date, selYear, selMonth))
+    .sort((a,b) => a.date.localeCompare(b.date));
+
+  const catOptions    = getIncomeCats().map(c => `<option value="${c}">${c}</option>`).join('');
+  const methodOptions = METHODS.map(m => `<option value="${m}">${m}</option>`).join('');
+  const today = new Date().toISOString().split('T')[0];
+  const total = list.reduce((s,e) => s + (parseFloat(e.amount)||0), 0);
+
+  const rows = list.length ? list.map(e => `
+    <div class="expense-row" style="grid-template-columns:155px 1fr 170px 110px 90px 50px">
+      <span>${fmtExpDate(e.date)}</span>
+      <span class="ex-desc-cell">${esc(e.description||'—')}</span>
+      <span><span class="${e.invoiceId ? 'category-pill' : 'income-pill'}">${esc(e.category)}</span></span>
+      <span style="font-weight:700;color:var(--green)">${peso(e.amount)}</span>
+      <span style="color:var(--muted)">${esc(e.method)}</span>
+      ${e.invoiceId
+        ? `<span title="Auto-synced from invoice" style="color:var(--muted);font-size:11px;padding:4px 6px"><i class="ti ti-file-invoice"></i></span>`
+        : `<button class="del-btn" onclick="deleteIncome('${esc(e.id)}')"><i class="ti ti-trash"></i></button>`}
+    </div>`).join('')
+  : `<div class="empty-state"><i class="ti ti-inbox"></i>No income logged for ${monthLabel(selYear,selMonth)}.</div>`;
+
+  document.getElementById('pane-income').innerHTML = `
+    ${monthSelectorHTML()}
+    <div class="form-card no-print">
+      <h3><i class="ti ti-cash" style="margin-right:6px"></i>Log Income / Payment Received</h3>
+      <div class="form-row-top">
+        <div class="form-group">
+          <label class="form-label">Date</label>
+          <input type="date" class="form-input" id="inc-date" value="${today}" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <select class="form-select" id="inc-cat" style="flex:1">${catOptions}</select>
+            <button class="btn btn-ghost" style="padding:7px 10px;font-size:16px;line-height:1;flex-shrink:0" onclick="toggleIncomeCatInput()" title="Add new category">+</button>
+          </div>
+          <div id="inc-newcat-row" style="display:none;gap:6px;margin-top:6px">
+            <input type="text" class="form-input" id="inc-newcat" placeholder="New category name…" style="flex:1" onkeydown="if(event.key==='Enter')addIncomeCategory()">
+            <button class="btn btn-ghost" style="padding:7px 10px;font-size:12px;white-space:nowrap" onclick="addIncomeCategory()"><i class="ti ti-check"></i> Add</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Amount (₱)</label>
+          <input type="number" class="form-input" id="inc-amount" placeholder="0" min="0" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Method</label>
+          <select class="form-select" id="inc-method">${methodOptions}</select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">&nbsp;</label>
+          <button class="btn btn-green" onclick="addIncome()"><i class="ti ti-plus"></i> Add</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description / Notes</label>
+        <textarea class="form-input form-textarea" id="inc-desc" placeholder="e.g. Juan dela Cruz — balance payment for sublimation jerseys, received via GCash…"></textarea>
+      </div>
+    </div>
+    <div class="expense-list">
+      <div class="expense-list-head" style="grid-template-columns:155px 1fr 170px 110px 90px 50px">
+        <span>Date</span><span>Description</span><span>Category</span>
+        <span>Amount</span><span>Method</span><span></span>
+      </div>
+      ${list.length ? `<div class="income-total-bar">
+        <span style="color:var(--green);font-weight:700"><i class="ti ti-trending-up"></i> Total — ${monthLabel(selYear,selMonth)}</span>
+        <span style="font-size:20px;font-weight:800;color:var(--green)">${peso(total)}</span>
+      </div>` : ''}
+      ${rows}
+    </div>
+  `;
+}
+
+function addIncome() {
+  const date   = document.getElementById('inc-date').value;
+  const desc   = document.getElementById('inc-desc').value.trim();
+  const cat    = document.getElementById('inc-cat').value;
+  const amount = parseFloat(document.getElementById('inc-amount').value);
+  const method = document.getElementById('inc-method').value;
+  if (!date)                       { showToast('Please enter a date.'); return; }
+  if (isNaN(amount) || amount <= 0){ showToast('Please enter a valid amount.'); return; }
+  const fin = getFinData();
+  fin.income.push({ id: uid(), date, category: cat, description: desc||cat, amount, method });
+  saveFinData(fin);
+  showToast('Income logged!');
+  renderIncome();
+}
+
+function deleteIncome(id) {
+  if (!confirm('Delete this income entry?')) return;
+  const fin   = getFinData();
+  const entry = (fin.income||[]).find(e => e.id === id);
+  if (entry && entry.invoiceId) {
+    showToast('This entry is auto-synced from an invoice — edit payments on the invoice instead.');
+    return;
+  }
+  fin.income = fin.income.filter(e => e.id !== id);
+  saveFinData(fin);
+  showToast('Entry deleted.');
+  renderIncome();
+}
+
+function renderOrderCosts() {
+  const orders   = getOrders();
+  const fin      = getFinData();
+
+  const sorted   = [...orders].sort((a,b) => new Date(b.dateAdded||0) - new Date(a.dateAdded||0));
+  const opts     = sorted.map(o =>
+    `<option value="${esc(o.id)}" ${o.id===selOrderId?'selected':''}>${esc(o.clientName||'Unknown')} — ${esc(o.apparel||'')} × ${o.qty||0} pcs (${esc(o.status.replace('_',' '))})</option>`
+  ).join('');
+
+  if (!selOrderId && sorted.length) selOrderId = sorted[0].id;
+  const selOrder = orders.find(o => o.id === selOrderId);
+  const costs    = getOrderCostForOrder(selOrderId);
+
+  const total_ex = (parseFloat(costs.garments)||0) + (parseFloat(costs.inkPaper)||0) + (parseFloat(costs.labor)||0) + (parseFloat(costs.other)||0);
+  const orderTotal = parseFloat(selOrder?.total)||0;
+  const profit   = orderTotal - total_ex;
+  const margin   = orderTotal > 0 ? Math.round(profit/orderTotal*100) : 0;
+  const profitColor = profit >= 0 ? 'val-green' : 'val-red';
+  const marginColor = margin >= 30 ? 'val-green' : margin >= 15 ? 'val-amber' : 'val-red';
+
+  const withCosts = fin.orderCosts.map(c => {
+    const o = orders.find(x => x.id === c.orderId);
+    if (!o) return null;
+    const tot = (parseFloat(c.garments)||0)+(parseFloat(c.inkPaper)||0)+(parseFloat(c.labor)||0)+(parseFloat(c.other)||0);
+    const ot  = parseFloat(o.total)||0;
+    const pr  = ot - tot;
+    const mg  = ot > 0 ? Math.round(pr/ot*100) : 0;
+    return { o, c, tot, ot, pr, mg };
+  }).filter(Boolean).sort((a,b) => a.mg - b.mg);
+
+  const withCostIds = new Set(fin.orderCosts.map(c => c.orderId));
+  const noCosts = orders.filter(o => !withCostIds.has(o.id));
+
+  const listRows = withCosts.map(({o, tot, ot, pr, mg}) => {
+    const pillClass = mg >= 30 ? 'margin-good' : mg >= 15 ? 'margin-warn' : 'margin-bad';
+    return `<div class="ocl-row">
+      <span>${esc(o.clientName||'Unknown')} <span style="color:var(--muted);font-size:12px">· ${esc(o.apparel||'')}</span></span>
+      <span style="font-weight:700">${peso(ot)}</span>
+      <span>${peso(tot)}</span>
+      <span class="${pr>=0?'val-green':'val-red'}" style="font-weight:700">${peso(pr)}</span>
+      <span><span class="margin-pill ${pillClass}">${mg}%</span></span>
+      <button class="btn btn-ghost" style="padding:4px 8px;font-size:11px" onclick="selOrderId='${esc(o.id)}';renderOrderCosts()"><i class="ti ti-edit"></i></button>
+    </div>`;
+  }).join('');
+
+  const noRows = noCosts.map(o => `
+    <div class="ocl-row">
+      <span>${esc(o.clientName||'Unknown')} <span style="color:var(--muted);font-size:12px">· ${esc(o.apparel||'')}</span></span>
+      <span style="font-weight:700">${peso(parseFloat(o.total)||0)}</span>
+      <span class="no-cost-badge">no costs yet</span>
+      <span>—</span><span>—</span>
+      <button class="btn btn-ghost" style="padding:4px 8px;font-size:11px" onclick="selOrderId='${esc(o.id)}';renderOrderCosts()"><i class="ti ti-edit"></i></button>
+    </div>`).join('');
+
+  document.getElementById('pane-order-costs').innerHTML = `
+    <div class="order-cost-form no-print">
+      <h3><i class="ti ti-calculator" style="margin-right:6px"></i>Log Production Costs</h3>
+      ${orders.length === 0
+        ? `<div class="empty-state"><i class="ti ti-package"></i>No orders found. Add orders in the Order Tracker first.</div>`
+        : `<div class="cost-row">
+          <div class="form-group">
+            <label class="form-label">Select Order</label>
+            <select class="form-select" id="oc-order" onchange="selOrderId=this.value;renderOrderCosts()">${opts}</select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Blank Garments (₱)</label>
+            <input type="number" class="form-input" id="oc-garments" value="${costs.garments||''}" placeholder="0" min="0" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ink &amp; Paper (₱)</label>
+            <input type="number" class="form-input" id="oc-ink" value="${costs.inkPaper||''}" placeholder="0" min="0" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Sewing &amp; Labor (₱)</label>
+            <input type="number" class="form-input" id="oc-labor" value="${costs.labor||''}" placeholder="0" min="0" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Other (₱)</label>
+            <input type="number" class="form-input" id="oc-other" value="${costs.other||''}" placeholder="0" min="0" />
+          </div>
+        </div>
+        <div class="cost-computed">
+          <div class="cc-item"><span class="cc-label">Order Total</span><span class="cc-val">${peso(orderTotal)}</span></div>
+          <div class="cc-item"><span class="cc-label">Total Cost</span><span class="cc-val" style="color:var(--danger)">${peso(total_ex)}</span></div>
+          <div class="cc-item"><span class="cc-label">Profit</span><span class="cc-val ${profitColor}">${peso(profit)}</span></div>
+          <div class="cc-item"><span class="cc-label">Margin</span><span class="cc-val ${marginColor}">${margin}%</span></div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px;">
+          <button class="btn btn-primary" onclick="saveOrderCost()"><i class="ti ti-device-floppy"></i> Save Costs</button>
+          ${fin.orderCosts.find(x=>x.orderId===selOrderId)?`<button class="btn btn-danger" onclick="deleteOrderCost('${esc(selOrderId)}')"><i class="ti ti-trash"></i> Remove</button>`:''}
+        </div>`
+      }
+    </div>
+
+    <div class="orders-cost-list">
+      <div class="ocl-head">
+        <span>Order</span><span>Order Total</span><span>Total Cost</span>
+        <span>Profit</span><span>Margin</span><span></span>
+      </div>
+      ${withCosts.length || noCosts.length
+        ? listRows + noRows
+        : `<div class="empty-state"><i class="ti ti-calculator"></i>No cost data yet. Log costs above to see per-order profitability.</div>`
+      }
+    </div>
+  `;
+}
+
+function saveOrderCost() {
+  const garments = parseFloat(document.getElementById('oc-garments').value) || 0;
+  const inkPaper = parseFloat(document.getElementById('oc-ink').value)      || 0;
+  const labor    = parseFloat(document.getElementById('oc-labor').value)    || 0;
+  const other    = parseFloat(document.getElementById('oc-other').value)    || 0;
+  const fin = getFinData();
+  const idx = fin.orderCosts.findIndex(x => x.orderId === selOrderId);
+  const entry = { orderId: selOrderId, garments, inkPaper, labor, other };
+  if (idx >= 0) fin.orderCosts[idx] = entry;
+  else fin.orderCosts.push(entry);
+  saveFinData(fin);
+  showToast('Costs saved.');
+  renderOrderCosts();
+}
+
+function deleteOrderCost(orderId) {
+  if (!confirm('Remove cost data for this order?')) return;
+  const fin = getFinData();
+  fin.orderCosts = fin.orderCosts.filter(x => x.orderId !== orderId);
+  saveFinData(fin);
+  showToast('Cost data removed.');
+  renderOrderCosts();
+}
+function renderReports() {
+  const rev      = calcRecognizedRevenue(selYear, selMonth);
+  const collected= calcCashCollected(selYear, selMonth);
+  const pending  = calcPendingBalances();
+  const pocCosts = calcPerOrderCosts(selYear, selMonth);
+  const overhead = calcOverhead(selYear, selMonth);
+  const total_ex = pocCosts + overhead;
+  const profit   = calcNetProfit(selYear, selMonth);
+  const bir      = calcBIR(selYear, selMonth);
+  const profitColor = profit >= 0 ? '#22c55e' : '#ef4444';
+
+  document.getElementById('pane-reports').innerHTML = `
+    ${monthSelectorHTML()}
+
+    <div class="bir-banner">
+      <i class="ti ti-alert-triangle"></i>
+      <span>BIR estimate is for reference only. Consult your bookkeeper or accountant before filing your percentage tax return.</span>
+    </div>
+
+    <div class="report-card" id="printable-report">
+      <h3>Monthly P&amp;L Report — ${monthLabel(selYear, selMonth)}</h3>
+      <table class="report-table">
+        <tr class="section-header"><td colspan="2">REVENUE</td></tr>
+        <tr>
+          <td>Recognized Revenue (delivered orders)</td>
+          <td class="val" style="color:#22c55e">${peso(rev)}</td>
+        </tr>
+        <tr>
+          <td>Cash Collected (DP + GCash)</td>
+          <td class="val">${peso(collected)}</td>
+        </tr>
+        <tr>
+          <td>Pending Balances (not yet collected)</td>
+          <td class="val" style="color:var(--amber)">${peso(pending)}</td>
+        </tr>
+
+        <tr class="section-header"><td colspan="2">EXPENSES</td></tr>
+        <tr>
+          <td>Per-Order Production Costs</td>
+          <td class="val" style="color:#ef4444">${peso(pocCosts)}</td>
+        </tr>
+        <tr>
+          <td>Overhead (utilities, equipment, etc.)</td>
+          <td class="val" style="color:#ef4444">${peso(overhead)}</td>
+        </tr>
+        <tr>
+          <td><strong>Total Expenses</strong></td>
+          <td class="val" style="color:#ef4444"><strong>${peso(total_ex)}</strong></td>
+        </tr>
+
+        <tr class="section-header"><td colspan="2">PROFITABILITY</td></tr>
+        <tr class="total-row">
+          <td>Net Profit</td>
+          <td class="val" style="color:${profitColor}">${peso(profit)}</td>
+        </tr>
+        <tr>
+          <td>Profit Margin</td>
+          <td class="val" style="color:${profitColor}">${rev > 0 ? Math.round(profit/rev*100)+'%' : '—'}</td>
+        </tr>
+
+        <tr class="section-header"><td colspan="2">BIR — PERCENTAGE TAX (NON-VAT)</td></tr>
+        <tr>
+          <td>Gross Receipts (Recognized Revenue)</td>
+          <td class="val">${peso(rev)}</td>
+        </tr>
+        <tr>
+          <td>Estimated Tax Due (3%)</td>
+          <td class="val" style="color:var(--amber)">${peso(bir)}</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="no-print" style="display:flex;gap:8px;">
+      <button class="btn btn-ghost" onclick="window.print()"><i class="ti ti-printer"></i> Print Report</button>
+    </div>
+  `;
+}
+
+// ── INVOICES ──────────────────────────────────────────────────
+
+let _invFilter  = 'all';
+let _invSearch  = '';
+let _invView    = 'list'; // 'list' | 'form' | 'view'
+let _currentInv = null;
+
+function getInvoices() { return getFinData().invoices || []; }
+function saveInvoiceData(inv) {
+  const fin = getFinData();
+  const idx = fin.invoices.findIndex(i => i.id === inv.id);
+  if (idx >= 0) fin.invoices[idx] = inv; else fin.invoices.unshift(inv);
+
+  // ── Sync income entries for this invoice ──────────────────────
+  if (!fin.income) fin.income = [];
+  // Wipe existing entries for this invoice then rebuild from current state
+  fin.income = fin.income.filter(e => e.invoiceId !== inv.id);
+  const label = invNoLabel(inv.invoiceNo) + ' — ' + (inv.customer || '');
+
+  // One income entry per recorded payment
+  (inv.payments || []).forEach(p => {
+    const amt = parseFloat(p.amount) || 0;
+    if (!amt) return;
+    fin.income.push({
+      id:          p.id + '_inc',
+      date:        p.date,
+      category:    'Sales Invoice',
+      description: label,
+      amount:      amt,
+      method:      p.method || 'Cash',
+      invoiceId:   inv.id,
+      paymentId:   p.id,
+    });
+  });
+
+  // If manually marked paid and a balance remains uncovered by payments, record it
+  const t = calcInvoiceTotals(inv);
+  if (inv.status === 'paid' && t.grossTotal > 0) {
+    const remaining = Math.round((t.grossTotal - t.totalAllPaid) * 100) / 100;
+    if (remaining > 0.005) {
+      fin.income.push({
+        id:          inv.id + '_bal',
+        date:        new Date().toISOString().split('T')[0],
+        category:    'Sales Invoice',
+        description: label + ' (full payment)',
+        amount:      remaining,
+        method:      'Cash',
+        invoiceId:   inv.id,
+        paymentId:   null,
+      });
+    }
+  }
+
+  saveFinData(fin);
+}
+function deleteInvoiceById(id) {
+  const fin = getFinData();
+  fin.invoices = fin.invoices.filter(i => i.id !== id);
+  saveFinData(fin);
+}
+function nextInvoiceNo() {
+  const invs = getInvoices();
+  return invs.length ? Math.max(...invs.map(i => i.invoiceNo || 0)) + 1 : 1;
+}
+function invNoLabel(n) {
+  return 'SPA-INV-' + new Date().getFullYear() + '-' + String(n).padStart(4, '0');
+}
+function calcInvoiceTotals(inv) {
+  const subtotal    = (inv.items||[]).filter(it=>!it.free).reduce((s,it) => s + (parseFloat(it.qty)||0)*(parseFloat(it.price)||0), 0);
+  const discount    = parseFloat(inv.discount)    || 0;
+  const shipping    = parseFloat(inv.shipping)    || 0;
+  const taxRate     = parseFloat(inv.taxRate)     || 0;
+  const downpayment = parseFloat(inv.downpayment) || 0;
+  const taxAmt      = (subtotal - discount + shipping) * taxRate / 100;
+  const rushAmt     = (inv.rushFee && inv.rushFee.type === 'amount') ? (parseFloat(inv.rushFee.amount)||0) : 0;
+  const grossTotal  = subtotal - discount + shipping + taxAmt + rushAmt;   // full order value (before downpayment)
+  const total       = grossTotal - downpayment;                            // "Total Amount Due" on invoice
+  const totalPaid   = (inv.payments||[]).reduce((s,p) => s + (parseFloat(p.amount)||0), 0);
+  const totalAllPaid = downpayment + totalPaid;                            // everything received (downpayment + payments)
+  const balance     = Math.max(0, total - totalPaid);
+  return { subtotal, discount, shipping, taxRate, taxAmt, rushAmt, downpayment, grossTotal, total, totalPaid, totalAllPaid, balance };
+}
+function getInvStatus(inv) {
+  const t = calcInvoiceTotals(inv);
+  // Fully paid — manual OR total received (downpayment + payments) covers gross total
+  if (inv.status === 'paid' || (t.grossTotal > 0 && t.totalAllPaid >= t.grossTotal)) return 'paid';
+  // Partial paid — downpayment and/or some payments made but not complete
+  if (t.totalAllPaid > 0 && t.totalAllPaid < t.grossTotal) return 'partial';
+  // Sent
+  if (inv.status === 'sent') return 'sent';
+  // Draft (default)
+  return 'draft';
+}
+function invStatusBadge(inv) {
+  const s = getInvStatus(inv);
+  const labels = { draft:'Draft', sent:'Sent', partial:'Partial Paid', paid:'Paid' };
+  const icons  = { draft:'file', sent:'send', partial:'clock-dollar', paid:'circle-check' };
+  return `<span class="inv-status ${s}"><i class="ti ti-${icons[s]||'file'}"></i> ${labels[s]||s}</span>`;
+}
+function fmtInvDate(ds) {
+  if (!ds) return '—';
+  const d = new Date(ds+'T00:00:00');
+  const M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return M[d.getMonth()] + ' ' + d.getDate();
+}
+function fmtLongDate(ds) {
+  if (!ds) return '';
+  const d = new Date(ds+'T00:00:00');
+  const M = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return M[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+}
+function updateInvItem(itemId, field, val) {
+  const item = (_currentInv.items||[]).find(i => i.id === itemId);
+  if (item) item[field] = val;
+}
+function toggleInvItemFree(itemId, checked) {
+  const item = (_currentInv.items||[]).find(i => i.id === itemId);
+  if (!item) return;
+  item.free = checked;
+  if (checked) item.price = 0;
+  updateInvoiceTotals();
+  // Re-render to grey out price input
+  renderInvoiceForm();
+}
+
+// ── LIST VIEW ─────────────────────────────────────────────────
+function renderInvoices() {
+  const pane = document.getElementById('pane-invoices');
+  if (!pane) return;
+  if (_invView === 'form') { renderInvoiceForm(); return; }
+  if (_invView === 'view') { renderInvoiceView(); return; }
+
+  const all  = getInvoices();
+  let   list = [...all];
+  if (_invSearch) {
+    const q = _invSearch.toLowerCase();
+    list = list.filter(i => (i.customer||'').toLowerCase().includes(q) || String(i.invoiceNo).includes(q));
+  }
+  if (_invFilter !== 'all') list = list.filter(i => getInvStatus(i) === _invFilter);
+
+  const nDraft   = all.filter(i => getInvStatus(i) === 'draft').length;
+  const nSent    = all.filter(i => getInvStatus(i) === 'sent').length;
+  const nPartial = all.filter(i => getInvStatus(i) === 'partial').length;
+  const nPaid    = all.filter(i => getInvStatus(i) === 'paid').length;
+
+  let rows = all.length
+    ? (list.length ? list.map(inv => {
+        const t = calcInvoiceTotals(inv);
+        return `
+        <div class="inv-row" onclick="openInvoiceView('${inv.id}')">
+          <div style="font-weight:700;color:var(--muted);font-size:12px">${invNoLabel(inv.invoiceNo)}</div>
+          <div style="font-weight:600">${esc(inv.customer||'—')}</div>
+          <div style="font-weight:700">${peso(t.grossTotal)}</div>
+          <div style="font-weight:700;color:${t.balance<=0?'var(--green)':'var(--amber)'}">${t.balance<=0?'<span style="font-size:11px">Paid</span>':peso(t.balance)}</div>
+          <div style="color:var(--muted);font-size:12px">${fmtInvDate(inv.date)}</div>
+          <div style="color:var(--muted);font-size:12px">${fmtInvDate(inv.dueDate)}</div>
+          <div>${invStatusBadge(inv)}</div>
+          <div onclick="event.stopPropagation()">
+            <button class="del-btn" onclick="deleteInvoiceConfirm('${inv.id}')"><i class="ti ti-trash"></i></button>
+          </div>
+        </div>`;
+      }).join('') : `<div class="empty-state"><i class="ti ti-search"></i>No invoices match your filter</div>`)
+    : `<div class="empty-state"><i class="ti ti-file-invoice"></i>No invoices yet — create your first one</div>`;
+
+  pane.innerHTML = `
+    <div class="inv-toolbar">
+      <input class="inv-search" type="text" placeholder="Search by customer or invoice #…" value="${esc(_invSearch)}"
+        oninput="_invSearch=this.value;renderInvoices()">
+      <div class="inv-filter-group">
+        <button class="inv-filter ${_invFilter==='all'?'active':''}"              onclick="_invFilter='all';renderInvoices()">All (${all.length})</button>
+        <button class="inv-filter ${_invFilter==='draft'?'active':''}"            onclick="_invFilter='draft';renderInvoices()">Draft (${nDraft})</button>
+        <button class="inv-filter ${_invFilter==='sent'?'active':''}    "         onclick="_invFilter='sent';renderInvoices()">Sent (${nSent})</button>
+        <button class="inv-filter ${_invFilter==='partial'?'active':''}"          onclick="_invFilter='partial';renderInvoices()">Partial Paid (${nPartial})</button>
+        <button class="inv-filter f-paid ${_invFilter==='paid'?'active':''}"      onclick="_invFilter='paid';renderInvoices()">Paid (${nPaid})</button>
+      </div>
+      <button class="btn btn-primary" onclick="openInvoiceCreate()"><i class="ti ti-plus"></i> Create Invoice</button>
+    </div>
+    <div class="inv-table-wrap">
+      <div class="inv-table-head">
+        <div>Invoice #</div><div>Customer</div><div>Amount</div><div>Amount Due</div>
+        <div>Issued</div><div>Due</div><div>Status</div><div></div>
+      </div>
+      ${rows}
+    </div>`;
+}
+
+// ── FORM VIEW ─────────────────────────────────────────────────
+function openInvoiceCreate() {
+  _currentInv = {
+    id: uid(), invoiceNo: nextInvoiceNo(), poNo: '',
+    customer: '', focalPerson: '', focalPhone: '',
+    date:    new Date().toISOString().split('T')[0],
+    dueDate: new Date().toISOString().split('T')[0],
+    items: [{ id:uid(), description:'', subDesc:'', qty:1, price:0, free:false }],
+    rushFee: { type:'none', amount:0 },
+    discount:0, shipping:0, taxRate:0, downpayment:0,
+    paymentTerms:'', note:'', status:'draft', payments:[]
+  };
+  _invView = 'form';
+  renderInvoices();
+}
+function openInvoiceEdit(id) {
+  const inv = getInvoices().find(i => i.id === id);
+  if (!inv) return;
+  _currentInv = JSON.parse(JSON.stringify(inv));
+  // backfill new fields for old saved invoices
+  if (!_currentInv.focalPerson) _currentInv.focalPerson = '';
+  if (!_currentInv.focalPhone)  _currentInv.focalPhone  = '';
+  if (!_currentInv.rushFee)     _currentInv.rushFee = { type:'none', amount:0 };
+  if (!_currentInv.paymentTerms) _currentInv.paymentTerms = '';
+  if (!_currentInv.payments)    _currentInv.payments = [];
+  if (_currentInv.downpayment === undefined) _currentInv.downpayment = 0;
+  (_currentInv.items||[]).forEach(it => { if (it.subDesc===undefined) it.subDesc=''; if (it.free===undefined) it.free=false; });
+  _invView = 'form';
+  renderInvoices();
+}
+function closeInvoicePanel() {
+  _invView = 'list'; _currentInv = null; renderInvoices();
+}
+function closeInvoiceForm() { closeInvoicePanel(); }
+
+function renderInvoiceForm() {
+  const pane = document.getElementById('pane-invoices');
+  if (!pane || !_currentInv) return;
+  const inv   = _currentInv;
+  const t     = calcInvoiceTotals(inv);
+  const isNew = !getInvoices().find(i => i.id === inv.id);
+  const s     = getInvStatus(inv);
+  const rf    = inv.rushFee || { type:'none', amount:0 };
+
+  const itemsHTML = (inv.items||[]).map(item => {
+    const isFree = !!item.free;
+    const amt    = isFree ? 'FREE' : peso((parseFloat(item.qty)||0)*(parseFloat(item.price)||0));
+    const freeRow = isFree ? 'background:#0d2b0d;' : '';
+    return `
+      <div style="${freeRow}border-bottom:1px solid var(--border);padding:8px 12px">
+        <div style="display:grid;grid-template-columns:1fr 75px 115px 105px 30px;gap:8px;align-items:center">
+          <div style="display:flex;align-items:center;gap:7px">
+            <input type="checkbox" title="FREE item" ${isFree?'checked':''} style="width:14px;height:14px;accent-color:#22c55e;cursor:pointer;flex-shrink:0"
+              onchange="toggleInvItemFree('${item.id}',this.checked)">
+            <input class="form-input" style="font-size:12px" placeholder="Item / Description" value="${esc(item.description)}"
+              oninput="updateInvItem('${item.id}','description',this.value)">
+          </div>
+          <input class="form-input" style="font-size:12px;text-align:right" type="number" min="0" step="1" value="${item.qty||1}"
+            oninput="updateInvItem('${item.id}','qty',parseFloat(this.value)||0);updateInvoiceTotals()">
+          <input class="form-input" style="font-size:12px;text-align:right${isFree?';opacity:.35;pointer-events:none':''}" type="number" min="0" step="0.01" placeholder="0.00" value="${isFree?0:(item.price||'')}"
+            oninput="updateInvItem('${item.id}','price',parseFloat(this.value)||0);updateInvoiceTotals()">
+          <div class="inv-amt-cell" id="iamt-${item.id}" style="${isFree?'color:#22c55e;font-weight:800':'font-weight:600'}">${amt}</div>
+          <button class="del-btn" onclick="removeInvoiceItem('${item.id}')"><i class="ti ti-x"></i></button>
+        </div>
+        <div style="padding-left:21px;margin-top:5px">
+          <input class="form-input" style="font-size:11px;color:var(--muted);background:transparent;border-color:transparent" placeholder="Sub-description / details (optional)"
+            value="${esc(item.subDesc||'')}" oninput="updateInvItem('${item.id}','subDesc',this.value)"
+            onfocus="this.style.background='var(--surface2)';this.style.borderColor='#555'"
+            onblur="this.style.background='transparent';this.style.borderColor='transparent'">
+        </div>
+      </div>`;
+  }).join('');
+
+  pane.innerHTML = `
+    <div class="inv-form-wrap">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+        <button class="btn btn-ghost" onclick="closeInvoiceForm()"><i class="ti ti-arrow-left"></i> Back</button>
+        <span style="font-size:16px;font-weight:700">${isNew?'New Invoice':invNoLabel(inv.invoiceNo)}</span>
+        ${!isNew ? invStatusBadge(inv) : ''}
+      </div>
+
+      <!-- Top: Client info + Invoice meta -->
+      <div class="inv-top-row">
+        <div class="inv-top-left">
+          <div class="form-group" style="margin-bottom:10px">
+            <label class="form-label">Client / Company <span style="color:var(--danger)">*</span></label>
+            <input class="form-input" style="font-size:14px;font-weight:600" placeholder="Company or client name" value="${esc(inv.customer)}"
+              oninput="_currentInv.customer=this.value">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+            <div class="form-group">
+              <label class="form-label">Focal Person / Contact</label>
+              <input class="form-input" style="font-size:12px" placeholder="Name" value="${esc(inv.focalPerson||'')}"
+                oninput="_currentInv.focalPerson=this.value">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Contact Phone</label>
+              <input class="form-input" style="font-size:12px" placeholder="0917 000 0000" value="${esc(inv.focalPhone||'')}"
+                oninput="_currentInv.focalPhone=this.value">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Payment Terms</label>
+            <textarea class="form-input form-textarea" rows="2" style="font-size:12px"
+              placeholder="e.g. Downpayment (50%): ₱13,000 | Balance upon release: ₱13,000"
+              oninput="_currentInv.paymentTerms=this.value">${esc(inv.paymentTerms||'')}</textarea>
+          </div>
+        </div>
+        <div class="inv-top-right">
+          <div class="form-group">
+            <label class="form-label">Invoice #</label>
+            <input class="form-input" type="number" value="${inv.invoiceNo}"
+              oninput="_currentInv.invoiceNo=parseInt(this.value)||0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">PO # (optional)</label>
+            <input class="form-input" placeholder="PO number" value="${esc(inv.poNo||'')}"
+              oninput="_currentInv.poNo=this.value">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date <span style="color:var(--danger)">*</span></label>
+            <input class="form-input" type="date" value="${inv.date||''}"
+              oninput="_currentInv.date=this.value">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Due Date</label>
+            <input class="form-input" type="date" value="${inv.dueDate||''}"
+              oninput="_currentInv.dueDate=this.value">
+          </div>
+        </div>
+      </div>
+
+      <!-- Line Items -->
+      <div class="inv-form-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <h3 style="margin:0">Line Items</h3>
+          <span style="font-size:11px;color:var(--muted)">Check the box to mark as FREE</span>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+          <div class="inv-items-head" style="padding-left:12px">
+            <div style="padding-left:21px">Description</div>
+            <div style="text-align:right">Qty</div>
+            <div style="text-align:right">Unit Price (₱)</div>
+            <div style="text-align:right">Amount</div>
+            <div></div>
+          </div>
+          <div id="inv-items-body">${itemsHTML}</div>
+        </div>
+        <button class="btn btn-ghost" style="margin-top:10px;font-size:12px" onclick="addInvoiceItem()">
+          <i class="ti ti-plus"></i> Add Item
+        </button>
+      </div>
+
+      <!-- Rush/Delivery Fee -->
+      <div class="inv-form-card">
+        <h3>Rush / Delivery Fee</h3>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+            <input type="radio" name="rushType" value="none" ${rf.type==='none'?'checked':''}
+              onchange="_currentInv.rushFee.type='none';updateInvoiceTotals()"> None
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+            <input type="radio" name="rushType" value="free" ${rf.type==='free'?'checked':''}
+              onchange="_currentInv.rushFee.type='free';updateInvoiceTotals()"> Free / Included
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+            <input type="radio" name="rushType" value="chargeable" ${rf.type==='chargeable'?'checked':''}
+              onchange="_currentInv.rushFee.type='chargeable';updateInvoiceTotals()"> Chargeable (TBD)
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+            <input type="radio" name="rushType" value="amount" ${rf.type==='amount'?'checked':''}
+              onchange="_currentInv.rushFee.type='amount';updateInvoiceTotals()"> Fixed Amount: ₱
+            <input class="form-input" type="number" min="0" step="0.01" placeholder="0" value="${rf.amount||''}" style="width:100px"
+              oninput="_currentInv.rushFee.amount=parseFloat(this.value)||0;_currentInv.rushFee.type='amount';updateInvoiceTotals()">
+          </label>
+        </div>
+      </div>
+
+      <!-- Adjustments -->
+      <div class="inv-form-card">
+        <h3>Adjustments & Tax</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px">
+          <div class="form-group">
+            <label class="form-label">Discount (₱)</label>
+            <input class="form-input" type="number" min="0" step="0.01" placeholder="0" value="${inv.discount||''}"
+              oninput="_currentInv.discount=parseFloat(this.value)||0;updateInvoiceTotals()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Less Downpayment (₱)</label>
+            <input class="form-input" type="number" min="0" step="0.01" placeholder="0" value="${inv.downpayment||''}"
+              oninput="_currentInv.downpayment=parseFloat(this.value)||0;updateInvoiceTotals()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Shipping (₱)</label>
+            <input class="form-input" type="number" min="0" step="0.01" placeholder="0" value="${inv.shipping||''}"
+              oninput="_currentInv.shipping=parseFloat(this.value)||0;updateInvoiceTotals()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tax Rate</label>
+            <select class="form-select" onchange="_currentInv.taxRate=parseFloat(this.value);updateInvoiceTotals()">
+              <option value="0"  ${(inv.taxRate||0)==0 ?'selected':''}>No Tax (0%)</option>
+              <option value="2"  ${(inv.taxRate||0)==2 ?'selected':''}>Tax 2%</option>
+              <option value="12" ${(inv.taxRate||0)==12?'selected':''}>VAT 12%</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Totals -->
+      <div class="inv-form-card">
+        <div class="inv-totals" id="inv-totals-block">${buildTotalsHTML(t, rf, inv.payments)}</div>
+      </div>
+
+      <!-- Actions -->
+      <div style="display:flex;gap:10px;flex-wrap:wrap;padding-bottom:40px">
+        <button class="btn btn-ghost" onclick="saveInvoiceDraft()"><i class="ti ti-device-floppy"></i> Save Draft</button>
+        ${s !== 'paid' ? `<button class="btn btn-green" onclick="saveInvoicePaid()"><i class="ti ti-check"></i> Mark as Paid</button>` : ''}
+        <button class="btn btn-primary" onclick="printInvoice()"><i class="ti ti-printer"></i> Print Invoice</button>
+        ${!isNew ? `<button class="btn btn-danger" onclick="deleteInvoiceConfirm('${inv.id}')"><i class="ti ti-trash"></i> Delete</button>` : ''}
+      </div>
+    </div>`;
+}
+
+function buildTotalsHTML(t, rf, payments) {
+  rf = rf || { type:'none', amount:0 };
+  payments = payments || [];
+  const rushLabel = rf.type==='chargeable' || rf.type==='amount' || rf.type==='free' ? 'Rush / Delivery Fee' : '';
+  const rushVal   = rf.type==='chargeable' ? '<span style="color:#f59e0b;font-weight:700">Chargeable</span>'
+                  : rf.type==='free'        ? '<span style="color:#22c55e">Free / Included</span>'
+                  : rf.type==='amount'      ? peso(t.rushAmt)
+                  : '';
+  const pmtRows = payments.map(p => {
+    const d = new Date((p.date||'')+'T00:00:00');
+    const M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const ds = isNaN(d) ? '' : M[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear();
+    const lbl = 'Paid' + (ds?' on '+ds:'') + (p.method?' via '+p.method:'') + (p.notes?' · '+p.notes:'');
+    return `<div class="inv-total-row"><span class="lbl" style="color:var(--green)">${lbl}</span><span style="color:var(--green)">−${peso(p.amount)}</span></div>`;
+  }).join('');
+  const hasPmt    = payments.length > 0;
+  const totalLbl  = hasPmt ? 'Total' : 'Total Amount Due';
+  const amtDueLbl = t.balance <= 0 ? 'Fully Paid' : 'Amount Due';
+  return `
+    <div class="inv-total-row"><span class="lbl">Subtotal</span><span>${peso(t.subtotal)}</span></div>
+    ${t.discount    ? `<div class="inv-total-row"><span class="lbl">Discount</span><span style="color:var(--green)">−${peso(t.discount)}</span></div>` : ''}
+    ${t.shipping    ? `<div class="inv-total-row"><span class="lbl">Shipping</span><span>${peso(t.shipping)}</span></div>` : ''}
+    ${t.taxRate     ? `<div class="inv-total-row"><span class="lbl">Tax (${t.taxRate}%)</span><span>${peso(t.taxAmt)}</span></div>` : ''}
+    ${rushLabel     ? `<div class="inv-total-row"><span class="lbl">${rushLabel}</span><span>${rushVal}</span></div>` : ''}
+    ${t.downpayment ? `<div class="inv-total-row"><span class="lbl">Less Downpayment</span><span style="color:var(--green)">−${peso(t.downpayment)}</span></div>` : ''}
+    <div class="inv-total-row divider grand">
+      <span>${totalLbl}</span>
+      <span style="color:var(--amber)">${peso(t.total)}</span>
+    </div>
+    ${pmtRows}
+    ${hasPmt ? `<div class="inv-total-row divider grand" style="${t.balance<=0?'color:var(--green)':''}">
+      <span>${amtDueLbl}</span>
+      <span style="color:${t.balance<=0?'var(--green)':'var(--amber)'}">${peso(t.balance)}</span>
+    </div>` : ''}`;
+}
+
+function updateInvoiceTotals() {
+  const t  = calcInvoiceTotals(_currentInv);
+  const rf = _currentInv.rushFee || { type:'none', amount:0 };
+  const b  = document.getElementById('inv-totals-block');
+  if (b) b.innerHTML = buildTotalsHTML(t, rf, _currentInv.payments);
+  (_currentInv.items||[]).forEach(item => {
+    const el = document.getElementById('iamt-'+item.id);
+    if (!el) return;
+    if (item.free) { el.textContent='FREE'; el.style.color='#22c55e'; el.style.fontWeight='800'; }
+    else { el.textContent = peso((parseFloat(item.qty)||0)*(parseFloat(item.price)||0)); el.style.color=''; el.style.fontWeight='600'; }
+  });
+}
+
+function addInvoiceItem() {
+  if (!_currentInv) return;
+  _currentInv.items.push({ id:uid(), description:'', subDesc:'', qty:1, price:0, free:false });
+  renderInvoiceForm();
+}
+function removeInvoiceItem(itemId) {
+  if (!_currentInv || _currentInv.items.length <= 1) return;
+  _currentInv.items = _currentInv.items.filter(i => i.id !== itemId);
+  renderInvoiceForm();
+}
+
+function saveInvoiceDraft() {
+  if (!_currentInv) return;
+  if (!_currentInv.customer) { showToast('Add a client/company name.'); return; }
+  if (!_currentInv.status || _currentInv.status === 'overdue') _currentInv.status = 'draft';
+  saveInvoiceData(_currentInv);
+  showToast('Invoice saved.');
+  openInvoiceView(_currentInv.id);
+}
+function saveInvoicePaid() {
+  if (!_currentInv) return;
+  if (!_currentInv.customer) { showToast('Add a client/company name.'); return; }
+  _currentInv.status = 'paid';
+  saveInvoiceData(_currentInv);
+  showToast('Invoice marked as paid!');
+  openInvoiceView(_currentInv.id);
+}
+function deleteInvoiceConfirm(id) {
+  if (!confirm('Delete this invoice? Cannot be undone.')) return;
+  const fin = getFinData();
+  fin.invoices = fin.invoices.filter(i => i.id !== id);
+  fin.income   = (fin.income||[]).filter(e => e.invoiceId !== id);
+  saveFinData(fin);
+  closeInvoicePanel();
+  showToast('Invoice deleted.');
+}
+
+// ── VIEW MODE ─────────────────────────────────────────────────
+function openInvoiceView(id) {
+  const inv = getInvoices().find(i => i.id === id);
+  if (!inv) return;
+  _currentInv = JSON.parse(JSON.stringify(inv));
+  if (!_currentInv.payments)       _currentInv.payments = [];
+  if (!_currentInv.focalPerson)    _currentInv.focalPerson = '';
+  if (!_currentInv.focalPhone)     _currentInv.focalPhone = '';
+  if (!_currentInv.rushFee)        _currentInv.rushFee = { type:'none', amount:0 };
+  if (!_currentInv.paymentTerms)   _currentInv.paymentTerms = '';
+  if (_currentInv.downpayment === undefined) _currentInv.downpayment = 0;
+  (_currentInv.items||[]).forEach(it => { if (it.subDesc===undefined) it.subDesc=''; if (it.free===undefined) it.free=false; });
+  _invView = 'view';
+  renderInvoices();
+}
+
+function editCurrentInvoice() {
+  if (!_currentInv) return;
+  _invView = 'form';
+  renderInvoices();
+}
+
+function markCurrentSent() {
+  if (!_currentInv) return;
+  _currentInv.status = 'sent';
+  saveInvoiceData(_currentInv);
+  showToast('Invoice marked as sent.');
+  openInvoiceView(_currentInv.id);
+}
+function markCurrentPaid() {
+  if (!_currentInv) return;
+  _currentInv.status = 'paid';
+  saveInvoiceData(_currentInv);
+  showToast('Invoice marked as paid!');
+  openInvoiceView(_currentInv.id);
+}
+
+function addInvPayment() {
+  const dateEl   = document.getElementById('pay-date');
+  const amtEl    = document.getElementById('pay-amount');
+  const methodEl = document.getElementById('pay-method');
+  const notesEl  = document.getElementById('pay-notes');
+  const amount   = parseFloat(amtEl?.value) || 0;
+  if (!amount) { showToast('Enter payment amount.'); return; }
+  if (!_currentInv.payments) _currentInv.payments = [];
+  _currentInv.payments.push({
+    id: uid(),
+    date:   dateEl?.value  || new Date().toISOString().split('T')[0],
+    amount,
+    method: methodEl?.value || 'Cash',
+    notes:  notesEl?.value  || ''
+  });
+  // Auto-update status if fully paid
+  const t = calcInvoiceTotals(_currentInv);
+  if (t.totalPaid >= t.total && t.total > 0) _currentInv.status = 'paid';
+  saveInvoiceData(_currentInv);
+  showToast('Payment recorded!');
+  openInvoiceView(_currentInv.id);
+}
+
+function deleteInvPayment(payId) {
+  if (!_currentInv) return;
+  _currentInv.payments = (_currentInv.payments||[]).filter(p => p.id !== payId);
+  // Revert paid status if payments no longer cover total
+  const t = calcInvoiceTotals(_currentInv);
+  if (_currentInv.status === 'paid' && t.totalPaid < t.total) _currentInv.status = 'draft';
+  saveInvoiceData(_currentInv);
+  openInvoiceView(_currentInv.id);
+}
+
+function renderInvoiceView() {
+  const pane = document.getElementById('pane-invoices');
+  if (!pane || !_currentInv) return;
+  const inv = _currentInv;
+  const t   = calcInvoiceTotals(inv);
+  const s   = getInvStatus(inv);
+  const rf  = inv.rushFee || { type:'none', amount:0 };
+  const pF  = n => '&#8369;' + (parseFloat(n)||0).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  // Items rows
+  const itemRowsHTML = (inv.items||[]).map(item => {
+    const isFree = !!item.free;
+    const qty    = parseFloat(item.qty)||0;
+    const price  = parseFloat(item.price)||0;
+    const amtStr = isFree ? '<span style="color:#e65c00;font-weight:800">FREE</span>' : `<strong>${pF(qty*price)}</strong>`;
+    const unitStr= isFree ? `<span style="color:#888">${pF(0)}</span>` : pF(price);
+    const rowBg  = isFree ? 'background:#f0fff4;' : '';
+    return `<tr style="${rowBg}border-bottom:1px solid #eee">
+      <td style="padding:10px 14px">
+        <div style="font-weight:700;font-size:13px">${esc(item.description)}</div>
+        ${item.subDesc?`<div style="font-size:11px;color:#666;margin-top:3px">${esc(item.subDesc)}</div>`:''}
+      </td>
+      <td style="padding:10px 14px;text-align:center;font-weight:600">${qty}</td>
+      <td style="padding:10px 14px;text-align:center">${unitStr}</td>
+      <td style="padding:10px 14px;text-align:right">${amtStr}</td>
+    </tr>`;
+  }).join('');
+
+  // Summary rows
+  const summHTML = (inv.items||[]).map(item => {
+    const isFree = !!item.free;
+    const qty = parseFloat(item.qty)||0, price = parseFloat(item.price)||0;
+    const valStr = isFree ? '<span style="color:#e65c00;font-weight:800">FREE</span>'
+      : pF(qty*price);
+    const calc = isFree ? (qty>1?`(${qty} pcs)`:'') : `(${qty} x ${pF(price)})`;
+    return `<tr>
+      <td style="padding:5px 14px;font-size:12px;color:#555">${esc(item.description)} ${calc}</td>
+      <td colspan="2"></td>
+      <td style="padding:5px 14px;text-align:right;font-size:12px">${valStr}</td>
+    </tr>`;
+  }).join('');
+
+  // Rush row
+  let rushHTML = '';
+  if (rf.type !== 'none') {
+    const rv = rf.type==='chargeable' ? '<span style="color:#e65c00;font-weight:700">Chargeable</span>'
+             : rf.type==='free'       ? '<span style="color:#2e7d32">Free / Included</span>'
+             : pF(parseFloat(rf.amount)||0);
+    rushHTML = `<tr><td style="padding:5px 14px;font-size:12px;color:#555">Rush / Delivery Fee</td><td colspan="2"></td><td style="padding:5px 14px;text-align:right;font-size:12px">${rv}</td></tr>`;
+  }
+
+  // Payment rows for the invoice summary section
+  const pmtSummRows = (inv.payments||[]).map(p => {
+    const d = new Date((p.date||'')+'T00:00:00');
+    const M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const ds = isNaN(d)?'':(M[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear());
+    const lbl = 'Paid'+(ds?' on '+ds:'')+(p.method?' via '+p.method:'')+(p.notes?' · '+p.notes:'');
+    return `<tr style="background:#f0fff4">
+      <td style="padding:5px 14px;font-size:12px;color:#2e7d32;font-weight:600">${lbl}</td>
+      <td colspan="2"></td>
+      <td style="padding:5px 14px;text-align:right;font-size:12px;color:#2e7d32;font-weight:700">−${pF(p.amount)}</td>
+    </tr>`;
+  }).join('');
+  const hasPmt = (inv.payments||[]).length > 0;
+  const totalSubRow = hasPmt
+    ? `<tr style="background:#333"><td colspan="3" style="padding:7px 14px;color:#fff;font-weight:700;font-size:12px;letter-spacing:.3px">Total</td><td style="padding:7px 14px;text-align:right;color:#fff;font-weight:700;font-size:12px">${pF(t.total)}</td></tr>`
+    : '';
+
+  // Payment records list
+  const payments  = inv.payments || [];
+  const dpRow = t.downpayment > 0 ? `
+    <div style="display:grid;grid-template-columns:90px 120px 120px 1fr 30px;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);opacity:.85">
+      <div style="font-size:12px;color:var(--muted)">${fmtInvDate(inv.date)}</div>
+      <div style="font-size:12px;background:rgba(245,158,11,.12);padding:2px 8px;border-radius:12px;color:#f59e0b;text-align:center;border:1px solid rgba(245,158,11,.25)">Downpayment</div>
+      <div style="font-weight:700;color:var(--green)">&#8369;${t.downpayment.toLocaleString('en-PH',{minimumFractionDigits:2})}</div>
+      <div style="font-size:11px;color:var(--muted)">From invoice</div>
+      <div></div>
+    </div>` : '';
+
+  const pmtRows   = (payments.length || t.downpayment > 0)
+    ? dpRow + payments.map(p => `
+      <div style="display:grid;grid-template-columns:90px 120px 120px 1fr 30px;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">
+        <div style="font-size:12px;color:var(--muted)">${fmtInvDate(p.date)}</div>
+        <div style="font-size:12px;background:var(--surface2);padding:2px 8px;border-radius:12px;color:var(--muted);text-align:center">${esc(p.method||'Cash')}</div>
+        <div style="font-weight:700;color:var(--green)">&#8369;${(parseFloat(p.amount)||0).toLocaleString('en-PH',{minimumFractionDigits:2})}</div>
+        <div style="font-size:11px;color:var(--muted)">${esc(p.notes||'')}</div>
+        <button class="del-btn" onclick="deleteInvPayment('${p.id}')"><i class="ti ti-x"></i></button>
+      </div>`).join('')
+    : `<div style="color:var(--muted);font-size:12px;padding:10px 0">Walang payment na naka-record.</div>`;
+
+  const isPaid   = s === 'paid';
+  const balance  = t.balance;
+  const invLabel = invNoLabel(inv.invoiceNo);
+
+  pane.innerHTML = `
+    <div class="inv-form-wrap">
+      <!-- Action bar -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap">
+        <button class="btn btn-ghost" onclick="closeInvoicePanel()"><i class="ti ti-arrow-left"></i> Back</button>
+        <span style="font-size:15px;font-weight:700">${invLabel}</span>
+        ${invStatusBadge(inv)}
+        <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-ghost" onclick="editCurrentInvoice()"><i class="ti ti-edit"></i> Edit</button>
+          <button class="btn btn-ghost" onclick="downloadInvoicePDF()"><i class="ti ti-file-type-pdf"></i> Download PDF</button>
+          <button class="btn btn-primary" onclick="printInvoice()"><i class="ti ti-printer"></i> Print</button>
+          ${s==='draft' ? `<button class="btn" style="background:rgba(59,130,246,.2);color:#60a5fa;border:1px solid rgba(59,130,246,.35)" onclick="markCurrentSent()"><i class="ti ti-send"></i> Mark as Sent</button>` : ''}
+          ${!isPaid ? `<button class="btn btn-green" onclick="markCurrentPaid()"><i class="ti ti-circle-check"></i> Mark as Paid</button>` : ''}
+          <button class="del-btn" style="align-self:center" onclick="deleteInvoiceConfirm('${inv.id}')"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>
+
+      <!-- Styled Invoice Preview -->
+      <div id="inv-preview-content" style="background:#fff;border:1px solid #ccc;border-radius:8px;overflow:hidden;margin-bottom:24px;font-family:Arial,Helvetica,sans-serif;color:#111;font-size:13px">
+
+        <!-- Header -->
+        <div style="background:#1a1a1a;color:#fff;display:flex;justify-content:space-between;align-items:flex-start;padding:16px 20px 12px">
+          <div>
+            <div style="font-size:19px;font-weight:900;letter-spacing:.5px">SIKHAY <span style="color:#cc1400">PREMIUM APPAREL</span></div>
+            <div style="font-size:10px;color:#aaa;margin-top:4px;line-height:1.6">Full Sublimation &middot; DTF Print &middot; Cut &amp; Sew Apparel<br>Dasmari&ntilde;as / GMA, Cavite, Philippines</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:20px;font-weight:900;color:#cc1400;letter-spacing:1px">SALES INVOICE</div>
+            <div style="font-size:11px;color:#ccc;margin-top:5px;line-height:1.7">
+              Invoice No: <strong>${invLabel}</strong><br>
+              Date: ${fmtLongDate(inv.date)}${inv.dueDate?'<br>Due: '+fmtLongDate(inv.dueDate):''}
+            </div>
+          </div>
+        </div>
+
+        <!-- Bill To -->
+        <div style="display:flex;gap:40px;padding:12px 20px;border-bottom:1px solid #e0e0e0">
+          <div>
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#cc1400;margin-bottom:3px">Bill To</div>
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#999;margin-bottom:2px">Company</div>
+            <div style="font-size:14px;font-weight:800">${esc(inv.customer||'—')}</div>
+          </div>
+          ${(inv.focalPerson||inv.focalPhone)?`
+          <div>
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#cc1400;margin-bottom:3px">&nbsp;</div>
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#999;margin-bottom:2px">Focal Person / Contact</div>
+            <div style="font-size:13px;font-weight:700">${esc(inv.focalPerson||'')}${inv.focalPhone?' &middot; '+esc(inv.focalPhone):''}</div>
+          </div>`:''}
+        </div>
+
+        <!-- Items Table -->
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="background:#1a1a1a">
+              <th style="padding:8px 14px;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;text-align:left;width:45%">Item / Description</th>
+              <th style="padding:8px 14px;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;text-align:center;width:10%">QTY</th>
+              <th style="padding:8px 14px;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;text-align:center;width:20%">Unit Price</th>
+              <th style="padding:8px 14px;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;text-align:right;width:25%">Amount</th>
+            </tr>
+          </thead>
+          <tbody>${itemRowsHTML}</tbody>
+        </table>
+
+        <!-- Summary -->
+        <div style="border-bottom:2px solid #1a1a1a">
+          <table style="width:100%;border-collapse:collapse">
+            <tbody style="background:#fafafa">${summHTML}${rushHTML}${t.downpayment?`<tr style="border-top:1px solid #ddd"><td style="padding:5px 14px;font-size:12px;color:#2e7d32;font-weight:600">Less Downpayment</td><td colspan="2"></td><td style="padding:5px 14px;text-align:right;font-size:12px;color:#2e7d32;font-weight:700">−${pF(t.downpayment)}</td></tr>`:''}${totalSubRow}${pmtSummRows}</tbody>
+          </table>
+        </div>
+
+        <!-- Total / Amount Due bar -->
+        <div style="background:#1a1a1a;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:16px 20px">
+          <div>
+            <div style="font-size:13px;font-weight:700;letter-spacing:.5px">${hasPmt?(t.balance<=0?'FULLY PAID':'AMOUNT DUE'):'TOTAL AMOUNT DUE'}</div>
+            <div style="font-size:10px;color:#aaa;margin-top:3px">All prices are in Philippine Peso &bull; Prices may change w/o prior notice</div>
+          </div>
+          <div style="font-size:28px;font-weight:900;letter-spacing:.5px;color:${hasPmt&&t.balance<=0?'#22c55e':'#cc1400'}">${pF(hasPmt?t.balance:t.total)}</div>
+        </div>
+
+        ${inv.paymentTerms?`
+        <div style="padding:10px 20px;border-bottom:1px solid #e0e0e0;font-size:11px;color:#555;line-height:1.7">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#999;margin-bottom:3px">Payment Terms</div>
+          ${esc(inv.paymentTerms)}
+        </div>`:''}
+
+        ${inv.note?`
+        <div style="padding:10px 20px;border-bottom:1px solid #e0e0e0;font-size:11px;color:#555;line-height:1.7">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#999;margin-bottom:3px">Note</div>
+          ${esc(inv.note)}
+        </div>`:''}
+
+        <!-- Signatures -->
+        <div style="display:flex;gap:40px;padding:14px 20px;border-bottom:1px solid #e0e0e0">
+          <div style="flex:1">
+            <div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:.8px;margin-bottom:18px">Issued By</div>
+            <div style="border-top:1px solid #333;padding-top:5px;font-size:12px;color:#555">Sikhay Premium Apparel</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:.8px;margin-bottom:18px">Received By</div>
+            <div style="border-top:1px solid #333;padding-top:5px;font-size:12px;color:#555">${esc(inv.customer||'')} &nbsp;&mdash;&nbsp; Date: _________</div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="background:#1a1a1a;padding:8px 20px;text-align:center;font-size:10px;color:#999;line-height:1.8">
+          fb/sikhaypremiumapparel &bull; @sikhaypremiumapparel &bull; sales@sikhaycreatives.com<br>
+          Sikhay Creatives &bull; Dasmari&ntilde;as / GMA, Cavite, Philippines
+        </div>
+      </div>
+
+      <!-- Payment Records -->
+      <div class="inv-form-card" style="margin-bottom:40px">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+          <h3 style="margin:0">Payment Records</h3>
+          <div style="font-size:13px;display:flex;gap:14px;flex-wrap:wrap">
+            <span>Total Paid: <strong style="color:var(--green)">&#8369;${t.totalAllPaid.toLocaleString('en-PH',{minimumFractionDigits:2})}</strong></span>
+            <span>Balance: <strong style="color:${balance<=0?'var(--green)':'var(--amber)'}">&#8369;${balance.toLocaleString('en-PH',{minimumFractionDigits:2})}</strong></span>
+            ${balance<=0&&t.grossTotal>0?'<span style="color:var(--green)"><i class="ti ti-circle-check"></i> Fully Paid</span>':''}
+          </div>
+        </div>
+
+        ${pmtRows}
+
+        <!-- Add Payment -->
+        <div style="margin-top:16px;padding:14px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:10px">Add Payment</div>
+          <div style="display:grid;grid-template-columns:130px 130px 140px 1fr auto;gap:8px;align-items:end;flex-wrap:wrap">
+            <div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Date</div>
+              <input class="form-input" type="date" id="pay-date" value="${new Date().toISOString().split('T')[0]}" style="font-size:12px">
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Amount (&#8369;)</div>
+              <input class="form-input" type="number" min="0" step="0.01" id="pay-amount" placeholder="${balance>0?balance.toFixed(2):'0.00'}" style="font-size:12px">
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Method</div>
+              <select class="form-select" id="pay-method" style="font-size:12px">
+                <option>Cash</option><option>GCash</option><option>Bank Transfer</option><option>Maya</option><option>Cheque</option>
+              </select>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Notes / Reference</div>
+              <input class="form-input" id="pay-notes" placeholder="Ref #, memo…" style="font-size:12px">
+            </div>
+            <button class="btn btn-primary" onclick="addInvPayment()"><i class="ti ti-plus"></i> Add</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── PRINT INVOICE — Sikhay Premium Apparel branded output ─────
+function printInvoice() {
+  if (!_currentInv) return;
+  const inv = _currentInv;
+  const t   = calcInvoiceTotals(inv);
+  const rf  = inv.rushFee || { type:'none', amount:0 };
+
+  // Build items rows HTML for print
+  const itemRows = (inv.items||[]).map(item => {
+    const isFree = !!item.free;
+    const qty    = parseFloat(item.qty)||0;
+    const price  = parseFloat(item.price)||0;
+    const amt    = isFree ? '<span style="color:#e65c00;font-weight:800">FREE</span>' : `<strong>&#8369;${(qty*price).toLocaleString('en-PH',{minimumFractionDigits:2})}</strong>`;
+    const unitP  = isFree ? '<span style="color:#888">&#8369;0.00</span>' : `&#8369;${price.toLocaleString('en-PH',{minimumFractionDigits:2})}`;
+    const rowBg  = isFree ? 'background:#f0fff4;' : '';
+    return `
+      <tr style="${rowBg}">
+        <td style="padding:10px 14px">
+          <div style="font-weight:700;font-size:13px">${esc(item.description)}</div>
+          ${item.subDesc ? `<div style="font-size:11px;color:#666;margin-top:3px">${esc(item.subDesc)}</div>` : ''}
+        </td>
+        <td style="padding:10px 14px;text-align:center;font-weight:600">${qty}</td>
+        <td style="padding:10px 14px;text-align:center">${unitP}</td>
+        <td style="padding:10px 14px;text-align:right">${amt}</td>
+      </tr>`;
+  }).join('');
+
+  // Summary / breakdown rows
+  const summaryRows = (inv.items||[]).map(item => {
+    const isFree = !!item.free;
+    const qty    = parseFloat(item.qty)||0;
+    const price  = parseFloat(item.price)||0;
+    const valStr = isFree
+      ? `<span style="color:#e65c00;font-weight:800">FREE</span>`
+      : `&#8369;${(qty*price).toLocaleString('en-PH',{minimumFractionDigits:2})}`;
+    const calc   = isFree ? (qty>1?`(${qty} pcs)`:'') : `(${qty} x &#8369;${price.toLocaleString('en-PH',{minimumFractionDigits:2})})`;
+    return `<tr>
+      <td style="padding:5px 14px;font-size:12px;color:#333">${esc(item.description)} ${calc}</td>
+      <td colspan="2"></td>
+      <td style="padding:5px 14px;text-align:right;font-size:12px">${valStr}</td>
+    </tr>`;
+  }).join('');
+
+  // Rush row
+  let rushRow = '';
+  if (rf.type !== 'none') {
+    const rushVal = rf.type==='chargeable' ? '<span style="color:#e65c00;font-weight:700">Chargeable</span>'
+                  : rf.type==='free'        ? '<span style="color:#2e7d32">Free / Included</span>'
+                  : `&#8369;${(parseFloat(rf.amount)||0).toLocaleString('en-PH',{minimumFractionDigits:2})}`;
+    rushRow = `<tr><td style="padding:5px 14px;font-size:12px;color:#333">Rush / Delivery Fee</td><td colspan="2"></td><td style="padding:5px 14px;text-align:right;font-size:12px">${rushVal}</td></tr>`;
+  }
+
+  const pesoFmt = n => '&#8369;' + (parseFloat(n)||0).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const invLabel = invNoLabel(inv.invoiceNo);
+
+  // Payment rows for summary breakdown
+  const pmtRows = (inv.payments||[]).map(p => {
+    const d  = new Date((p.date||'')+'T00:00:00');
+    const Mo = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const ds = isNaN(d.getTime())?'':(Mo[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear());
+    const lbl = 'Paid'+(ds?' on '+ds:'')+(p.method?' via '+p.method:'')+(p.notes?' &middot; '+esc(p.notes):'');
+    return `<tr style="background:#f0fff4"><td style="padding:5px 14px;font-size:12px;color:#2e7d32;font-weight:600">${lbl}</td><td colspan="2"></td><td style="padding:5px 14px;text-align:right;font-size:12px;color:#2e7d32;font-weight:700">&#8722;${pesoFmt(p.amount)}</td></tr>`;
+  }).join('');
+  const hasPrint = (inv.payments||[]).length > 0;
+  const totalSubRow = hasPrint
+    ? `<tr style="background:#333"><td colspan="3" style="padding:7px 14px;color:#fff;font-weight:700;font-size:12px">Total</td><td style="padding:7px 14px;text-align:right;color:#fff;font-weight:700;font-size:12px">${pesoFmt(t.total)}</td></tr>`
+    : '';
+  const barLabel  = hasPrint ? (t.balance<=0 ? 'FULLY PAID' : 'AMOUNT DUE') : 'TOTAL AMOUNT DUE';
+  const barAmount = hasPrint ? t.balance : t.total;
+  const barColor  = hasPrint && t.balance <= 0 ? '#22c55e' : '#cc1400';
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>${invLabel}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#111;background:#fff;}
+  .page{max-width:780px;margin:0 auto;border:1px solid #ddd;}
+
+  /* HEADER */
+  .inv-header{background:#1a1a1a;color:#fff;display:flex;justify-content:space-between;align-items:flex-start;padding:18px 22px 14px;}
+  .co-name{font-size:21px;font-weight:900;letter-spacing:.5px;line-height:1.1;}
+  .co-name .red{color:#cc1400;}
+  .co-tagline{font-size:10px;color:#aaa;margin-top:5px;line-height:1.6;}
+  .inv-title-block{text-align:right;}
+  .inv-title{font-size:22px;font-weight:900;color:#cc1400;letter-spacing:1px;}
+  .inv-meta{font-size:11px;color:#ccc;margin-top:6px;line-height:1.7;}
+
+  /* BILL TO */
+  .bill-section{display:flex;padding:14px 22px;border-bottom:1px solid #e0e0e0;gap:40px;}
+  .bill-block{flex:1;}
+  .bill-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#999;margin-bottom:4px;}
+  .bill-value{font-size:14px;font-weight:800;color:#111;}
+  .bill-sub{font-size:12px;color:#444;margin-top:3px;}
+
+  /* ITEMS TABLE */
+  table{width:100%;border-collapse:collapse;}
+  .tbl-head tr{background:#1a1a1a;}
+  .tbl-head th{padding:10px 14px;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;text-align:left;}
+  .tbl-head th:nth-child(2),.tbl-head th:nth-child(3){text-align:center;}
+  .tbl-head th:last-child{text-align:right;}
+  tbody tr{border-bottom:1px solid #eee;}
+  tbody tr:last-child{border-bottom:2px solid #ccc;}
+
+  /* SUMMARY */
+  .summary-section{border-bottom:2px solid #1a1a1a;}
+
+  /* TOTAL */
+  .total-block{background:#1a1a1a;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:18px 22px;}
+  .total-label{font-size:14px;font-weight:700;letter-spacing:.5px;}
+  .total-sub{font-size:10px;color:#aaa;margin-top:3px;}
+  .total-amount{font-size:32px;font-weight:900;color:#cc1400;letter-spacing:.5px;}
+
+  /* PAYMENT TERMS */
+  .terms-section{padding:12px 22px;border-bottom:1px solid #e0e0e0;font-size:11px;color:#555;line-height:1.7;}
+  .terms-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#999;margin-bottom:4px;}
+
+  /* SIGNATURES */
+  .sig-section{display:flex;gap:40px;padding:16px 22px;border-bottom:1px solid #e0e0e0;}
+  .sig-block{flex:1;}
+  .sig-label{font-size:10px;color:#999;text-transform:uppercase;letter-spacing:.8px;margin-bottom:20px;}
+  .sig-line{border-top:1px solid #333;padding-top:5px;font-size:12px;color:#555;}
+
+  /* FOOTER */
+  .inv-footer{background:#1a1a1a;padding:10px 22px;text-align:center;font-size:10px;color:#999;line-height:1.8;}
+  .inv-footer a{color:#999;}
+
+  @media print{
+    body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .page{border:none;max-width:100%;}
+    @page{margin:0.5cm;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="inv-header">
+    <div>
+      <div class="co-name">SIKHAY <span class="red">PREMIUM APPAREL</span></div>
+      <div class="co-tagline">
+        Full Sublimation &middot; DTF Print &middot; Cut &amp; Sew Apparel<br>
+        Dasmari&ntilde;as / GMA, Cavite, Philippines
+      </div>
+    </div>
+    <div class="inv-title-block">
+      <div class="inv-title">SALES INVOICE</div>
+      <div class="inv-meta">
+        Invoice No: <strong>${invLabel}</strong><br>
+        Date: ${fmtLongDate(inv.date)}${inv.dueDate ? '<br>Due: '+fmtLongDate(inv.dueDate) : ''}
+      </div>
+    </div>
+  </div>
+
+  <!-- BILL TO -->
+  <div class="bill-section">
+    <div>
+      <div class="bill-label">Bill To</div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#999;margin-bottom:2px">Company</div>
+      <div class="bill-value">${esc(inv.customer||'—')}</div>
+    </div>
+    ${(inv.focalPerson||inv.focalPhone) ? `
+    <div>
+      <div class="bill-label">Focal Person / Contact</div>
+      <div class="bill-value" style="font-size:13px">${esc(inv.focalPerson||'')}${inv.focalPhone?`<span style="color:#555;font-weight:400"> &nbsp;&middot;&nbsp; ${esc(inv.focalPhone)}</span>`:''}</div>
+    </div>` : ''}
+  </div>
+
+  <!-- ITEMS TABLE -->
+  <table>
+    <thead class="tbl-head">
+      <tr>
+        <th style="width:45%">Item / Description</th>
+        <th style="width:10%">QTY</th>
+        <th style="width:20%">Unit Price</th>
+        <th style="width:25%">Amount</th>
+      </tr>
+    </thead>
+    <tbody>${itemRows}</tbody>
+  </table>
+
+  <!-- SUMMARY BREAKDOWN -->
+  <div class="summary-section">
+    <table>
+      <tbody style="background:#fafafa">${summaryRows}${rushRow}${t.downpayment?`<tr style="border-top:1px solid #ddd"><td style="padding:5px 14px;font-size:12px;color:#2e7d32;font-weight:600">Less Downpayment</td><td colspan="2"></td><td style="padding:5px 14px;text-align:right;font-size:12px;color:#2e7d32;font-weight:700">&#8722;${pesoFmt(t.downpayment)}</td></tr>`:''}${totalSubRow}${pmtRows}</tbody>
+    </table>
+  </div>
+
+  <!-- TOTAL / AMOUNT DUE -->
+  <div class="total-block">
+    <div>
+      <div class="total-label">${barLabel}</div>
+      <div class="total-sub">All prices are in Philippine Peso &bull; Prices may change w/o prior notice</div>
+    </div>
+    <div class="total-amount" style="color:${barColor}">${pesoFmt(barAmount)}</div>
+  </div>
+
+  <!-- PAYMENT TERMS -->
+  ${inv.paymentTerms ? `
+  <div class="terms-section">
+    <div class="terms-label">Payment Terms</div>
+    <div>${esc(inv.paymentTerms)}</div>
+  </div>` : ''}
+
+  <!-- NOTE -->
+  ${inv.note ? `
+  <div class="terms-section" style="border-top:1px solid #e0e0e0">
+    <div class="terms-label">Note</div>
+    <div>${esc(inv.note)}</div>
+  </div>` : ''}
+
+  <!-- SIGNATURES -->
+  <div class="sig-section">
+    <div class="sig-block">
+      <div class="sig-label">Issued By</div>
+      <div class="sig-line">Sikhay Premium Apparel</div>
+    </div>
+    <div class="sig-block">
+      <div class="sig-label">Received By</div>
+      <div class="sig-line">${esc(inv.customer||'')} &nbsp;&mdash;&nbsp; Date: _________</div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="inv-footer">
+    fb/sikhaypremiumapparel &bull; @sikhaypremiumapparel &bull; sales@sikhaycreatives.com<br>
+    Sikhay Creatives &bull; Dasmari&ntilde;as / GMA, Cavite, Philippines
+  </div>
+
+</div>
+</body>
+</html>`;
+
+  const w = window.open('', '_blank');
+  if (!w) { showToast('Allow pop-ups to print the invoice.'); return; }
+  w.document.write(html);
+  w.document.close();
+  setTimeout(() => w.print(), 400);
+}
+
+// ── PDF DOWNLOAD ───────────────────────────────────────────────
+async function downloadInvoicePDF() {
+  const el = document.getElementById('inv-preview-content');
+  if (!el || !_currentInv) { showToast('Open an invoice first.'); return; }
+
+  // Lazy-load jsPDF + html2canvas only when needed
+  async function loadScript(src) {
+    if (document.querySelector(`script[src="${src}"]`)) return;
+    return new Promise((res, rej) => {
+      const s = document.createElement('script'); s.src = src;
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  showToast('Generating PDF…');
+  try {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+
+    const canvas  = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#fff', logging: false });
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    const { jsPDF } = window.jspdf;
+
+    // Scale image to A4 width (595pt), allow multi-page for tall invoices
+    const A4W = 595, A4H = 842;
+    const ratio  = A4W / canvas.width;
+    const imgW   = A4W;
+    const imgH   = canvas.height * ratio;
+    const pages  = Math.ceil(imgH / A4H);
+
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+    for (let i = 0; i < pages; i++) {
+      if (i > 0) pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, -i * A4H, imgW, imgH);
+    }
+
+    const invLabel = invNoLabel(_currentInv.invoiceNo);
+    const filename = ((_currentInv.customer||'Invoice') + ' - ' + invLabel).replace(/[/\\?%*:|"<>]/g,'') + '.pdf';
+    pdf.save(filename);
+    showToast('PDF downloaded!');
+  } catch (e) {
+    console.error(e);
+    showToast('PDF failed. Try Print → Save as PDF instead.');
+  }
+}
+</script>
+</body>
+</html>
