@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sikhay — Restore Backup</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0a;color:#f0f0f0;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center}
+.card{background:#141414;border:1px solid #2a2a2a;border-radius:14px;padding:36px 40px;max-width:480px;width:100%}
+h2{font-size:17px;font-weight:800;margin-bottom:6px}
+.sub{font-size:12px;color:#6b7280;margin-bottom:24px}
+.log{background:#0a0a0a;border:1px solid #2a2a2a;border-radius:8px;padding:14px;font-size:12px;font-family:monospace;line-height:1.8;min-height:140px;max-height:280px;overflow-y:auto;margin-bottom:18px;color:#9ca3af}
+.log .ok{color:#22c55e}
+.log .err{color:#ef4444}
+.log .info{color:#f59e0b}
+.btn{width:100%;background:#f59e0b;color:#0a0a0a;border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.done{background:#22c55e}
+</style>
+</head>
+<body>
+<div class="card">
+  <h2>Restore Backup to Supabase</h2>
+  <div class="sub">Reads sikhay-backup-2026-08-26.json and pushes all data to Supabase.</div>
+  <div class="log" id="log"><span class="info">Ready. Click Start to begin.</span></div>
+  <button class="btn" id="btn" onclick="run()">Start Restore</button>
+</div>
+
+<script src="config.js"></script>
+<script src="SikhayDB.js"></script>
+<script>
+const logEl = document.getElementById('log')
+const btn   = document.getElementById('btn')
+
+function log(msg, cls='') {
+  const line = document.createElement('div')
+  line.className = cls
+  line.textContent = msg
+  logEl.appendChild(line)
+  logEl.scrollTop = logEl.scrollHeight
+}
+
+async function run() {
+  btn.disabled = true
+  btn.textContent = 'Running…'
+  logEl.innerHTML = ''
+
+  // Load backup file
+  log('Fetching backup file…', 'info')
+  let backup
+  try {
+    const res = await fetch('_backup_data.json')
+    backup = await res.json()
+    log(`Backup loaded — exported ${backup.exported}`, 'ok')
+  } catch(e) {
+    log('Failed to load backup file: ' + e.message, 'err')
+    btn.disabled = false; return
+  }
+
+  // Auth
+  log('Authenticating with Supabase…', 'info')
+  const db = await SikhayDB.requireAuth()
+  if (!db) { log('Not logged in — redirecting to login.', 'err'); return }
+  log('Authenticated ✓', 'ok')
+
+  // Write to localStorage first
+  const KEYS = [
+    'sikhay_ot_v1','sikhay_dt_v1','sikhay_pc_v1',
+    'sikhay_dlv_v1','sikhay_as_v1','sikhay_fin_v1','sikhay_hr_v1'
+  ]
+  KEYS.forEach(k => {
+    if (backup.keys[k] !== undefined) {
+      localStorage.setItem(k, JSON.stringify(backup.keys[k]))
+      log(`localStorage ← ${k}`, '')
+    }
+  })
+  log('All keys written to localStorage ✓', 'ok')
+
+  // Push to Supabase
+  log('Pushing to Supabase…', 'info')
+  try {
+    await db.migrateLocalToCloud(msg => log(msg, ''))
+    log('All data synced to Supabase ✓', 'ok')
+    btn.textContent = 'Done ✓'
+    btn.className = 'btn done'
+    btn.disabled = false
+    btn.onclick = () => window.location.href = 'Sikhay_Dashboard.html'
+  } catch(e) {
+    log('Supabase sync error: ' + e.message, 'err')
+    btn.disabled = false
+    btn.textContent = 'Retry'
+    btn.onclick = run
+  }
+}
+</script>
+</body>
+</html>
