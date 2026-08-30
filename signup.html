@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sikhay System — Create Account</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0a0a0a;color:#e5e7eb;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center}
+  .card{background:#141414;border:1px solid #222;border-radius:16px;padding:40px;width:100%;max-width:420px}
+  .logo{text-align:center;margin-bottom:28px}
+  .logo h1{font-size:22px;font-weight:700;color:#fff;letter-spacing:1px}
+  .logo p{font-size:13px;color:#6b7280;margin-top:4px}
+  .trial-badge{background:#f59e0b22;border:1px solid #f59e0b55;border-radius:8px;padding:10px 14px;text-align:center;margin-bottom:24px;font-size:12px;color:#f59e0b;font-weight:600}
+  .form-group{margin-bottom:18px}
+  label{display:block;font-size:13px;color:#9ca3af;margin-bottom:6px}
+  input{width:100%;background:#0a0a0a;border:1px solid #333;border-radius:8px;padding:12px 14px;color:#e5e7eb;font-size:15px;outline:none;transition:border-color .15s}
+  input:focus{border-color:#f59e0b}
+  .btn{width:100%;background:#f59e0b;color:#0a0a0a;border:none;border-radius:8px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .15s;margin-top:4px}
+  .btn:hover{opacity:.9}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .error{background:#7f1d1d;border:1px solid #991b1b;border-radius:8px;padding:12px;font-size:13px;color:#fca5a5;margin-bottom:16px;display:none}
+  .success{background:#14532d;border:1px solid #166534;border-radius:8px;padding:16px;font-size:13px;color:#86efac;margin-bottom:16px;display:none;text-align:center;line-height:1.6}
+  .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(0,0,0,.3);border-top-color:#0a0a0a;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .links{text-align:center;margin-top:18px;font-size:12px;color:#6b7280}
+  .links a{color:#f59e0b;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <h1>SIKHAY SYSTEM</h1>
+    <p>Operations System for Printing Shops</p>
+  </div>
+
+  <div class="trial-badge">7-day free trial — no credit card required</div>
+
+  <div class="error" id="err-msg"></div>
+  <div class="success" id="success-msg"></div>
+
+  <div id="form-wrap">
+    <div class="form-group">
+      <label for="email">Email address</label>
+      <input type="email" id="email" placeholder="you@yourshop.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="At least 6 characters" autocomplete="new-password">
+    </div>
+    <div class="form-group">
+      <label for="password2">Confirm password</label>
+      <input type="password" id="password2" placeholder="Same password again" autocomplete="new-password">
+    </div>
+    <button class="btn" id="signup-btn" onclick="doSignup()">Start Free Trial</button>
+  </div>
+
+  <div class="links">Already have an account? <a href="login.html">Sign in</a></div>
+</div>
+
+<script src="config.js"></script>
+<script src="SikhayDB.js"></script>
+<script>
+const db = new SikhayDB()
+
+document.getElementById('password2').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doSignup()
+})
+
+async function doSignup() {
+  const email  = document.getElementById('email').value.trim()
+  const pass   = document.getElementById('password').value
+  const pass2  = document.getElementById('password2').value
+  const btn    = document.getElementById('signup-btn')
+
+  hideErr()
+  if (!email) return showErr('Please enter your email address.')
+  if (!pass)  return showErr('Please enter a password.')
+  if (pass.length < 6) return showErr('Password must be at least 6 characters.')
+  if (pass !== pass2)  return showErr('Passwords do not match.')
+
+  btn.disabled  = true
+  btn.innerHTML = '<span class="spinner"></span>Creating account…'
+
+  try {
+    await db.signUp(email, pass)
+    document.getElementById('form-wrap').style.display = 'none'
+    const s = document.getElementById('success-msg')
+    s.innerHTML = '✓ Account created!<br><br>Check your email <strong>' + email + '</strong> for a confirmation link. Click it to activate your account and start your 7-day free trial.'
+    s.style.display = 'block'
+    btn.style.display = 'none'
+  } catch(e) {
+    showErr(friendlyErr(e.message || ''))
+    btn.disabled  = false
+    btn.innerHTML = 'Start Free Trial'
+  }
+}
+
+function friendlyErr(msg = '') {
+  if (msg.includes('already registered') || msg.includes('already been registered') || msg.includes('User already registered'))
+    return 'This email is already registered. <a href="login.html" style="color:#fca5a5">Sign in instead?</a>'
+  if (msg.includes('invalid email') || msg.includes('Invalid email'))
+    return 'Please enter a valid email address.'
+  if (msg.includes('Password should be'))
+    return 'Password must be at least 6 characters.'
+  if (msg.includes('network') || msg.includes('fetch'))
+    return 'Network error. Check your connection and try again.'
+  return 'Sign up failed. Please try again.'
+}
+
+function showErr(msg) {
+  const el = document.getElementById('err-msg')
+  el.innerHTML  = msg
+  el.style.display = 'block'
+}
+
+function hideErr() {
+  document.getElementById('err-msg').style.display = 'none'
+}
+</script>
+</body>
+</html>

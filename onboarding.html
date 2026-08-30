@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sikhay System — Setup</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0a0a0a;color:#e5e7eb;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center}
+  .card{background:#141414;border:1px solid #222;border-radius:16px;padding:40px;width:100%;max-width:440px}
+  .step{font-size:11px;color:#f59e0b;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px}
+  h2{font-size:20px;font-weight:700;color:#fff;margin-bottom:6px}
+  .sub{font-size:13px;color:#6b7280;margin-bottom:28px;line-height:1.5}
+  .form-group{margin-bottom:20px}
+  label{display:block;font-size:13px;color:#9ca3af;margin-bottom:6px}
+  input,select{width:100%;background:#0a0a0a;border:1px solid #333;border-radius:8px;padding:12px 14px;color:#e5e7eb;font-size:15px;outline:none;transition:border-color .15s;-webkit-appearance:none}
+  input:focus,select:focus{border-color:#f59e0b}
+  .btn{width:100%;background:#f59e0b;color:#0a0a0a;border:none;border-radius:8px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .15s}
+  .btn:hover{opacity:.9}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .skip{display:block;text-align:center;margin-top:14px;font-size:12px;color:#4b5563;cursor:pointer;background:none;border:none;width:100%;font-family:inherit}
+  .skip:hover{color:#9ca3af}
+  .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(0,0,0,.3);border-top-color:#0a0a0a;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #loading{text-align:center;color:#6b7280;font-size:14px;padding:40px 0}
+</style>
+</head>
+<body>
+<div class="card">
+  <div id="loading">Loading…</div>
+
+  <div id="setup" style="display:none">
+    <div class="step">Setup — Step 1 of 1</div>
+    <h2>Tell us about your shop</h2>
+    <p class="sub">This helps personalize your dashboard. You can change these anytime in settings.</p>
+
+    <div class="form-group">
+      <label for="biz-name">Business name</label>
+      <input type="text" id="biz-name" placeholder="e.g. Sikhay Creatives" maxlength="80">
+    </div>
+    <div class="form-group">
+      <label for="shop-type">Type of shop</label>
+      <select id="shop-type">
+        <option value="">Select type…</option>
+        <option value="Printing">Printing</option>
+        <option value="Sublimation">Sublimation</option>
+        <option value="Screen Printing">Screen Printing</option>
+        <option value="Embroidery">Embroidery</option>
+        <option value="Tarpaulin / Signage">Tarpaulin / Signage</option>
+        <option value="Mixed Services">Mixed Services</option>
+      </select>
+    </div>
+
+    <button class="btn" id="save-btn" onclick="saveSetup()">Continue to Dashboard →</button>
+    <button class="skip" onclick="skipSetup()">Skip for now</button>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="SikhayDB.js"></script>
+<script>
+let _db = null
+
+;(async () => {
+  // Allow Supabase to process the email confirmation hash in the URL
+  await new Promise(r => setTimeout(r, 800))
+
+  _db = await SikhayDB.requireAuth()
+  if (!_db) return
+
+  // If business_name already set → skip to dashboard
+  const profile = await _db.getProfile()
+  if (profile?.business_name) {
+    window.location.href = 'Sikhay_Dashboard.html'
+    return
+  }
+
+  document.getElementById('loading').style.display = 'none'
+  document.getElementById('setup').style.display   = 'block'
+})()
+
+async function saveSetup() {
+  const name = document.getElementById('biz-name').value.trim()
+  const type = document.getElementById('shop-type').value
+  const btn  = document.getElementById('save-btn')
+
+  btn.disabled  = true
+  btn.innerHTML = '<span class="spinner"></span>Saving…'
+
+  await _db.saveProfile({
+    business_name: name || null,
+    shop_type:     type || null
+  })
+
+  window.location.href = 'Sikhay_Dashboard.html'
+}
+
+async function skipSetup() {
+  await _db.saveProfile({ business_name: 'My Shop' })
+  window.location.href = 'Sikhay_Dashboard.html'
+}
+</script>
+</body>
+</html>

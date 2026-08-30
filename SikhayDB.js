@@ -39,6 +39,24 @@ class SikhayDB {
     const { data: { session } } = await db._sb.auth.getSession()
     if (session?.user) {
       db._user = session.user
+
+      // Plan gate — skip on upgrade/onboarding pages to avoid redirect loops
+      const href = window.location.href
+      const exempt = href.includes('upgrade.html') || href.includes('onboarding.html')
+      if (!exempt) {
+        const profile = await db.getProfile()
+        if (profile) {
+          const now        = new Date()
+          const trialEnds  = profile.trial_ends_at ? new Date(profile.trial_ends_at) : null
+          const isTrialing = profile.plan === 'trial' && trialEnds && now < trialEnds
+          const isActive   = profile.plan === 'active'
+          if (!isTrialing && !isActive) {
+            window.location.href = 'upgrade.html'
+            return null
+          }
+        }
+      }
+
       return db
     }
     window.location.href = 'login.html'
@@ -54,6 +72,14 @@ class SikhayDB {
     return data.user
   }
 
+  async signUp(email, password) {
+    const ok = await this._ensureSupabase()
+    if (!ok) throw new Error('Supabase not configured')
+    const { data, error } = await this._sb.auth.signUp({ email, password })
+    if (error) throw error
+    return data
+  }
+
   async signOut() {
     if (this._sb) await this._sb.auth.signOut()
     window.location.href = 'login.html'
@@ -63,6 +89,27 @@ class SikhayDB {
     if (!this._sb) return null
     const { data: { user } } = await this._sb.auth.getUser()
     return user
+  }
+
+  async getProfile() {
+    if (!this._sb || !this._uid()) return null
+    try {
+      const { data } = await this._sb
+        .from('profiles')
+        .select('*')
+        .eq('user_id', this._uid())
+        .maybeSingle()
+      return data
+    } catch(e) { return null }
+  }
+
+  async saveProfile(fields) {
+    if (!this._sb || !this._uid()) return
+    await this._sb.from('profiles').upsert({
+      user_id: this._uid(),
+      ...fields,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' })
   }
 
   // ── INTERNAL ──────────────────────────────────────────────────

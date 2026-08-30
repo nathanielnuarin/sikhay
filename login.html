@@ -22,6 +22,9 @@
   .error{background:#7f1d1d;border:1px solid #991b1b;border-radius:8px;padding:12px;font-size:13px;color:#fca5a5;margin-bottom:16px;display:none}
   .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
   @keyframes spin{to{transform:rotate(360deg)}}
+  .links{display:flex;justify-content:space-between;margin-top:18px;font-size:12px}
+  .links a{color:#6b7280;text-decoration:none}
+  .links a:hover{color:#f59e0b}
 </style>
 </head>
 <body>
@@ -40,6 +43,10 @@
     <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password">
   </div>
   <button class="btn" id="login-btn" onclick="doLogin()">Sign In</button>
+  <div class="links">
+    <a href="forgot.html">Forgot password?</a>
+    <a href="signup.html">Create an account →</a>
+  </div>
 </div>
 
 <script src="config.js"></script>

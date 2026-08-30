@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sikhay System — Subscribe</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0a0a0a;color:#e5e7eb;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+  .wrap{width:100%;max-width:560px}
+  .header{text-align:center;margin-bottom:36px}
+  .header h1{font-size:22px;font-weight:700;color:#fff;letter-spacing:.5px;margin-bottom:8px}
+  .header p{font-size:14px;color:#6b7280;line-height:1.6}
+  .plans{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+  @media(max-width:440px){.plans{grid-template-columns:1fr}}
+  .plan{background:#141414;border:2px solid #222;border-radius:14px;padding:24px;cursor:pointer;transition:border-color .2s,transform .1s;position:relative}
+  .plan:hover{border-color:#f59e0b55;transform:translateY(-2px)}
+  .plan.selected{border-color:#f59e0b}
+  .plan-badge{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#f59e0b;color:#0a0a0a;font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;white-space:nowrap}
+  .plan-label{font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+  .plan-price{font-size:28px;font-weight:800;color:#fff;line-height:1}
+  .plan-price span{font-size:14px;font-weight:400;color:#6b7280}
+  .plan-note{font-size:12px;color:#6b7280;margin-top:6px}
+  .plan-note.save{color:#22c55e;font-weight:600}
+  .btn{width:100%;background:#f59e0b;color:#0a0a0a;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .15s}
+  .btn:hover{opacity:.9}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .payment-methods{display:flex;align-items:center;justify-content:center;gap:10px;margin:14px 0;flex-wrap:wrap}
+  .pm-chip{background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;color:#9ca3af}
+  .divider{text-align:center;font-size:11px;color:#374151;margin:6px 0}
+  .contact{text-align:center;font-size:12px;color:#6b7280;margin-top:20px}
+  .contact a{color:#f59e0b;text-decoration:none}
+  .error{background:#7f1d1d;border:1px solid #991b1b;border-radius:8px;padding:12px;font-size:13px;color:#fca5a5;margin-bottom:16px;display:none;text-align:center}
+  .success{background:#14532d;border:1px solid #166534;border-radius:14px;padding:32px;text-align:center;display:none}
+  .success h2{font-size:20px;font-weight:700;color:#86efac;margin-bottom:8px}
+  .success p{font-size:14px;color:#6b7280;line-height:1.6}
+  .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(0,0,0,.3);border-top-color:#0a0a0a;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .already-active{text-align:center;padding:40px 20px;color:#9ca3af;font-size:14px}
+  .already-active a{color:#f59e0b;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Success state (after PayMongo redirect) -->
+  <div class="success" id="success-box">
+    <h2>✓ Payment received!</h2>
+    <p>Your subscription is now active.<br>Redirecting you to the dashboard…</p>
+  </div>
+
+  <!-- Already active state -->
+  <div class="already-active" id="active-box" style="display:none">
+    <p>Your subscription is active. <a href="Sikhay_Dashboard.html">Go to Dashboard →</a></p>
+  </div>
+
+  <!-- Main payment UI -->
+  <div id="main-ui">
+    <div class="header">
+      <h1>Your free trial has ended</h1>
+      <p>Subscribe to continue using Sikhay System for your printing shop.</p>
+    </div>
+
+    <div class="error" id="err-msg"></div>
+
+    <div class="plans">
+      <div class="plan selected" id="plan-monthly" onclick="selectPlan('monthly')">
+        <div class="plan-label">Monthly</div>
+        <div class="plan-price">₱499<span>/mo</span></div>
+        <div class="plan-note">Billed every month</div>
+      </div>
+      <div class="plan" id="plan-yearly" onclick="selectPlan('yearly')">
+        <div class="plan-badge">SAVE 25%</div>
+        <div class="plan-label">Annual</div>
+        <div class="plan-price">₱374<span>/mo</span></div>
+        <div class="plan-note save">₱4,490/year — save ₱1,498</div>
+      </div>
+    </div>
+
+    <button class="btn" id="pay-btn" onclick="startPayment()">
+      Pay with GCash / Maya / Card
+    </button>
+
+    <div class="payment-methods">
+      <span class="pm-chip">GCash</span>
+      <span class="pm-chip">Maya</span>
+      <span class="pm-chip">GrabPay</span>
+      <span class="pm-chip">Credit Card</span>
+      <span class="pm-chip">Debit Card</span>
+    </div>
+
+    <div class="divider">Powered by PayMongo · Secure PH payment gateway</div>
+
+    <div class="contact">
+      Prefer to pay via bank transfer or have questions? <a href="mailto:nathanielnuarin@sikhaycreatives.com">Contact us</a>
+    </div>
+  </div>
+
+</div>
+
+<script src="config.js"></script>
+<script src="SikhayDB.js"></script>
+<script>
+let _db   = null
+let _plan = 'monthly'
+
+;(async () => {
+  // Check for success redirect from PayMongo
+  const params = new URLSearchParams(window.location.search)
+  if (params.get('success') === '1') {
+    document.getElementById('main-ui').style.display   = 'none'
+    document.getElementById('success-box').style.display = 'block'
+    setTimeout(() => window.location.href = 'Sikhay_Dashboard.html', 3000)
+    return
+  }
+
+  _db = await SikhayDB.requireAuth()
+  if (!_db) return
+
+  const profile = await _db.getProfile()
+  if (!profile) return
+
+  const now       = new Date()
+  const trialEnds = profile.trial_ends_at ? new Date(profile.trial_ends_at) : null
+  const isActive  = profile.plan === 'active' ||
+                    (profile.plan === 'trial' && trialEnds && now < trialEnds)
+
+  if (isActive) {
+    document.getElementById('main-ui').style.display  = 'none'
+    document.getElementById('active-box').style.display = 'block'
+    setTimeout(() => window.location.href = 'Sikhay_Dashboard.html', 2000)
+  }
+})()
+
+function selectPlan(p) {
+  _plan = p
+  document.getElementById('plan-monthly').classList.toggle('selected', p === 'monthly')
+  document.getElementById('plan-yearly').classList.toggle('selected', p === 'yearly')
+}
+
+async function startPayment() {
+  const btn = document.getElementById('pay-btn')
+  btn.disabled  = true
+  btn.innerHTML = '<span class="spinner"></span>Redirecting to payment…'
+  document.getElementById('err-msg').style.display = 'none'
+
+  try {
+    const user = await _db.getCurrentUser()
+    const res  = await fetch('/api/create-payment-link', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ userId: user.id, email: user.email, plan: _plan })
+    })
+    const json = await res.json()
+    if (!res.ok || !json.url) throw new Error(json.error || 'Payment link failed')
+    window.location.href = json.url
+  } catch(e) {
+    const err = document.getElementById('err-msg')
+    err.textContent  = 'Could not start payment: ' + e.message
+    err.style.display = 'block'
+    btn.disabled  = false
+    btn.textContent = 'Pay with GCash / Maya / Card'
+  }
+}
+</script>
+</body>
+</html>

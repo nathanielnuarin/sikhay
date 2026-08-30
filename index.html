@@ -1,9 +1,558 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="refresh" content="0;url=login.html">
-<title>Sikhay Creatives</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sikhay System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* ── TOKENS — single-theme dark (committed, not inherited) ── */
+:root {
+  --bg:        #0d0d0b;
+  --surface:   #161512;
+  --surface2:  #1e1c17;
+  --border:    #2a2720;
+  --gold:      #e8a020;
+  --gold-dim:  rgba(232,160,32,.18);
+  --ink:       #f0ece4;
+  --ink-dim:   #a09478;
+  --ink-muted: #514c42;
+  --green-fg:  #5fd68a;
+}
+
+/* ── RESET ─────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'IBM Plex Sans',system-ui,sans-serif;
+  font-size:16px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit;text-decoration:none}
+
+/* ── NAV ───────────────────────────────────────────────── */
+nav{
+  position:sticky;top:0;z-index:100;
+  background:var(--bg);
+  border-bottom:1px solid var(--border);
+}
+.nav-inner{
+  max-width:1080px;margin:0 auto;padding:0 24px;
+  height:60px;display:flex;align-items:center;justify-content:space-between;
+}
+.nav-logo{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:13px;font-weight:500;
+  letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--ink-dim);
+}
+.nav-logo strong{color:var(--gold);font-weight:500}
+.nav-right{display:flex;align-items:center;gap:24px}
+.nav-right a{font-size:13px;color:var(--ink-muted);transition:color .15s}
+.nav-right a:hover{color:var(--ink-dim)}
+.btn-nav{
+  background:var(--gold);color:#0d0d0b;
+  font-family:'IBM Plex Sans',sans-serif;
+  font-size:13px;font-weight:700;
+  padding:8px 18px;border-radius:6px;
+  transition:opacity .15s;white-space:nowrap;
+}
+.btn-nav:hover{opacity:.85}
+
+/* ── HERO ──────────────────────────────────────────────── */
+.hero{
+  max-width:1080px;margin:0 auto;
+  padding:96px 24px 72px;
+}
+.hero-label{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;font-weight:500;
+  letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--gold);margin-bottom:28px;
+  display:flex;align-items:center;gap:10px;
+}
+.hero-label::after{content:'';flex:1;max-width:120px;height:1px;background:var(--border)}
+.hero h1{
+  font-family:'DM Serif Display',Georgia,serif;
+  font-size:clamp(46px,7vw,88px);
+  font-weight:400;line-height:1.05;
+  color:var(--ink);text-wrap:balance;
+  max-width:780px;margin-bottom:28px;
+}
+.hero h1 em{font-style:italic;color:var(--gold)}
+.hero-sub{
+  font-size:17px;color:var(--ink-dim);
+  max-width:520px;margin-bottom:40px;
+  line-height:1.7;
+}
+.hero-actions{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.btn-primary{
+  background:var(--gold);color:#0d0d0b;
+  font-family:'IBM Plex Sans',sans-serif;
+  font-size:15px;font-weight:700;
+  padding:14px 30px;border-radius:8px;
+  transition:opacity .15s;display:inline-block;
+}
+.btn-primary:hover{opacity:.87}
+.btn-ghost{
+  font-size:14px;color:var(--ink-dim);
+  display:inline-flex;align-items:center;gap:5px;
+  transition:color .15s;
+}
+.btn-ghost:hover{color:var(--ink)}
+.hero-fine{
+  margin-top:20px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;color:var(--ink-muted);
+  letter-spacing:.5px;
+}
+
+/* ── TICKER ────────────────────────────────────────────── */
+.ticker-wrap{
+  overflow:hidden;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  padding:11px 0;
+  margin-top:64px;
+  -webkit-mask-image:linear-gradient(to right,transparent 0%,#000 6%,#000 94%,transparent 100%);
+  mask-image:linear-gradient(to right,transparent 0%,#000 6%,#000 94%,transparent 100%);
+}
+.ticker-track{
+  display:flex;width:max-content;
+  animation:ticker-scroll 32s linear infinite;
+}
+.ticker-track:hover{animation-play-state:paused}
+@keyframes ticker-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){.ticker-track{animation:none}}
+.t-item{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;color:var(--ink-muted);
+  white-space:nowrap;padding:0 30px;
+  border-right:1px solid var(--border);
+}
+.t-item .s-gold{color:var(--gold)}
+.t-item .s-green{color:var(--green-fg)}
+.t-item .s-dim{color:var(--ink-dim)}
+
+/* ── SECTION BASE ──────────────────────────────────────── */
+section{padding:80px 0}
+.container{max-width:1080px;margin:0 auto;padding:0 24px}
+.eyebrow{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px;font-weight:500;
+  letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--gold);margin-bottom:16px;
+}
+.section-h{
+  font-family:'DM Serif Display',Georgia,serif;
+  font-size:clamp(26px,3.5vw,42px);
+  font-weight:400;color:var(--ink);
+  text-wrap:balance;line-height:1.15;
+  margin-bottom:12px;
+}
+.section-p{
+  font-size:15px;color:var(--ink-dim);
+  max-width:540px;line-height:1.7;
+  margin-bottom:52px;
+}
+
+/* ── FEATURES ──────────────────────────────────────────── */
+.feat-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:1px;
+  background:var(--border);
+  border:1px solid var(--border);
+  border-radius:12px;overflow:hidden;
+}
+@media(max-width:660px){.feat-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:400px){.feat-grid{grid-template-columns:1fr}}
+.feat{
+  background:var(--surface);
+  padding:28px 24px;
+  transition:background .2s;
+}
+.feat:hover{background:var(--surface2)}
+.feat-ico{
+  width:34px;height:34px;
+  border:1px solid var(--border);border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:18px;
+}
+.feat-ico svg{
+  width:17px;height:17px;
+  stroke:var(--gold);fill:none;
+  stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;
+}
+.feat-name{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:8px}
+.feat-desc{font-size:13px;color:var(--ink-dim);line-height:1.6}
+
+/* ── CREDIBILITY ───────────────────────────────────────── */
+.cred{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:48px;max-width:660px;margin:0 auto;
+}
+.cred-q{
+  font-family:'DM Serif Display',Georgia,serif;
+  font-size:clamp(17px,2.2vw,22px);
+  font-style:italic;color:var(--ink);
+  line-height:1.55;margin-bottom:28px;
+}
+.cred-by{display:flex;align-items:center;gap:14px}
+.cred-av{
+  width:40px;height:40px;border-radius:50%;
+  background:var(--gold-dim);border:1px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'IBM Plex Mono',monospace;font-size:14px;
+  color:var(--gold);flex-shrink:0;
+}
+.cred-name{font-size:14px;font-weight:600;color:var(--ink)}
+.cred-title{font-size:12px;color:var(--ink-dim);margin-top:2px}
+
+/* ── PRICING ───────────────────────────────────────────── */
+.pricing-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:16px;max-width:600px;margin:0 auto;
+}
+@media(max-width:500px){.pricing-grid{grid-template-columns:1fr}}
+.pc{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;padding:32px;position:relative;
+}
+.pc.hot{border-color:var(--gold)}
+.pc-badge{
+  position:absolute;top:-11px;left:50%;transform:translateX(-50%);
+  background:var(--gold);color:#0d0d0b;
+  font-size:10px;font-weight:800;
+  padding:3px 12px;border-radius:20px;
+  letter-spacing:.5px;white-space:nowrap;
+}
+.pc-plan{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--ink-muted);margin-bottom:18px;
+}
+.pc-price{
+  font-family:'DM Serif Display',Georgia,serif;
+  font-size:42px;color:var(--ink);line-height:1;margin-bottom:4px;
+}
+.pc-price span{
+  font-family:'IBM Plex Sans',sans-serif;
+  font-size:16px;font-weight:400;color:var(--ink-dim);
+}
+.pc-note{font-size:12px;color:var(--ink-dim);margin-bottom:24px;min-height:17px}
+.pc-note.save{color:var(--green-fg);font-weight:600}
+.pc-btn{
+  width:100%;padding:12px;border-radius:8px;
+  border:1px solid var(--border);background:transparent;
+  color:var(--ink);font-size:13px;font-weight:600;
+  font-family:'IBM Plex Sans',sans-serif;cursor:pointer;
+  transition:all .15s;
+}
+.pc-btn:hover{border-color:var(--gold);color:var(--gold)}
+.pc.hot .pc-btn{
+  background:var(--gold);color:#0d0d0b;border-color:var(--gold);
+}
+.pc.hot .pc-btn:hover{opacity:.87}
+.pc-list{margin-top:22px;list-style:none}
+.pc-list li{
+  font-size:13px;color:var(--ink-dim);
+  padding:7px 0;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:9px;
+}
+.pc-list li:last-child{border-bottom:none}
+.pc-list li::before{content:'✓';color:var(--green-fg);font-size:11px;flex-shrink:0}
+.pricing-foot{
+  text-align:center;margin-top:24px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;color:var(--ink-muted);letter-spacing:.5px;
+}
+
+/* ── FAQ ───────────────────────────────────────────────── */
+.faq-list{max-width:620px;margin:0 auto}
+details{border-bottom:1px solid var(--border);padding:18px 0}
+details:first-child{border-top:1px solid var(--border)}
+summary{
+  font-size:15px;font-weight:600;color:var(--ink);
+  cursor:pointer;list-style:none;
+  display:flex;justify-content:space-between;align-items:center;gap:16px;
+  user-select:none;
+}
+summary::-webkit-details-marker{display:none}
+summary::after{content:'+';color:var(--gold);font-size:20px;line-height:1;flex-shrink:0}
+details[open] summary::after{content:'−'}
+.faq-body{
+  font-size:14px;color:var(--ink-dim);
+  line-height:1.75;padding-top:14px;max-width:560px;
+}
+
+/* ── FINAL CTA ─────────────────────────────────────────── */
+.final-cta{
+  border-top:1px solid var(--border);
+  text-align:center;padding:80px 24px;
+}
+.final-cta h2{
+  font-family:'DM Serif Display',Georgia,serif;
+  font-size:clamp(28px,4.5vw,52px);
+  font-weight:400;color:var(--ink);
+  text-wrap:balance;margin-bottom:16px;
+  line-height:1.15;
+}
+.final-cta p{font-size:15px;color:var(--ink-dim);margin-bottom:32px}
+.chips{
+  display:flex;justify-content:center;
+  gap:8px;margin-top:22px;flex-wrap:wrap;
+}
+.chip{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:4px;padding:4px 12px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;color:var(--ink-muted);
+}
+
+/* ── FOOTER ────────────────────────────────────────────── */
+footer{border-top:1px solid var(--border);padding:28px 24px}
+.footer-in{
+  max-width:1080px;margin:0 auto;
+  display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:12px;
+}
+.foot-logo{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;letter-spacing:2px;color:var(--ink-muted);
+}
+.foot-links{display:flex;gap:20px}
+.foot-links a{font-size:12px;color:var(--ink-muted);transition:color .15s}
+.foot-links a:hover{color:var(--ink-dim)}
+</style>
 </head>
-<body></body>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo"><strong>Sikhay</strong> System</div>
+    <div class="nav-right">
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="login.html">Sign in</a>
+      <a href="signup.html" class="btn-nav">Start Free Trial</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-label">For printing shops &middot; Philippines</div>
+  <h1 class="section-h" style="font-family:'DM Serif Display',Georgia,serif;font-size:clamp(46px,7vw,88px);font-weight:400;line-height:1.05;max-width:780px;margin-bottom:28px">
+    Run your shop.<br><em style="font-style:italic;color:var(--gold)">Not your spreadsheets.</em>
+  </h1>
+  <p class="hero-sub">Sikhay System handles orders, production, deliveries, payroll, and finances — so you can focus on the work, not the paperwork.</p>
+  <div class="hero-actions">
+    <a href="signup.html" class="btn-primary">Start 7-day free trial</a>
+    <a href="#features" class="btn-ghost">See what&rsquo;s inside &rarr;</a>
+  </div>
+  <p class="hero-fine">No credit card required &middot; Cancel anytime &middot; GCash &amp; Maya accepted</p>
+
+  <!-- TICKER -->
+  <div class="ticker-wrap">
+    <div class="ticker-track">
+      <span class="t-item">ORD-0892 &middot; Santos Printing &middot; 50 jerseys &middot; <span class="s-gold">For Print</span></span>
+      <span class="t-item">ORD-0891 &middot; Dela Cruz Designs &middot; 12 shirts &middot; <span class="s-green">Ready to Collect</span></span>
+      <span class="t-item">DLV-0884 &middot; Delivered &check; &middot; Paid in full</span>
+      <span class="t-item">ORD-0893 &middot; Bagong Pag-asa Brgy &middot; 100 tarp &middot; <span class="s-dim">New Order</span></span>
+      <span class="t-item">Payroll &middot; Week 33 &middot; 4 staff &middot; &#8369;18,400 &check;</span>
+      <span class="t-item">ORD-0890 &middot; Reyes Uniform Supply &middot; 200 polo &middot; <span class="s-gold">Ongoing</span></span>
+      <span class="t-item">Finance &middot; Aug revenue &middot; &#8369;74,200 &middot; <span class="s-green">+12% vs last month</span></span>
+      <span class="t-item">ORD-0889 &middot; Grade 6 Batch 2026 &middot; 150 shirts &middot; <span class="s-green">Delivered</span></span>
+      <!-- duplicate for seamless loop -->
+      <span class="t-item">ORD-0892 &middot; Santos Printing &middot; 50 jerseys &middot; <span class="s-gold">For Print</span></span>
+      <span class="t-item">ORD-0891 &middot; Dela Cruz Designs &middot; 12 shirts &middot; <span class="s-green">Ready to Collect</span></span>
+      <span class="t-item">DLV-0884 &middot; Delivered &check; &middot; Paid in full</span>
+      <span class="t-item">ORD-0893 &middot; Bagong Pag-asa Brgy &middot; 100 tarp &middot; <span class="s-dim">New Order</span></span>
+      <span class="t-item">Payroll &middot; Week 33 &middot; 4 staff &middot; &#8369;18,400 &check;</span>
+      <span class="t-item">ORD-0890 &middot; Reyes Uniform Supply &middot; 200 polo &middot; <span class="s-gold">Ongoing</span></span>
+      <span class="t-item">Finance &middot; Aug revenue &middot; &#8369;74,200 &middot; <span class="s-green">+12% vs last month</span></span>
+      <span class="t-item">ORD-0889 &middot; Grade 6 Batch 2026 &middot; 150 shirts &middot; <span class="s-green">Delivered</span></span>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="container">
+    <div class="eyebrow">What&rsquo;s inside</div>
+    <h2 class="section-h">Everything your shop needs.<br>Nothing it doesn&rsquo;t.</h2>
+    <p class="section-p">From the first customer call to final delivery — and the back-office that keeps everything running.</p>
+
+    <div class="feat-grid">
+      <div class="feat">
+        <div class="feat-ico">
+          <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        </div>
+        <div class="feat-name">Order Tracker</div>
+        <div class="feat-desc">All orders in one board. Status, deadlines, client info, quantities, and size breakdowns — tracked from intake to pickup.</div>
+      </div>
+      <div class="feat">
+        <div class="feat-ico">
+          <svg viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        </div>
+        <div class="feat-name">Design Tracker</div>
+        <div class="feat-desc">Monitor design status — received, revision, approved — per order. Catch bottlenecks before they delay production.</div>
+      </div>
+      <div class="feat">
+        <div class="feat-ico">
+          <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+        </div>
+        <div class="feat-name">Production Checklist</div>
+        <div class="feat-desc">Step-by-step checklists per order. Mark each stage — printing, pressing, cutting, QC — so nothing gets skipped.</div>
+      </div>
+      <div class="feat">
+        <div class="feat-ico">
+          <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+        <div class="feat-name">Delivery &amp; Payment</div>
+        <div class="feat-desc">Log deliveries, track balances owed, record down payments and full settlements. Know who still owes you.</div>
+      </div>
+      <div class="feat">
+        <div class="feat-ico">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        </div>
+        <div class="feat-name">Finance Dashboard</div>
+        <div class="feat-desc">Revenue, expenses, and income by month — categorized and ready for tax season. No accounting background needed.</div>
+      </div>
+      <div class="feat">
+        <div class="feat-ico">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        </div>
+        <div class="feat-name">HR &amp; Payroll</div>
+        <div class="feat-desc">Manage employees, track weekly payroll, print payslips. SSS, PhilHealth, and Pag-IBIG deductions calculated automatically.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CREDIBILITY -->
+<section style="padding-top:0">
+  <div class="container">
+    <div class="cred">
+      <div class="cred-q">&ldquo;I built this because I couldn&rsquo;t find a system that actually understood how a printing shop works. Most tools were either too complicated or too simple. So I built exactly what I needed &mdash; and now I&rsquo;m sharing it.&rdquo;</div>
+      <div class="cred-by">
+        <div class="cred-av">N</div>
+        <div>
+          <div class="cred-name">Nathaniel Nuarin</div>
+          <div class="cred-title">Owner, Sikhay Creatives &middot; Dasmari&ntilde;as, Cavite</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="container">
+    <div class="eyebrow" style="text-align:center">Pricing</div>
+    <h2 class="section-h" style="text-align:center;margin:0 auto 10px">Simple, honest pricing.</h2>
+    <p class="section-p" style="text-align:center;margin:0 auto 52px">Start free for 7 days. No credit card needed. Cancel anytime.</p>
+
+    <div class="pricing-grid">
+      <div class="pc">
+        <div class="pc-plan">Monthly</div>
+        <div class="pc-price">&#8369;499<span>/mo</span></div>
+        <div class="pc-note">Billed monthly</div>
+        <a href="signup.html" class="pc-btn" style="display:block;text-align:center;border-radius:8px;padding:12px;border:1px solid var(--border);font-size:13px;font-weight:600;color:var(--ink);transition:all .15s">Start free trial</a>
+        <ul class="pc-list">
+          <li>All 8 tools included</li>
+          <li>Unlimited orders</li>
+          <li>Cloud sync across devices</li>
+          <li>Secure PH payments</li>
+        </ul>
+      </div>
+
+      <div class="pc hot">
+        <div class="pc-badge">BEST VALUE</div>
+        <div class="pc-plan">Annual</div>
+        <div class="pc-price">&#8369;374<span>/mo</span></div>
+        <div class="pc-note save">&#8369;4,490/year &middot; Save &#8369;1,498</div>
+        <a href="signup.html" class="pc-btn" style="display:block;text-align:center;border-radius:8px;padding:12px;background:var(--gold);color:#0d0d0b;border:none;font-size:13px;font-weight:700">Start free trial</a>
+        <ul class="pc-list">
+          <li>All 8 tools included</li>
+          <li>Unlimited orders</li>
+          <li>Cloud sync across devices</li>
+          <li>Secure PH payments</li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="pricing-foot">GCash &middot; Maya &middot; GrabPay &middot; Credit / Debit Card &middot; via PayMongo</p>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="container">
+    <div class="eyebrow">FAQ</div>
+    <h2 class="section-h" style="margin-bottom:36px">Common questions.</h2>
+    <div class="faq-list">
+      <details>
+        <summary>What happens after the 7-day free trial?</summary>
+        <div class="faq-body">After 7 days you&rsquo;ll be redirected to the payment page. Choose monthly (&#8369;499) or annual (&#8369;4,490) and pay via GCash, Maya, GrabPay, or credit/debit card through PayMongo. Your data is never deleted &mdash; even if you stop subscribing.</div>
+      </details>
+      <details>
+        <summary>Can other shops see my orders and data?</summary>
+        <div class="faq-body">No. Every account&rsquo;s data is completely isolated at the database level using Supabase row-level security. Other users cannot see your orders, finances, or payroll &mdash; not even in principle. Your data belongs only to you.</div>
+      </details>
+      <details>
+        <summary>Can I use this on my phone?</summary>
+        <div class="faq-body">Yes. Sikhay System is a web app &mdash; it works on any browser, phone, tablet, or desktop. Open it from any device using your login. No app install needed.</div>
+      </details>
+      <details>
+        <summary>How long does setup take?</summary>
+        <div class="faq-body">Most shop owners are running in under 10 minutes. Sign up, confirm your email, enter your business name, and start adding orders. The system was designed to be immediately useful on day one &mdash; no complicated onboarding.</div>
+      </details>
+      <details>
+        <summary>What if I want to cancel?</summary>
+        <div class="faq-body">Contact us at <a href="mailto:nathanielnuarin@sikhaycreatives.com" style="color:var(--gold)">nathanielnuarin@sikhaycreatives.com</a> and we&rsquo;ll stop future billing right away. Your access continues until the end of the current billing period.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<div class="final-cta">
+  <h2>Your shop deserves<br>a real system.</h2>
+  <p>Try Sikhay System free for 7 days &mdash; no card needed.</p>
+  <a href="signup.html" class="btn-primary">Create your free account &rarr;</a>
+  <div class="chips">
+    <span class="chip">GCash</span>
+    <span class="chip">Maya</span>
+    <span class="chip">GrabPay</span>
+    <span class="chip">Credit Card</span>
+    <span class="chip">Debit Card</span>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-in">
+    <div class="foot-logo">SIKHAY SYSTEM</div>
+    <div class="foot-links">
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="login.html">Sign in</a>
+      <a href="signup.html">Sign up</a>
+      <a href="mailto:nathanielnuarin@sikhaycreatives.com">Contact</a>
+    </div>
+  </div>
+</footer>
+
+</body>
 </html>
