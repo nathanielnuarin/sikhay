@@ -47,11 +47,11 @@
 <script>
   const db = new SikhayDB()
 
-  // Once Firebase is ready, redirect if already signed in
-  db._ensureFirebase().then(ok => {
-    if (!ok) { showErr('Cannot reach Firebase. Check your internet.'); return }
-    db._auth.onAuthStateChanged(user => {
-      if (user) window.location.href = 'Sikhay_Dashboard.html'
+  // Redirect to dashboard if already signed in
+  db._ensureSupabase().then(ok => {
+    if (!ok) { showErr('Cannot reach Supabase. Check your internet.'); return }
+    db._sb.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) window.location.href = 'Sikhay_Dashboard.html'
     })
   })
 
@@ -63,33 +63,31 @@
     const email    = document.getElementById('email').value.trim()
     const password = document.getElementById('password').value
     const btn      = document.getElementById('login-btn')
-    const errEl    = document.getElementById('err-msg')
 
-    if (!email || !password) {
-      showErr('Please enter your email and password.')
-      return
-    }
+    if (!email || !password) { showErr('Please enter your email and password.'); return }
 
     btn.disabled  = true
     btn.innerHTML = '<span class="spinner"></span>Signing in…'
-    errEl.style.display = 'none'
+    document.getElementById('err-msg').style.display = 'none'
 
     try {
       await db.signIn(email, password)
       window.location.href = 'Sikhay_Dashboard.html'
     } catch(e) {
-      showErr(friendlyErr(e.code))
+      showErr(friendlyErr(e.message || ''))
       btn.disabled  = false
       btn.innerHTML = 'Sign In'
     }
   }
 
-  function friendlyErr(code = '') {
-    if (code.includes('user-not-found') || code.includes('wrong-password') || code.includes('invalid-credential'))
+  function friendlyErr(msg = '') {
+    if (msg.includes('Invalid login credentials') || msg.includes('invalid_credentials'))
       return 'Wrong email or password.'
-    if (code.includes('too-many-requests'))
+    if (msg.includes('Email not confirmed'))
+      return 'Please confirm your email first.'
+    if (msg.includes('Too many requests'))
       return 'Too many failed attempts. Try again later.'
-    if (code.includes('network'))
+    if (msg.includes('network') || msg.includes('fetch'))
       return 'Network error. Check your connection.'
     return 'Sign in failed. Check your email and password.'
   }

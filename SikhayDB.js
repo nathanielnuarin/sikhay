@@ -1,41 +1,29 @@
-// SikhayDB.js — Firebase-backed offline-first data layer for Sikhay Creatives
-// Depends on: config.js (FIREBASE_CONFIG + preloads Firebase compat SDK)
+// SikhayDB.js — Supabase-backed offline-first data layer for Sikhay Creatives
+// Depends on: config.js (SUPABASE_URL + SUPABASE_ANON_KEY + loads Supabase SDK)
 
 class SikhayDB {
   constructor() {
-    this._app     = null
-    this._auth    = null
-    this._db      = null
+    this._sb      = null
     this._user    = null
     this._pending = JSON.parse(localStorage.getItem('sikhay_pending_sync') || '[]')
     window.addEventListener('online', () => this._flushPending())
   }
 
-  // ── FIREBASE INIT ─────────────────────────────────────────────
+  // ── SUPABASE INIT ─────────────────────────────────────────────
 
-  async _ensureFirebase() {
-    if (this._db) return true
-    await this._waitForFirebase()
-    if (typeof firebase === 'undefined' || typeof FIREBASE_CONFIG === 'undefined') return false
-    if (!firebase.apps.length) {
-      this._app = firebase.initializeApp(FIREBASE_CONFIG)
-    } else {
-      this._app = firebase.app()
-    }
-    this._auth = firebase.auth()
-    this._db   = firebase.firestore()
+  async _ensureSupabase() {
+    if (this._sb) return true
+    await this._waitForSupabase()
+    if (typeof window.supabase === 'undefined' || typeof SUPABASE_URL === 'undefined') return false
+    this._sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
     return true
   }
 
-  _waitForFirebase() {
+  _waitForSupabase() {
     return new Promise(resolve => {
-      if (typeof firebase !== 'undefined' && firebase.auth && firebase.firestore) {
-        resolve(); return
-      }
+      if (typeof window.supabase !== 'undefined') { resolve(); return }
       const iv = setInterval(() => {
-        if (typeof firebase !== 'undefined' && firebase.auth && firebase.firestore) {
-          clearInterval(iv); resolve()
-        }
+        if (typeof window.supabase !== 'undefined') { clearInterval(iv); resolve() }
       }, 50)
       setTimeout(() => { clearInterval(iv); resolve() }, 12000)
     })
@@ -45,44 +33,36 @@ class SikhayDB {
 
   static async requireAuth() {
     const db = new SikhayDB()
-    const ok = await db._ensureFirebase()
-    if (!ok) return db  // no Firebase configured — local-only mode
+    const ok = await db._ensureSupabase()
+    if (!ok) return db  // no Supabase configured — local-only mode
 
-    return new Promise(resolve => {
-      const unsub = db._auth.onAuthStateChanged(user => {
-        unsub()
-        if (user) {
-          db._user = user
-          resolve(db)
-        } else {
-          window.location.href = 'login.html'
-          resolve(null)
-        }
-      })
-    })
-  }
-
-  async getSession() {
-    if (!this._auth) return null
-    return this._auth.currentUser
+    const { data: { session } } = await db._sb.auth.getSession()
+    if (session?.user) {
+      db._user = session.user
+      return db
+    }
+    window.location.href = 'login.html'
+    return null
   }
 
   async signIn(email, password) {
-    const ok = await this._ensureFirebase()
-    if (!ok) throw new Error('Firebase not configured')
-    const cred = await this._auth.signInWithEmailAndPassword(email, password)
-    this._user = cred.user
-    return cred.user
+    const ok = await this._ensureSupabase()
+    if (!ok) throw new Error('Supabase not configured')
+    const { data, error } = await this._sb.auth.signInWithPassword({ email, password })
+    if (error) throw error
+    this._user = data.user
+    return data.user
   }
 
   async signOut() {
-    if (this._auth) await this._auth.signOut()
+    if (this._sb) await this._sb.auth.signOut()
     window.location.href = 'login.html'
   }
 
   async getCurrentUser() {
-    if (!this._auth) return null
-    return this._auth.currentUser
+    if (!this._sb) return null
+    const { data: { user } } = await this._sb.auth.getUser()
+    return user
   }
 
   // ── INTERNAL ──────────────────────────────────────────────────
@@ -94,18 +74,18 @@ class SikhayDB {
 
   _lsWrite(key, val) { localStorage.setItem(key, JSON.stringify(val)) }
 
-  // Returns Firestore CollectionReference under /users/{uid}/{col}
-  _col(col) {
-    if (!this._db || !this._user) return null
-    return this._db.collection('users').doc(this._user.uid).collection(col)
-  }
+  _uid() { return this._user?.id }
 
   async _fetchAll(col) {
-    const ref = this._col(col)
-    if (!ref) return null
+    if (!this._sb || !this._uid()) return null
     try {
-      const snap = await ref.get()
-      return snap.docs.map(d => d.data().data).filter(Boolean)
+      const { data, error } = await this._sb
+        .from('sikhay_collections')
+        .select('data')
+        .eq('collection', col)
+        .eq('user_id', this._uid())
+      if (error) return null
+      return data.map(r => r.data).filter(Boolean)
     } catch(e) { return null }
   }
 
@@ -117,38 +97,66 @@ class SikhayDB {
     return map
   }
 
-  async _fetchSingleton(col, docId) {
-    const ref = this._col(col)
-    if (!ref) return null
+  async _fetchSingleton(key) {
+    if (!this._sb || !this._uid()) return null
     try {
-      const snap = await ref.doc(docId).get()
-      return snap.exists ? (snap.data().data ?? null) : null
+      const { data, error } = await this._sb
+        .from('sikhay_singletons')
+        .select('data')
+        .eq('key', key)
+        .eq('user_id', this._uid())
+        .maybeSingle()
+      if (error) return null
+      return data?.data ?? null
     } catch(e) { return null }
   }
 
   async _upsert(col, pkProp, record) {
-    const ref = this._col(col)
-    if (!ref) { this._queuePending({ col, pkProp, record }); return }
+    if (!this._sb || !this._uid()) { this._queuePending({ _type: 'list', col, pkProp, record }); return }
     try {
-      await ref.doc(String(record[pkProp])).set({
-        data:      record,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      })
-    } catch(e) { this._queuePending({ col, pkProp, record }) }
+      const { error } = await this._sb.from('sikhay_collections').upsert({
+        collection: col,
+        record_id:  String(record[pkProp]),
+        user_id:    this._uid(),
+        data:       record,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'collection,record_id,user_id' })
+      if (error) this._queuePending({ _type: 'list', col, pkProp, record })
+    } catch(e) { this._queuePending({ _type: 'list', col, pkProp, record }) }
   }
 
-  async _upsertSingleton(col, docId, docData) {
-    const ref = this._col(col)
-    if (!ref) { this._pending.push({ _type: 'singleton', col, docId, docData, ts: Date.now() }); this._lsWrite('sikhay_pending_sync', this._pending); return }
+  async _upsertSingleton(key, docData) {
+    if (!this._sb || !this._uid()) {
+      this._pending.push({ _type: 'singleton', key, docData, ts: Date.now() })
+      this._lsWrite('sikhay_pending_sync', this._pending)
+      return
+    }
     try {
-      await ref.doc(docId).set({
-        data:      docData,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      })
+      const { error } = await this._sb.from('sikhay_singletons').upsert({
+        key,
+        user_id:    this._uid(),
+        data:       docData,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'key,user_id' })
+      if (error) {
+        this._pending.push({ _type: 'singleton', key, docData, ts: Date.now() })
+        this._lsWrite('sikhay_pending_sync', this._pending)
+      }
     } catch(e) {
-      this._pending.push({ _type: 'singleton', col, docId, docData, ts: Date.now() })
+      this._pending.push({ _type: 'singleton', key, docData, ts: Date.now() })
       this._lsWrite('sikhay_pending_sync', this._pending)
     }
+  }
+
+  async _deleteFromCollection(col, pkVal) {
+    if (!this._sb || !this._uid()) return
+    try {
+      await this._sb.from('sikhay_collections')
+        .delete()
+        .eq('collection', col)
+        .eq('record_id', String(pkVal))
+        .eq('user_id', this._uid())
+    } catch(e) {}
   }
 
   _queuePending(item) {
@@ -162,7 +170,7 @@ class SikhayDB {
     this._lsWrite('sikhay_pending_sync', [])
     for (const item of q) {
       if (item._type === 'singleton') {
-        await this._upsertSingleton(item.col, item.docId, item.docData)
+        await this._upsertSingleton(item.key, item.docData)
       } else {
         await this._upsert(item.col, item.pkProp, item.record)
       }
@@ -193,8 +201,7 @@ class SikhayDB {
   async deleteOrderById(id) {
     const list = this._lsRead('sikhay_ot_v1', []).filter(o => o.id !== id)
     this._lsWrite('sikhay_ot_v1', list)
-    const ref = this._col('orders')
-    if (ref) { try { await ref.doc(String(id)).delete() } catch(e) {} }
+    await this._deleteFromCollection('orders', id)
   }
 
   async updateOrder(id, fields) {
@@ -230,8 +237,7 @@ class SikhayDB {
   async deleteDesignById(id) {
     const list = this._lsRead('sikhay_dt_v1', []).filter(d => d.id !== id)
     this._lsWrite('sikhay_dt_v1', list)
-    const ref = this._col('designs')
-    if (ref) { try { await ref.doc(String(id)).delete() } catch(e) {} }
+    await this._deleteFromCollection('designs', id)
   }
 
   // ── PRODUCTION ────────────────────────────────────────────────
@@ -292,53 +298,53 @@ class SikhayDB {
   // ── FINANCE ───────────────────────────────────────────────────
 
   async getFinance() {
-    const cloud = await this._fetchSingleton('singletons', 'finance')
+    const cloud = await this._fetchSingleton('finance')
     if (cloud !== null) { this._lsWrite('sikhay_fin_v1', cloud); return cloud }
     return this._lsRead('sikhay_fin_v1', { expenses: [], orderCosts: [] })
   }
 
   async saveFinance(fin) {
     this._lsWrite('sikhay_fin_v1', fin)
-    await this._upsertSingleton('singletons', 'finance', fin)
+    await this._upsertSingleton('finance', fin)
   }
 
   // ── HR ────────────────────────────────────────────────────────
 
   async getHR() {
-    const cloud = await this._fetchSingleton('singletons', 'hr')
+    const cloud = await this._fetchSingleton('hr')
     if (cloud !== null) { this._lsWrite('sikhay_hr_v1', cloud); return cloud }
     return this._lsRead('sikhay_hr_v1', { employees: [], payrolls: [] })
   }
 
   async saveHR(hr) {
     this._lsWrite('sikhay_hr_v1', hr)
-    await this._upsertSingleton('singletons', 'hr', hr)
+    await this._upsertSingleton('hr', hr)
   }
 
   // ── CRM ───────────────────────────────────────────────────────
 
   async getCRM() {
-    const cloud = await this._fetchSingleton('singletons', 'crm')
+    const cloud = await this._fetchSingleton('crm')
     if (cloud !== null) { this._lsWrite('sikhay_crm_v1', cloud); return cloud }
     return this._lsRead('sikhay_crm_v1', { leads: [], clients: [] })
   }
 
   async saveCRM(crm) {
     this._lsWrite('sikhay_crm_v1', crm)
-    await this._upsertSingleton('singletons', 'crm', crm)
+    await this._upsertSingleton('crm', crm)
   }
 
   // ── INVOICE DOCS ──────────────────────────────────────────────
 
   async getInvoiceDocs() {
-    const cloud = await this._fetchSingleton('singletons', 'invoiceDocs')
+    const cloud = await this._fetchSingleton('invoiceDocs')
     if (cloud !== null) { this._lsWrite('sikhay_docs_v2', cloud); return cloud }
     return this._lsRead('sikhay_docs_v2', [])
   }
 
   async saveInvoiceDocs(data) {
     this._lsWrite('sikhay_docs_v2', data)
-    await this._upsertSingleton('singletons', 'invoiceDocs', data)
+    await this._upsertSingleton('invoiceDocs', data)
   }
 
   // ── DRAFT ORDERS ──────────────────────────────────────────────
@@ -360,12 +366,10 @@ class SikhayDB {
   async deleteDraftOrder(id) {
     const list = this._lsRead('sikhay_drafts_v1', []).filter(d => d.id !== id)
     this._lsWrite('sikhay_drafts_v1', list)
-    const ref = this._col('draftOrders')
-    if (ref) { try { await ref.doc(String(id)).delete() } catch(e) {} }
+    await this._deleteFromCollection('draftOrders', id)
   }
 
   // ── CLOUD MIGRATION ───────────────────────────────────────────
-  // One-time push of all localStorage data to Firestore
 
   async migrateLocalToCloud(onProgress) {
     const report = { orders: 0, designs: 0, production: 0, deliveries: 0, aftersales: 0, finance: false, hr: false, draftOrders: 0 }
@@ -395,20 +399,20 @@ class SikhayDB {
     for (const a of aftersales) { await this._upsert('aftersales', 'orderId', a); report.aftersales++ }
 
     const finance = this._lsRead('sikhay_fin_v1', null)
-    if (finance) { prog('Uploading finance data…'); await this._upsertSingleton('singletons', 'finance', finance); report.finance = true }
+    if (finance) { prog('Uploading finance data…'); await this._upsertSingleton('finance', finance); report.finance = true }
 
     const hr = this._lsRead('sikhay_hr_v1', null)
-    if (hr) { prog('Uploading HR data…'); await this._upsertSingleton('singletons', 'hr', hr); report.hr = true }
+    if (hr) { prog('Uploading HR data…'); await this._upsertSingleton('hr', hr); report.hr = true }
 
     const drafts = this._lsRead('sikhay_drafts_v1', [])
     prog(`Uploading ${drafts.length} draft orders…`)
     for (const d of drafts) { await this._upsert('draftOrders', 'id', d); report.draftOrders++ }
 
     const crm = this._lsRead('sikhay_crm_v1', null)
-    if (crm) { prog('Uploading CRM data…'); await this._upsertSingleton('singletons', 'crm', crm); report.crm = true }
+    if (crm) { prog('Uploading CRM data…'); await this._upsertSingleton('crm', crm); report.crm = true }
 
     const invDocs = this._lsRead('sikhay_docs_v2', null)
-    if (invDocs) { prog('Uploading invoice docs…'); await this._upsertSingleton('singletons', 'invoiceDocs', invDocs); report.invoiceDocs = true }
+    if (invDocs) { prog('Uploading invoice docs…'); await this._upsertSingleton('invoiceDocs', invDocs); report.invoiceDocs = true }
 
     localStorage.setItem('sikhay_cloud_synced', '1')
     prog('Done!')

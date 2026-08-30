@@ -1,26 +1,14 @@
-// config.js — Firebase configuration for Sikhay Creatives
+// config.js — Supabase configuration for Sikhay Creatives
 
-const FIREBASE_CONFIG = {
-  apiKey:            "AIzaSyBnBPTxUyvyMx6lUJMmemG9Sfc-1E9zEs0",
-  authDomain:        "sikhay-creatives.firebaseapp.com",
-  projectId:         "sikhay-creatives",
-  storageBucket:     "sikhay-creatives.firebasestorage.app",
-  messagingSenderId: "85080433511",
-  appId:             "1:85080433511:web:f616053804adf5de9a05c2",
-  measurementId:     "G-FSD5JRJWY7"
-};
+const SUPABASE_URL      = 'https://wqjaoktmgjuytmtxuxwb.supabase.co'
+const SUPABASE_ANON_KEY = 'sb_publishable_tLdlIFXJIXCRwkt8bbFt3w_TwpJLA0e'
 
-// Preload Firebase compat SDK as early as possible so SikhayDB finds it ready
-(function () {
-  const V    = '10.12.0';
-  const base = `https://www.gstatic.com/firebasejs/${V}`;
-  ['firebase-app-compat.js', 'firebase-auth-compat.js', 'firebase-firestore-compat.js']
-    .forEach(name => {
-      const src = `${base}/${name}`;
-      if (!document.querySelector(`script[src="${src}"]`)) {
-        const s = document.createElement('script');
-        s.src   = src;
-        document.head.appendChild(s);
-      }
-    });
-})();
+// Preload Supabase SDK as early as possible so SikhayDB finds it ready
+;(function () {
+  const src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js'
+  if (!document.querySelector(`script[src="${src}"]`)) {
+    const s = document.createElement('script')
+    s.src   = src
+    document.head.appendChild(s)
+  }
+})()
