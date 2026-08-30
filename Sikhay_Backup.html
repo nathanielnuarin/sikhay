@@ -216,7 +216,12 @@ body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui
 
 <div class="toast" id="toast"></div>
 
+<script src="config.js"></script>
+<script src="SikhayDB.js"></script>
 <script>
+let _db = null;
+SikhayDB.requireAuth().then(db => { _db = db; });
+
 const KEYS = [
   { key:'sikhay_ot_v1',  label:'Order Tracker',        icon:'ti-package',          color:'#06b6d4' },
   { key:'sikhay_dt_v1',  label:'Design Tracker',        icon:'ti-palette',          color:'#8b5cf6' },
@@ -436,7 +441,7 @@ function renderImportPanel(filename) {
 }
 
 // ── IMPORT — EXECUTE ──────────────────────────────────────────
-function restoreSelected() {
+async function restoreSelected() {
   if (!_pendingBackup) return;
   const backup   = _pendingBackup;
   const restored = [];
@@ -464,10 +469,21 @@ function restoreSelected() {
   document.getElementById('import-panel').innerHTML = '';
   renderGrid();
 
-  if (failed.length) {
-    showToast(`Restored: ${restored.join(', ')}. Failed: ${failed.join(', ')}.`, 'err');
+  // Push restored data to Supabase so cloud matches what was restored
+  if (_db) {
+    showToast('Syncing restored data to Supabase…', 'ok');
+    try {
+      await _db.migrateLocalToCloud();
+      showToast(`Na-restore at na-sync sa Supabase: ${restored.join(', ')} ✓`, 'ok');
+    } catch(e) {
+      showToast(`Na-restore locally: ${restored.join(', ')}. Supabase sync failed — try refreshing.`, 'err');
+    }
   } else {
-    showToast(`Na-restore na: ${restored.join(', ')} ✓`, 'ok');
+    if (failed.length) {
+      showToast(`Restored: ${restored.join(', ')}. Failed: ${failed.join(', ')}.`, 'err');
+    } else {
+      showToast(`Na-restore na: ${restored.join(', ')} ✓`, 'ok');
+    }
   }
 }
 
