@@ -377,17 +377,6 @@ body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', syste
     <!-- ── DASHBOARD VIEW ── -->
     <div id="dash-view">
 
-    <!-- Cloud Sync Banner -->
-    <div id="sync-banner" style="display:none; margin:12px 16px 0; background:#1a1a0a; border:1px solid #f59e0b55; border-radius:10px; padding:12px 16px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-      <i class="ti ti-cloud-upload" style="color:#f59e0b; font-size:18px; flex-shrink:0;"></i>
-      <div style="flex:1; min-width:180px;">
-        <div style="font-size:13px; font-weight:700; color:#f59e0b;">Sync local data to Supabase</div>
-        <div id="sync-status" style="font-size:11px; color:#9ca3af; margin-top:2px;">Your existing data is on this device only. Sync it once to access from any device.</div>
-      </div>
-      <button id="sync-btn" onclick="doCloudSync()" style="background:#f59e0b; color:#0a0a0a; border:none; border-radius:7px; padding:7px 14px; font-size:12px; font-weight:700; cursor:pointer; flex-shrink:0;">Sync to Supabase</button>
-      <button onclick="dismissSync()" style="background:transparent; border:none; color:#6b7280; cursor:pointer; font-size:16px; line-height:1; flex-shrink:0;">×</button>
-    </div>
-
     <!-- Business Pulse -->
     <div class="pulse-strip" id="pulse-strip"></div>
 
@@ -834,8 +823,6 @@ function fullRefresh() { render(); showToast('Dashboard refreshed!', 'ok'); }
   updateClock();
   updateUserBadge();
   updateSyncBadge();
-  checkSyncBanner();
-
   // Auto-refresh every 60s — does NOT re-render if tab is hidden to avoid disturbing active work in other tabs
   setInterval(async () => {
     if (document.hidden) return;
@@ -859,47 +846,6 @@ function fullRefresh() { render(); showToast('Dashboard refreshed!', 'ok'); }
   window.addEventListener('offline', () => updateSyncBadge());
 })();
 
-// ── Cloud Sync ──
-function checkSyncBanner() {
-  if (localStorage.getItem('sikhay_cloud_synced')) return;
-  const hasData = (
-    (JSON.parse(localStorage.getItem('sikhay_ot_v1')  || '[]')).length > 0 ||
-    (JSON.parse(localStorage.getItem('sikhay_dt_v1')  || '[]')).length > 0 ||
-    (JSON.parse(localStorage.getItem('sikhay_dlv_v1') || '[]')).length > 0
-  );
-  if (hasData) {
-    const b = document.getElementById('sync-banner');
-    if (b) b.style.display = 'flex';
-  }
-}
-
-async function doCloudSync() {
-  const btn = document.getElementById('sync-btn');
-  const status = document.getElementById('sync-status');
-  btn.disabled = true;
-  btn.textContent = 'Syncing…';
-  try {
-    await db.migrateLocalToCloud(msg => { status.textContent = msg; });
-    status.textContent = 'All data synced to Supabase!';
-    status.style.color = '#22c55e';
-    btn.textContent = 'Done';
-    setTimeout(() => {
-      const b = document.getElementById('sync-banner');
-      if (b) b.style.display = 'none';
-    }, 3000);
-  } catch(e) {
-    status.textContent = 'Sync failed: ' + e.message;
-    status.style.color = '#ef4444';
-    btn.disabled = false;
-    btn.textContent = 'Retry';
-  }
-}
-
-function dismissSync() {
-  localStorage.setItem('sikhay_cloud_synced', '1');
-  const b = document.getElementById('sync-banner');
-  if (b) b.style.display = 'none';
-}
 </script>
 </body>
 </html>
