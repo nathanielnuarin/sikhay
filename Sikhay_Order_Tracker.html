@@ -174,17 +174,6 @@ body {
 .badge-ready      { background: #f59e0b18; color: var(--ready); }
 .badge-delivered  { background: #22c55e18; color: var(--delivered); }
 
-.payment-chip {
-  font-size: 11px;
-  padding: 3px 9px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.payment-chip.unpaid  { background: #ef444418; color: var(--danger); border: 1px solid #ef444440; }
-.payment-chip.partial { background: #f59e0b18; color: var(--ready); border: 1px solid #f59e0b40; }
-.payment-chip.paid    { background: #22c55e18; color: var(--delivered); border: 1px solid #22c55e40; }
 
 .deadline-chip { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 3px; }
 .deadline-chip.urgent { color: var(--danger); }
@@ -474,19 +463,6 @@ body {
       </div>
     </div>
 
-    <!-- PAYMENT -->
-    <div class="section-divider">Payment</div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Total Amount (₱) *</label>
-        <input class="form-input" id="f-total" type="number" placeholder="e.g. 8000" min="0" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">DP Paid (₱)</label>
-        <input class="form-input" id="f-dp" type="number" placeholder="e.g. 4000" min="0" />
-      </div>
-    </div>
-
     <!-- SIZE BREAKDOWN -->
     <div class="section-divider">Size Breakdown</div>
     <div class="form-row-3">
@@ -637,20 +613,6 @@ function renderOrders() {
 
 // ─── BUILD CARD ───────────────────────────────────────────────
 function buildCard(o) {
-  const dp      = parseFloat(o.dp)    || 0;
-  const total   = parseFloat(o.total) || 0;
-  const balance = Math.max(0, total - dp);
-  const payStatus = o.fullyPaid    ? 'paid'
-    : dp === 0     ? 'unpaid'
-    : balance <= 0 ? 'paid'
-    : 'partial';
-
-  const payLabel = {
-    unpaid:  'No Payment',
-    partial: `₱${balance.toLocaleString()} balance`,
-    paid:    'Fully paid'
-  }[payStatus];
-
   // Deadline
   let dlChip = '';
   if (o.deadline) {
@@ -685,10 +647,6 @@ function buildCard(o) {
       </div>
       <div class="card-right">
         ${dlChip}
-        <span class="payment-chip ${payStatus}" id="chip-pay-${o.id}">
-          <i class="ti ti-${payStatus === 'paid' ? 'check' : payStatus === 'partial' ? 'clock' : 'alert-circle'}"></i>
-          ${payLabel}
-        </span>
         <span class="badge badge-${o.status}">${STATUS_LABELS[o.status]}</span>
       </div>
       <i class="ti ti-chevron-down chevron" id="chv-${o.id}"></i>
@@ -736,7 +694,6 @@ function buildCard(o) {
         <div class="template-tabs" id="tabs-${o.id}">
           <button class="ttab active" onclick="switchTab('${o.id}','prod_start',this)">Production Start</button>
           <button class="ttab" onclick="switchTab('${o.id}','ready_msg',this)">Ready</button>
-          <button class="ttab" onclick="switchTab('${o.id}','balance_msg',this)">Balance Reminder</button>
           <button class="ttab" onclick="switchTab('${o.id}','done_msg',this)">Completed</button>
         </div>
         <div class="template-output" id="tpl-${o.id}"></div>
@@ -947,9 +904,6 @@ function renderTemplate(orderId, tab) {
 }
 
 function getTemplate(o, tab) {
-  const total   = parseFloat(o.total) || 0;
-  const dp      = parseFloat(o.dp)    || 0;
-  const balance = Math.max(0, total - dp);
   const dlStr   = o.deadline
     ? new Date(o.deadline).toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'})
     : '___________';
@@ -974,36 +928,11 @@ Tapos na po ang inyong order at ready na for ${o.delivery === 'delivery' ? 'deli
 📦 ORDER SUMMARY:
 • ${o.apparel} — ${o.qty} pcs${o.ref ? ` (${o.ref})` : ''}
 
-${balance > 0 ? `💰 BALANCE DUE:
-• Total: ₱${total.toLocaleString()}
-• DP Paid: ₱${dp.toLocaleString()}
-• Balance: ₱${balance.toLocaleString()}
-
-Kindly po i-prepare ang balance upon ${o.delivery === 'delivery' ? 'delivery' : 'pickup'}.` : '✅ Fully paid na po — walang balance.'}
-
 ${o.delivery === 'pickup'
 ? `Maaari na po kayong mag-pickup sa aming shop. Anytime po kami available!'`
 : `Padadalhan na po namin kayo ng order. I-message namin kayo para sa exact na oras. 🚚`}
 
 Salamat sa tiwala sa Sikhay Premium Apparel! 🖤`;
-
-    case 'balance_msg':
-      return balance > 0
-        ? `Hello po ${o.clientName}! 😊
-
-Paalala lang po tungkol sa balance ng inyong order:
-
-💰 PAYMENT SUMMARY:
-• Total Amount : ₱${total.toLocaleString()}
-• DP Paid      : ₱${dp.toLocaleString()}
-• Balance Due  : ₱${balance.toLocaleString()}
-
-Pwede po bayaran via:
-• GCash: ___________
-• Cash upon ${o.delivery === 'delivery' ? 'delivery' : 'pickup'}
-
-Para sa mga katanungan, huwag po kayong mag-atubiling mag-message. Salamat po! 🙏`
-        : `(Walang balance — fully paid na ang order na ito.)`;
 
     case 'done_msg':
       return `Hello po ${o.clientName}! 😊
@@ -1122,7 +1051,7 @@ function openAddModal() {
 
 function closeAddModal() {
   document.getElementById('add-modal').classList.add('hidden');
-  ['f-client','f-ref','f-qty','f-deadline','f-total','f-dp','f-notes'].forEach(id => {
+  ['f-client','f-ref','f-qty','f-deadline','f-notes'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -1139,7 +1068,6 @@ function submitOrder() {
   const apparel  = document.getElementById('f-apparel').value;
   const qty      = parseInt(document.getElementById('f-qty').value);
   const deadline = document.getElementById('f-deadline').value;
-  const total    = parseFloat(document.getElementById('f-total').value) || 0;
 
   if (!client)         { showToast('Enter client name.', 'error'); return; }
   if (!apparel)        { showToast('Select apparel type.', 'error'); return; }
@@ -1159,9 +1087,6 @@ function submitOrder() {
     qty,
     deadline,
     delivery:   document.getElementById('f-delivery').value,
-    total,
-    dp:         parseFloat(document.getElementById('f-dp').value) || 0,
-    fullyPaid:  false,
     sizes,
     notes:      document.getElementById('f-notes').value.trim(),
     status:     'for_layout',
