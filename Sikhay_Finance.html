@@ -350,17 +350,23 @@ function getDeliveredInMonth(year, month) {
 
 function calcRecognizedRevenue(year, month) {
   const fin = getFinData();
-  // Orders that have a linked invoice are tracked via invoice payment income entries
   const invoicedOrderIds = new Set((fin.invoices||[]).map(i => i.orderId).filter(Boolean));
-  // Legacy: delivered orders with no invoice use the order.total field
+  // Non-invoiced delivered orders: use sellingPrice from Finance costs (falls back to o.total for old orders)
   const orderRevenue = getDeliveredInMonth(year, month)
     .filter(o => !invoicedOrderIds.has(o.id))
-    .reduce((s, o) => s + (parseFloat(o.total)||0), 0);
-  // Invoice-based: payments auto-synced into fin.income (identified by invoiceId field)
+    .reduce((s, o) => {
+      const costs = fin.orderCosts.find(x => x.orderId === o.id);
+      return s + (parseFloat(costs?.sellingPrice) || parseFloat(o.total) || 0);
+    }, 0);
+  // Invoice-based income entries
   const invoiceRevenue = (fin.income||[])
     .filter(e => e.invoiceId && inMonth(e.date, year, month))
     .reduce((s, e) => s + (parseFloat(e.amount)||0), 0);
-  return orderRevenue + invoiceRevenue;
+  // Manual income entries (not tied to invoices — e.g. walk-in cash, other income)
+  const manualRevenue = (fin.income||[])
+    .filter(e => !e.invoiceId && inMonth(e.date, year, month))
+    .reduce((s, e) => s + (parseFloat(e.amount)||0), 0);
+  return orderRevenue + invoiceRevenue + manualRevenue;
 }
 
 function calcCashCollected(year, month) {
@@ -516,7 +522,10 @@ function calcThisWeek() {
   const expenses = fin.expenses.filter(e => inWeek(e.date)).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
   return {
     count:     orders.length,
-    value:     orders.reduce((s, o) => s + (parseFloat(o.total) || 0), 0),
+    value:     orders.reduce((s, o) => {
+      const costs = fin.orderCosts.find(x => x.orderId === o.id);
+      return s + (parseFloat(costs?.sellingPrice) || parseFloat(o.total) || 0);
+    }, 0),
     expenses:  expenses,
     delivered: getDeliveries().filter(d => inWeek(d.deliveredAt)).length,
   };
@@ -652,16 +661,11 @@ function renderOverview() {
           <span class="panel-row-val val-green">${peso(rev)}</span>
         </div>
         <div class="panel-row">
-          <span class="panel-row-label">Cash Collected (DP + GCash)</span>
-          <span class="panel-row-val">${peso(collected)}</span>
+          <span class="panel-row-label" style="font-size:11px;color:var(--muted)">Delivered orders + manual income + invoices</span>
         </div>
         <div class="panel-row">
-          <span class="panel-row-label">Income Logged (Manual)</span>
+          <span class="panel-row-label">Manual Income Logged</span>
           <span class="panel-row-val val-green">${peso(manInc)}</span>
-        </div>
-        <div class="panel-row">
-          <span class="panel-row-label">Pending Balances</span>
-          <span class="panel-row-val val-amber">${peso(pending)}</span>
         </div>
       </div>
       <div class="panel">
@@ -976,10 +980,11 @@ function renderOrderCosts() {
   const selOrder = orders.find(o => o.id === selOrderId);
   const costs    = getOrderCostForOrder(selOrderId);
 
-  const total_ex = (parseFloat(costs.garments)||0) + (parseFloat(costs.inkPaper)||0) + (parseFloat(costs.labor)||0) + (parseFloat(costs.other)||0);
-  const orderTotal = parseFloat(selOrder?.total)||0;
-  const profit   = orderTotal - total_ex;
-  const margin   = orderTotal > 0 ? Math.round(profit/orderTotal*100) : 0;
+  const total_ex   = (parseFloat(costs.garments)||0) + (parseFloat(costs.inkPaper)||0) + (parseFloat(costs.labor)||0) + (parseFloat(costs.other)||0);
+  // Selling price: from Finance costs record (falls back to o.total for old orders)
+  const orderTotal = parseFloat(costs.sellingPrice) || parseFloat(selOrder?.total) || 0;
+  const profit     = orderTotal - total_ex;
+  const margin     = orderTotal > 0 ? Math.round(profit/orderTotal*100) : 0;
   const profitColor = profit >= 0 ? 'val-green' : 'val-red';
   const marginColor = margin >= 30 ? 'val-green' : margin >= 15 ? 'val-amber' : 'val-red';
 
@@ -987,7 +992,7 @@ function renderOrderCosts() {
     const o = orders.find(x => x.id === c.orderId);
     if (!o) return null;
     const tot = (parseFloat(c.garments)||0)+(parseFloat(c.inkPaper)||0)+(parseFloat(c.labor)||0)+(parseFloat(c.other)||0);
-    const ot  = parseFloat(o.total)||0;
+    const ot  = parseFloat(c.sellingPrice) || parseFloat(o.total) || 0;
     const pr  = ot - tot;
     const mg  = ot > 0 ? Math.round(pr/ot*100) : 0;
     return { o, c, tot, ot, pr, mg };
@@ -1011,7 +1016,7 @@ function renderOrderCosts() {
   const noRows = noCosts.map(o => `
     <div class="ocl-row">
       <span>${esc(o.clientName||'Unknown')} <span style="color:var(--muted);font-size:12px">· ${esc(o.apparel||'')}</span></span>
-      <span style="font-weight:700">${peso(parseFloat(o.total)||0)}</span>
+      <span style="font-weight:700;color:var(--muted)">—</span>
       <span class="no-cost-badge">no costs yet</span>
       <span>—</span><span>—</span>
       <button class="btn btn-ghost" style="padding:4px 8px;font-size:11px" onclick="selOrderId='${esc(o.id)}';renderOrderCosts()"><i class="ti ti-edit"></i></button>
@@ -1026,6 +1031,10 @@ function renderOrderCosts() {
           <div class="form-group">
             <label class="form-label">Select Order</label>
             <select class="form-select" id="oc-order" onchange="selOrderId=this.value;renderOrderCosts()">${opts}</select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="color:var(--green);font-weight:700">Selling Price (₱) ★</label>
+            <input type="number" class="form-input" id="oc-sp" value="${costs.sellingPrice||''}" placeholder="Total charged to client" min="0" style="border-color:#22c55e44" />
           </div>
           <div class="form-group">
             <label class="form-label">Blank Garments (₱)</label>
@@ -1071,13 +1080,14 @@ function renderOrderCosts() {
 }
 
 function saveOrderCost() {
-  const garments = parseFloat(document.getElementById('oc-garments').value) || 0;
-  const inkPaper = parseFloat(document.getElementById('oc-ink').value)      || 0;
-  const labor    = parseFloat(document.getElementById('oc-labor').value)    || 0;
-  const other    = parseFloat(document.getElementById('oc-other').value)    || 0;
+  const sellingPrice = parseFloat(document.getElementById('oc-sp').value)      || 0;
+  const garments     = parseFloat(document.getElementById('oc-garments').value) || 0;
+  const inkPaper     = parseFloat(document.getElementById('oc-ink').value)      || 0;
+  const labor        = parseFloat(document.getElementById('oc-labor').value)    || 0;
+  const other        = parseFloat(document.getElementById('oc-other').value)    || 0;
   const fin = getFinData();
   const idx = fin.orderCosts.findIndex(x => x.orderId === selOrderId);
-  const entry = { orderId: selOrderId, garments, inkPaper, labor, other };
+  const entry = { orderId: selOrderId, sellingPrice, garments, inkPaper, labor, other };
   if (idx >= 0) fin.orderCosts[idx] = entry;
   else fin.orderCosts.push(entry);
   saveFinData(fin);
