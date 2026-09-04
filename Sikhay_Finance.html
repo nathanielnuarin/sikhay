@@ -250,6 +250,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', syste
   <button class="tab" onclick="switchTab('order-costs',this)">Per-Order Costs</button>
   <button class="tab" onclick="switchTab('reports',this)">Reports</button>
   <button class="tab" onclick="switchTab('invoices',this)">Invoices</button>
+  <button class="tab" onclick="switchTab('items',this)">Items</button>
 </nav>
 
 <div class="content">
@@ -259,6 +260,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', syste
   <div id="pane-order-costs" class="tab-pane"></div>
   <div id="pane-reports"     class="tab-pane"></div>
   <div id="pane-invoices"    class="tab-pane"></div>
+  <div id="pane-items"       class="tab-pane"></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -298,6 +300,7 @@ function getFinData() {
     if (!d.income)           d.income = [];
     if (!d.customIncomeCats) d.customIncomeCats = [];
     if (!d.invoices)         d.invoices = [];
+    if (!d.catalog)          d.catalog = [];
     return d;
   } catch { return { expenses:[], orderCosts:[], income:[], customIncomeCats:[] }; }
 }
@@ -454,6 +457,7 @@ function switchTab(name, el) {
   if (name === 'order-costs') renderOrderCosts();
   if (name === 'reports')     renderReports();
   if (name === 'invoices')    renderInvoices();
+  if (name === 'items')       renderItems();
 }
 
 // ── MONTH NAVIGATION ──────────────────────────────────────────
@@ -1181,6 +1185,157 @@ function renderReports() {
   `;
 }
 
+// ── ITEMS CATALOG ─────────────────────────────────────────────
+
+let _itemSearch = '';
+
+function renderItems() {
+  const fin  = getFinData();
+  const list = (fin.catalog||[]).filter(c =>
+    !_itemSearch || c.name.toLowerCase().includes(_itemSearch.toLowerCase()) ||
+    (c.code||'').toLowerCase().includes(_itemSearch.toLowerCase())
+  ).sort((a,b) => a.name.localeCompare(b.name));
+
+  const rows = list.length ? list.map(c => `
+    <tr>
+      <td style="padding:12px 16px;font-weight:700;font-size:13px">${esc(c.name)}</td>
+      <td style="padding:12px 16px;color:var(--muted);font-size:12px">${esc(c.code||'—')}</td>
+      <td style="padding:12px 16px;font-weight:700;font-size:13px;color:var(--green)">${c.price ? peso(c.price) : '—'}</td>
+      <td style="padding:12px 16px;color:var(--muted);font-size:12px">${esc(c.description||'—')}</td>
+      <td style="padding:12px 16px;text-align:right">
+        <button class="btn btn-ghost btn-sm" onclick="editCatalogItem('${esc(c.id)}')" style="font-size:11px;margin-right:4px"><i class="ti ti-pencil"></i></button>
+        <button class="del-btn" onclick="deleteCatalogItem('${esc(c.id)}')"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>`).join('')
+  : `<tr><td colspan="5" style="padding:40px 16px;text-align:center;color:var(--muted)"><i class="ti ti-tag" style="font-size:28px;display:block;margin-bottom:8px"></i>No items yet — add your first item or save an invoice to auto-populate</td></tr>`;
+
+  document.getElementById('pane-items').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:12px;flex-wrap:wrap">
+      <h2 style="margin:0;font-size:18px;font-weight:800">Items Catalog</h2>
+      <div style="display:flex;gap:10px;align-items:center">
+        <input class="inv-search" type="text" placeholder="Search items…" value="${esc(_itemSearch)}"
+          oninput="_itemSearch=this.value;renderItems()" style="width:200px">
+        <button class="btn btn-primary" onclick="openAddCatalogItem()"><i class="ti ti-plus"></i> Add Item</button>
+      </div>
+    </div>
+    <div id="catalog-add-form" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:18px">
+      <h3 style="margin:0 0 14px;font-size:14px" id="catalog-form-title">Add Item</h3>
+      <div style="display:grid;grid-template-columns:1fr 140px 140px;gap:10px;margin-bottom:10px">
+        <div class="form-group">
+          <label class="form-label">Item Name <span style="color:var(--danger)">*</span></label>
+          <input class="form-input" id="cat-name" placeholder="e.g. FULL SUBLIMATION - JERSEY SANDO" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Product Code</label>
+          <input class="form-input" id="cat-code" placeholder="e.g. FS-001" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Unit Price (₱)</label>
+          <input class="form-input" id="cat-price" type="number" min="0" placeholder="0" />
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">Description / Notes</label>
+        <input class="form-input" id="cat-desc" placeholder="e.g. PREMIUM QUALITY FREE LAYOUT" />
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="saveCatalogItem()"><i class="ti ti-device-floppy"></i> Save</button>
+        <button class="btn btn-ghost" onclick="closeCatalogForm()">Cancel</button>
+      </div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="background:var(--surface2);border-bottom:1px solid var(--border)">
+            <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Name</th>
+            <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Product Code</th>
+            <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Price</th>
+            <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Description</th>
+            <th style="padding:10px 16px;text-align:right;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px"></th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--muted)">
+      <i class="ti ti-info-circle"></i> Items are auto-added to this catalog when you save an invoice.
+    </div>
+  `;
+}
+
+let _editingCatalogId = null;
+
+function openAddCatalogItem() {
+  _editingCatalogId = null;
+  document.getElementById('catalog-form-title').textContent = 'Add Item';
+  ['cat-name','cat-code','cat-price','cat-desc'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('catalog-add-form').style.display = 'block';
+  document.getElementById('cat-name').focus();
+}
+
+function editCatalogItem(id) {
+  const fin  = getFinData();
+  const item = (fin.catalog||[]).find(c => c.id === id);
+  if (!item) return;
+  _editingCatalogId = id;
+  document.getElementById('catalog-form-title').textContent = 'Edit Item';
+  document.getElementById('cat-name').value  = item.name || '';
+  document.getElementById('cat-code').value  = item.code || '';
+  document.getElementById('cat-price').value = item.price || '';
+  document.getElementById('cat-desc').value  = item.description || '';
+  document.getElementById('catalog-add-form').style.display = 'block';
+  document.getElementById('cat-name').focus();
+}
+
+function closeCatalogForm() {
+  document.getElementById('catalog-add-form').style.display = 'none';
+  _editingCatalogId = null;
+}
+
+function saveCatalogItem() {
+  const name  = (document.getElementById('cat-name').value || '').trim();
+  if (!name) { showToast('Enter an item name.'); return; }
+  const code  = (document.getElementById('cat-code').value || '').trim();
+  const price = parseFloat(document.getElementById('cat-price').value) || 0;
+  const desc  = (document.getElementById('cat-desc').value || '').trim();
+  const fin   = getFinData();
+  if (!fin.catalog) fin.catalog = [];
+  if (_editingCatalogId) {
+    const idx = fin.catalog.findIndex(c => c.id === _editingCatalogId);
+    if (idx >= 0) fin.catalog[idx] = { ...fin.catalog[idx], name, code, price, description: desc };
+  } else {
+    const dup = fin.catalog.find(c => c.name.toLowerCase() === name.toLowerCase());
+    if (dup) { showToast('An item with this name already exists.'); return; }
+    fin.catalog.push({ id: uid(), name, code, price, description: desc });
+  }
+  saveFinData(fin);
+  showToast(_editingCatalogId ? 'Item updated.' : 'Item added.');
+  closeCatalogForm();
+  renderItems();
+}
+
+function deleteCatalogItem(id) {
+  if (!confirm('Remove this item from the catalog?')) return;
+  const fin = getFinData();
+  fin.catalog = (fin.catalog||[]).filter(c => c.id !== id);
+  saveFinData(fin);
+  showToast('Item removed.');
+  renderItems();
+}
+
+function autofillItemPrice(itemId, value) {
+  const fin   = getFinData();
+  const match = (fin.catalog||[]).find(c => c.name.toLowerCase() === value.toLowerCase());
+  if (!match) return;
+  updateInvItem(itemId, 'price', match.price || 0);
+  updateInvoiceTotals();
+  const priceEl = document.getElementById('iprice-' + itemId);
+  if (priceEl) priceEl.value = match.price || 0;
+}
+
 // ── INVOICES ──────────────────────────────────────────────────
 
 let _invFilter  = 'all';
@@ -1193,6 +1348,15 @@ function saveInvoiceData(inv) {
   const fin = getFinData();
   const idx = fin.invoices.findIndex(i => i.id === inv.id);
   if (idx >= 0) fin.invoices[idx] = inv; else fin.invoices.unshift(inv);
+  // Auto-save new items to catalog
+  (inv.items||[]).forEach(it => {
+    if (!it.description) return;
+    const exists = (fin.catalog||[]).find(c => c.name.toLowerCase() === it.description.toLowerCase());
+    if (!exists) {
+      if (!fin.catalog) fin.catalog = [];
+      fin.catalog.push({ id: uid(), name: it.description, code: '', price: parseFloat(it.price)||0, description: it.subDesc||'' });
+    }
+  });
 
   // ── Sync income entries for this invoice ──────────────────────
   if (!fin.income) fin.income = [];
@@ -1411,22 +1575,26 @@ function renderInvoiceForm() {
   const s     = getInvStatus(inv);
   const rf    = inv.rushFee || { type:'none', amount:0 };
 
+  const catalogDatalist = `<datalist id="item-catalog-list">${(getFinData().catalog||[]).map(c=>`<option value="${esc(c.name)}">`).join('')}</datalist>`;
+
   const itemsHTML = (inv.items||[]).map(item => {
     const isFree = !!item.free;
     const amt    = isFree ? 'FREE' : peso((parseFloat(item.qty)||0)*(parseFloat(item.price)||0));
     const freeRow = isFree ? 'background:#0d2b0d;' : '';
     return `
-      <div style="${freeRow}border-bottom:1px solid var(--border);padding:8px 12px">
+      <div id="irow-${item.id}" style="${freeRow}border-bottom:1px solid var(--border);padding:8px 12px">
         <div style="display:grid;grid-template-columns:1fr 75px 115px 105px 30px;gap:8px;align-items:center">
           <div style="display:flex;align-items:center;gap:7px">
             <input type="checkbox" title="FREE item" ${isFree?'checked':''} style="width:14px;height:14px;accent-color:#22c55e;cursor:pointer;flex-shrink:0"
               onchange="toggleInvItemFree('${item.id}',this.checked)">
             <input class="form-input" style="font-size:12px" placeholder="Item / Description" value="${esc(item.description)}"
-              oninput="updateInvItem('${item.id}','description',this.value)">
+              list="item-catalog-list"
+              oninput="updateInvItem('${item.id}','description',this.value)"
+              onchange="autofillItemPrice('${item.id}',this.value)">
           </div>
           <input class="form-input" style="font-size:12px;text-align:right" type="number" min="0" step="1" value="${item.qty||1}"
             oninput="updateInvItem('${item.id}','qty',parseFloat(this.value)||0);updateInvoiceTotals()">
-          <input class="form-input" style="font-size:12px;text-align:right${isFree?';opacity:.35;pointer-events:none':''}" type="number" min="0" step="0.01" placeholder="0.00" value="${isFree?0:(item.price||'')}"
+          <input id="iprice-${item.id}" class="form-input" style="font-size:12px;text-align:right${isFree?';opacity:.35;pointer-events:none':''}" type="number" min="0" step="0.01" placeholder="0.00" value="${isFree?0:(item.price||'')}"
             oninput="updateInvItem('${item.id}','price',parseFloat(this.value)||0);updateInvoiceTotals()">
           <div class="inv-amt-cell" id="iamt-${item.id}" style="${isFree?'color:#22c55e;font-weight:800':'font-weight:600'}">${amt}</div>
           <button class="del-btn" onclick="removeInvoiceItem('${item.id}')"><i class="ti ti-x"></i></button>
@@ -1515,6 +1683,7 @@ function renderInvoiceForm() {
           </div>
           <div id="inv-items-body">${itemsHTML}</div>
         </div>
+        ${catalogDatalist}
         <button class="btn btn-ghost" style="margin-top:10px;font-size:12px" onclick="addInvoiceItem()">
           <i class="ti ti-plus"></i> Add Item
         </button>
@@ -2019,21 +2188,6 @@ function printInvoice() {
       </tr>`;
   }).join('');
 
-  // Summary / breakdown rows
-  const summaryRows = (inv.items||[]).map(item => {
-    const isFree = !!item.free;
-    const qty    = parseFloat(item.qty)||0;
-    const price  = parseFloat(item.price)||0;
-    const valStr = isFree
-      ? `<span style="color:#e65c00;font-weight:800">FREE</span>`
-      : `&#8369;${(qty*price).toLocaleString('en-PH',{minimumFractionDigits:2})}`;
-    const calc   = isFree ? (qty>1?`(${qty} pcs)`:'') : `(${qty} x &#8369;${price.toLocaleString('en-PH',{minimumFractionDigits:2})})`;
-    return `<tr>
-      <td style="padding:5px 14px;font-size:12px;color:#333">${esc(item.description)} ${calc}</td>
-      <td colspan="2"></td>
-      <td style="padding:5px 14px;text-align:right;font-size:12px">${valStr}</td>
-    </tr>`;
-  }).join('');
 
   // Rush row
   let rushRow = '';
@@ -2179,7 +2333,7 @@ function printInvoice() {
   <!-- SUMMARY BREAKDOWN -->
   <div class="summary-section">
     <table>
-      <tbody style="background:#fafafa">${summaryRows}${rushRow}${t.downpayment?`<tr style="border-top:1px solid #ddd"><td style="padding:5px 14px;font-size:12px;color:#2e7d32;font-weight:600">Less Downpayment</td><td colspan="2"></td><td style="padding:5px 14px;text-align:right;font-size:12px;color:#2e7d32;font-weight:700">&#8722;${pesoFmt(t.downpayment)}</td></tr>`:''}${totalSubRow}${pmtRows}</tbody>
+      <tbody style="background:#fafafa">${rushRow}${t.downpayment?`<tr style="border-top:1px solid #ddd"><td style="padding:5px 14px;font-size:12px;color:#2e7d32;font-weight:600">Less Downpayment</td><td colspan="2"></td><td style="padding:5px 14px;text-align:right;font-size:12px;color:#2e7d32;font-weight:700">&#8722;${pesoFmt(t.downpayment)}</td></tr>`:''}${totalSubRow}${pmtRows}</tbody>
     </table>
   </div>
 
